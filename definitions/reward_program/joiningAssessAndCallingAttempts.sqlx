@@ -1,0 +1,8 @@
+config {
+    type: "view"
+}
+
+SELECT *
+from ${ ref("callAttempts") }
+left join ${ ref("assdata") }
+on parentid = OnboardedUserId and childId = assesseeActorID

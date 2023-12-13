@@ -1,0 +1,14 @@
+config {
+    type:"view"
+}
+select *
+from 
+${ref("calling")}  t1
+left join 
+${ref('assdata')} t2
+on t1.Childid = t2.assesseeActorid
+
+
+
+
+ 
