@@ -13,12 +13,12 @@ with lastCalled as (
     group by parentId,childId
 )
 , opted_out_reasons as (
-    select distinct parentId, childId ,datetime(CallstartDatetime)opted_out_Date,Feedbackreason
+    select distinct parentId, childId ,datetime(CallstartDatetime)opted_out_Date,Feedbackreason as opt_out_reason
     from ${ref("calling")}
     where Feedbacktype like "%OPTED_OUT%"
 )
 
-select o.parentId,o.childId, True opt_out_status,lastCalled,last_opted_out,Feedbackreason
+select o.parentId,o.childId, True opt_out_status,lastCalled,last_opted_out,opt_out_reason
 from lastOptedOut o
 left join lastCalled c
 on o.parentId = c.parentId and o.childId = c.Childid
