@@ -1,15 +1,35 @@
- config {
+config {
     type: "table"
 }
 
-select  distinct *
-from ${ref("removedBau")} main
-left join ${ref("joiningAssessAndCallingAttempts")} ca
-on main.rosterparentId = ca.parentId
-left join ${ref("rewardPoints")}
-on main.phone_number = number 
-left join ${ref("agentDetails")} a
-on main.rosterparentId = a.parentId 
-left join ${ref("opt_outs")}o
-on main.rosterparentId = o.parentId
-
+SELECT
+  DISTINCT main.*,
+  round1CallAttempts,
+  round2CallAttempts,
+  round3CallAttempts,
+  Round_1_assessment,
+  Round_2_assessment,
+  Round_3_assessment,
+  rewardPoints,
+  agentNumber,
+  agentName,
+  opt_status,
+  Feedbackreason
+FROM
+  ${ref("removedBau")} main
+LEFT JOIN
+  ${ref("joiningAssessAndCallingAttempts")} ca
+ON
+  main.rosterparentId = ca.parentId
+LEFT JOIN
+  ${ref("rewardPoints")}
+ON
+  main.phone_number = number
+LEFT JOIN
+  ${ref("agentDetails")} a
+ON
+  main.rosterparentId = a.parentId
+LEFT JOIN
+  ${ref("opt_outs")}o
+ON
+  main.rosterparentId = o.parentId

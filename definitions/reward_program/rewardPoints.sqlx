@@ -1,5 +1,5 @@
 config {
-    type: "incremental"
+    type: "view"
 }
 
 select distinct  safe_cast(urn as int64)number,max(safe_cast(json_value(details,"$.reward_points") as int64)) rewardPoints,
