@@ -1,9 +1,0 @@
-config
-{
-    type: "view"
-}
-
-select *
-from ${ref("assessment")}
-
-
