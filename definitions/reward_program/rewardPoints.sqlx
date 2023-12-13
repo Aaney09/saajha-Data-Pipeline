@@ -2,7 +2,8 @@ config {
     type: "incremental"
 }
 
-select distinct  safe_cast(urn as int64)phone_number,safe_cast(json_value(details,"$.reward_points") as int64) rewardPoints,
+select distinct  safe_cast(urn as int64)number,max(safe_cast(json_value(details,"$.reward_points") as int64)) rewardPoints,
 from `911171279787.contacts`
 where safe_cast(json_value(details,"$.reward_points") as int64) is not null
+group by number
 ORDER BY rewardPoints

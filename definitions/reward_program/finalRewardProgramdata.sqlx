@@ -1,0 +1,15 @@
+ config {
+    type: "table"
+}
+
+select  distinct *
+from ${ref("removedBau")} main
+left join ${ref("joiningAssessAndCallingAttempts")} ca
+on main.rosterparentId = ca.parentId
+left join ${ref("rewardPoints")}
+on main.phone_number = number 
+left join ${ref("agentDetails")} a
+on main.rosterparentId = a.parentId 
+left join ${ref("opt_outs")}o
+on main.rosterparentId = o.parentId
+

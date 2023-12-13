@@ -1,5 +1,5 @@
 config {
-    type: "incremental"
+    type: "view"
     
 }
 with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,
@@ -160,7 +160,7 @@ using(assesseeActorid)
 -- using(assesseeActorid)
 )
 
-select a.*,c.OnboardedUserId
+select a.*,OnboardedUserId
 from assessmentDetails A
 left join `platform_commons.IE` c
 on a.assesseeActorId=c.IEID
