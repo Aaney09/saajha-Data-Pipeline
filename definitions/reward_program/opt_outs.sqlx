@@ -2,29 +2,28 @@ config {
     type: "view"
 }
 with lastCalled as (
-    select parentId,childId,max(CallstartDatetime)lastCalled
+    select parentId,childId,max(datetime(CallstartDatetime))lastCalled
     from ${ref("calling")}
     group by parentId,childId
 )
 , lastOptedOut as (
-    select parentId,childId,max(CallstartDatetime)last_opted_out
+    select parentId,childId,max(datetime(CallstartDatetime))last_opted_out
     from ${ref("calling")}
     where Feedbacktype like "%OPTED_OUT%"
     group by parentId,childId
 )
 , opted_out_reasons as (
-    select distinct parentId, childId ,CallstartDatetime,Feedbackreason
+    select distinct parentId, childId ,datetime(CallstartDatetime)opted_out_Date,Feedbackreason
     from ${ref("calling")}
     where Feedbacktype like "%OPTED_OUT%"
 )
 
-select o.parentId,o.childId, "YES" opt_status,lastCalled,last_opted_out,Feedbackreason
+select o.parentId,o.childId, True opt_out_status,lastCalled,last_opted_out,Feedbackreason
 from lastOptedOut o
 left join lastCalled c
 on o.parentId = c.parentId and o.childId = c.Childid
 inner join opted_out_reasons r
 on o.parentId = r.parentId 
 and o.childId = r.childId
-and o.last_opted_out=r.CallstartDatetime
-
+and o.last_opted_out=r.opted_out_Date
 where o.last_opted_out>=c.lastCalled
