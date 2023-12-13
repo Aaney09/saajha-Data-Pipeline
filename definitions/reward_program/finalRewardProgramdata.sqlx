@@ -4,6 +4,7 @@ config {
 
 SELECT
   DISTINCT main.*,
+  if(round1CallAttempts = 0 or round1CallAttempts is null ,"NO","YES") call_attempt_status,
   round1CallAttempts,
   round2CallAttempts,
   round3CallAttempts,
@@ -22,9 +23,9 @@ LEFT JOIN
 ON
   main.rosterparentId = ca.parentId
 LEFT JOIN
-  ${ref("rewardPoints")}
+  ${ref("rewardPoints")}r
 ON
-  main.phone_number = number
+  main.phone_number = r.number
 LEFT JOIN
   ${ref("agentDetails")} a
 ON
