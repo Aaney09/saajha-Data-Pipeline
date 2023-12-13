@@ -4,17 +4,18 @@ config {
 
 SELECT
   DISTINCT main.*,
-  if(round1CallAttempts = 0 or round1CallAttempts is null ,"NO","YES") call_attempt_status,
+  if(round1CallAttempts = 0 or round1CallAttempts is null ,FALSE,TRUE) call_attempt_status,
   round1CallAttempts,
   round2CallAttempts,
   round3CallAttempts,
-  Round_1_assessment,
+  Round_1_assessment, 
   Round_2_assessment,
   Round_3_assessment,
   rewardPoints,
   agentNumber,
   agentName,
   opt_status,
+  last_opted_out optedOutOn,
   Feedbackreason
 FROM
   ${ref("removedBau")} main
