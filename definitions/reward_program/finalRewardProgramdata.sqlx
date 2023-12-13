@@ -16,7 +16,7 @@ SELECT
   agentName,
   opt_out_status,
   last_opted_out optedOutOn,
-  Feedbackreason
+  opt_out_reason
 FROM
   ${ref("removedBau")} main
 LEFT JOIN
