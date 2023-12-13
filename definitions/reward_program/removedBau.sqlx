@@ -3,7 +3,7 @@ config {
 }
 
 SELECT
-  distinct phone_number,rosterparentId,ieid,DisplayName,Education
+  distinct phone_number,Treatments ,rosterparentId,ieid,DisplayName,Education
 FROM
   ${ref("rewardProgram")}
 LEFT JOIN (
