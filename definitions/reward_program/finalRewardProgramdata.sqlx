@@ -14,7 +14,7 @@ SELECT
   rewardPoints,
   agentNumber,
   agentName,
-  opt_status,
+  opt_out_status,
   last_opted_out optedOutOn,
   Feedbackreason
 FROM

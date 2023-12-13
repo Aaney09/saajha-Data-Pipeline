@@ -18,7 +18,7 @@ with lastCalled as (
     where Feedbacktype like "%OPTED_OUT%"
 )
 
-select o.parentId,o.childId, True opt_status,lastCalled,last_opted_out,Feedbackreason
+select o.parentId,o.childId, True opt_out_status,lastCalled,last_opted_out,Feedbackreason
 from lastOptedOut o
 left join lastCalled c
 on o.parentId = c.parentId and o.childId = c.Childid
