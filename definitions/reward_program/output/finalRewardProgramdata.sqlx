@@ -1,0 +1,37 @@
+config {
+    type: "table"
+}
+
+SELECT
+  DISTINCT main.*,
+  if(round1CallAttempts = 0 or round1CallAttempts is null ,FALSE,TRUE) call_attempt_status,
+  round1CallAttempts,
+  round2CallAttempts,
+  round3CallAttempts,
+  Round_1_assessment, 
+  Round_2_assessment,
+  Round_3_assessment,
+  rewardPoints,
+  agentNumber,
+  agentName,
+  opt_out_status,
+  last_opted_out optedOutOn,
+  opt_out_reason
+FROM
+  ${ref("removedBau")} main
+LEFT JOIN
+  ${ref("joiningAssessAndCallingAttempts")} ca
+ON
+  main.rosterparentId = ca.parentId
+LEFT JOIN
+  ${ref("rewardPoints")}r
+ON
+  main.phone_number = r.number
+LEFT JOIN
+  ${ref("agentDetails")} a
+ON
+  main.rosterparentId = a.parentId
+LEFT JOIN
+  ${ref("opt_outs")}optOut
+ON
+  main.rosterparentId = optOut.parentId

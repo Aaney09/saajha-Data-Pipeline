@@ -1,0 +1,166 @@
+config {
+    type: "view"
+    
+}
+with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,
+from ${ref("assessment")}
+where QuestionText like "%Ask%" and date(AssessmentTakenOn) >= "2023-04-10")
+
+,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from hindiAss
+order by assesseeActorid asc,hindiAssessDate asc,hindiLagDate asc)
+
+,
+hindiData as ((select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0)
+
+UNION ALL
+(select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))>=30)
+order by assesseeActorId  desc)
+
+, hindi as (select *, row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiData
+order by assesseeActorId asc,hindirounds asc)
+
+, mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
+from ${ref("assessment")}
+where QuestionText not like "%Ask%" and date(assessmentTakenOn) >= "2023-04-10")
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from mathAss
+order by assesseeActorid asc,mathAssessDate asc,mathLagDate asc)
+
+, mathData as((select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mahtdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0)
+
+UNION ALL
+(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))>=30)
+order by assesseeActorId  desc)
+
+, math as
+(select *, row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds
+from mathData
+order by assesseeActorId asc,mathrounds asc)
+
+, hindiMath as (select math.*, hindi.*Except(assesseeActorId)
+from hindi
+inner join
+math 
+on math.assesseeActorId = hindi.assesseeactorId
+and math.mathrounds = hindi.hindirounds
+)
+,
+assessmentDetails as 
+(select r1.* except(m1,h1),
+r2.Round_2_Assessment,
+r3.Round_3_Assessment,
+r4.Round_4_Assessment,
+-- r5.Round_5_Assessment,
+-- r6.Round_6_Assessment,
+-- r7.Round_7_Assessment,
+-- r8.Round_8_Assessment,
+-- r9.Round_9_Assessment,
+-- r10.Round_10_Assessment,
+-- r11.Round_11_Assessment,
+-- r12.Round_12_Assessment
+
+from
+(select distinct assesseeActorid,mathassessdate m1,hindiAssessDate h1,greatest(hindiAssessDate,mathAssessDate)Round_1_assessment
+from hindimath
+where hindiRounds=1)r1
+
+
+left join
+(select distinct  assesseeActorid,
+mathAssessDate m2,hindiAssessDate h2,
+greatest(mathassessdate,hindiAssessDate)Round_2_Assessment 
+from hindiMath
+where hindiRounds=2)r2
+using(assesseeActorid)
+
+Left join(select assesseeActorid,
+mathAssessDate m3,hindiAssessdate h3,
+greatest(mathassessdate,hindiAssessDate)Round_3_Assessment 
+from hindiMath
+where mathRounds=3)r3
+using(assesseeActorid)
+
+left join
+(select assesseeActorid,
+mathAssessDate m4,hindiAssessdate h4,
+greatest(mathassessdate,hindiAssessDate)Round_4_Assessment 
+from hindimath
+where mathRounds=4)r4
+using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m5,hindiAssessdate h5,
+-- greatest(mathassessdate,hindiAssessDate) Round_5_Assessment from hindiMath
+-- where mathRounds=5)r5
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m6,hindiAssessdate h6,
+-- greatest(mathassessdate,hindiAssessDate)Round_6_Assessment 
+-- from hindiMath
+-- where mathRounds=6)r6
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m7,hindiAssessdate h7,
+-- greatest(mathassessdate,hindiAssessDate)Round_7_Assessment 
+-- from hindiMath
+-- where hindiRounds = 7)r7
+-- using(assesseeActorid)
+
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m8,hindiAssessdate h8,
+-- greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,
+-- from hindiMath
+-- where hindiRounds = 8)r8
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m9,hindiAssessdate h9,
+-- greatest(mathassessdate,hindiAssessDate) Round_9_Assessment
+-- from hindiMath
+-- where hindiRounds = 9)r9
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m10,hindiAssessdate h10,
+-- greatest(mathassessdate,hindiAssessDate)  Round_10_Assessment,
+-- from hindiMath
+-- where hindiRounds = 10)r10
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m11,hindiAssessdate h11,
+-- greatest(mathassessdate,hindiAssessDate) Round_11_Assessment
+-- from hindiMath
+-- where hindiRounds = 11)r11
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m12,hindiAssessdate h12,
+-- greatest(mathassessdate,hindiAssessDate) Round_12_Assessment
+-- from hindiMath
+-- where hindiRounds = 12)r12
+-- using(assesseeActorid)
+)
+
+select a.*,OnboardedUserId
+from assessmentDetails A
+left join `platform_commons.IE` c
+on a.assesseeActorId=c.IEID
