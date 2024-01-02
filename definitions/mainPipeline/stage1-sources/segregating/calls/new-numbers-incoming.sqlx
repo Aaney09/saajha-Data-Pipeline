@@ -1,7 +1,0 @@
-with noPIds as (select distinct agentName, ParentMobile,parentId
-from ${ref("incoming")}
-where parentId is null),
-
-NotCalledEarlier
-(select
-from c)
