@@ -1,0 +1,14 @@
+config {
+    type:"view"
+}
+
+SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    message_type, 
+    content message_content, 
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+from ${ref("messages")}
+where message_type not in ("interactive","button") and direction="inbound"

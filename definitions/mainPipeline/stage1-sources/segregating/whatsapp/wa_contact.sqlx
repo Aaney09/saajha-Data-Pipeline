@@ -1,0 +1,26 @@
+config {
+    type:"view"
+}
+
+select distinct
+
+datetime_add(datetime(timestamp(json_value(details, "$.opted_in_at"))),INTERVAL 330 minute)opted_in_at,
+datetime_add(datetime(timestamp(json_value(details, "$.last_seen_at"))),INTERVAL 330 minute)last_seen_at,
+datetime_add(datetime(timestamp(json_value(details, "$.last_message_received_at"))),INTERVAL 330 minute) last_message_received_at,
+datetime_add(datetime(timestamp(json_value(details, "$.last_message_sent_at"))),INTERVAL 330 minute) last_message_sent_at,
+json_value(details, "$.name") name,
+json_value(details, "$.whatsapp_profile_name") whatsappProfileName,
+json_value(details, "$.is_blocked") isBlocked,
+json_value(details, "$.isagent") isAgent,
+json_value(details, "$.projectid") ProjectId,
+json_value(details, "$.parentid") parentId,
+json_value(details, "$.childid") childId,
+json_value(details, "$.childname") childname,
+json_value(details, "$.profile") profile,
+json_value(details, "$.reward_points") rewardPoints,
+json_value(details, "$.agentphonenumber") agentNumber,
+safe_cast(JSON_VALUE(details,"$.whatsapp_id") as int64) whatsapp_id,
+safe_cast(urn as int64) phone_number
+
+from ${ref("contacts")}
+where safe_cast(urn as int64) is not null and char_length(right(urn,12)) = 12 and starts_with(right(urn, 12),"91")
