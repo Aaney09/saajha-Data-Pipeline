@@ -35,3 +35,11 @@ LEFT JOIN
   ${ref("opt_outs")}optOut
 ON
   main.rosterparentId = optOut.parentId
+ 
+
+
+ 
+
+
+
+

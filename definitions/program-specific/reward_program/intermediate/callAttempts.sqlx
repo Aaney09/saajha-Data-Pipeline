@@ -11,16 +11,18 @@ SELECT
   ) round1CallAttempts,
   COUNT(DISTINCT
   IF
-    (DATE(CallstartDatetime)<=Round_2_assessment and DATE(CallstartDatetime)>Round_1_assessment,CallstartDatetime,Null)
+    ((DATE(CallstartDatetime)<=Round_2_assessment or (Round_1_assessment is not null and Round_2_assessment is null))and DATE(CallstartDatetime)>Round_1_assessment,CallstartDatetime,Null)
   ) round2CallAttempts,
   COUNT(DISTINCT
   IF
-    (DATE(CallstartDatetime)<=Round_3_assessment and DATE(CallstartDatetime)>Round_2_assessment,CallstartDatetime,Null)
+    ((DATE(CallstartDatetime)<=Round_3_assessment or (Round_2_assessment is not null and Round_3_assessment is null)) and DATE(CallstartDatetime)>Round_2_assessment,CallstartDatetime,Null)
   ) round3CallAttempts
 FROM ${ref("calling")} t1 
 LEFT join ${ref('assdata')} t2
 ON
   t1.parentid = t2.OnboardedUserId and childId = assesseeActorId
+
+
 group by 
   ParentId,
   Childid
