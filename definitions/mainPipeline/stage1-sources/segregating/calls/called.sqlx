@@ -10,7 +10,7 @@ SELECT
   CallstartDatetime,
   Feedbacktype,
   Feedbackreason,
-  isAutoDialer 
+  isAutoDialerCall
 FROM
   ${ref("incoming")}
   where ParentId is not null and childId is not null
@@ -23,7 +23,7 @@ SELECT
   CallstartDatetime,
   Feedbacktype,
   Feedbackreason,
-  isAutoDialer
+  isAutoDialerCall
 FROM
   ${ref("roster")}
   where Childid is not null
