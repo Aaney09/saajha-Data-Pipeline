@@ -1,5 +1,6 @@
 config {
-    type:"view"
+    type:"table",
+    tags: "daily"
 }
 select distinct
     safe_cast(trim(from_addr,"+") as int64) phone_number,

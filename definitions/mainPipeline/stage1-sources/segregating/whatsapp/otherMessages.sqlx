@@ -1,6 +1,8 @@
 config {
-    type:"view"
+    type:"table",
+    tags: "daily"
 }
+
 
 SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
@@ -17,4 +19,8 @@ SELECT distinct
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     datetime_add(updated_at, Interval 330 minute)last_updated_status_at
 from ${ref("messages")}
-where message_type not in ("interactive","template") and direction="outbound"
+-- ${when(incremental(), 
+-- `WHERE 
+-- (datetime_add(inserted_at, Interval 330 minute) > (SELECT MAX(sent_at) FROM ${self()})
+-- or datetime_add(updated_at, Interval 330 minute) > (SELECT MAX(last_updated_status_at) FROM ${self()})) `) }
+where message_type not in ("interactive","template") and direction="outbound" 

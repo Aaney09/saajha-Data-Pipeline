@@ -1,26 +1,33 @@
 config {
-    type:"view"
+    type: "table",
+    tags: "daily"
 }
 
-select distinct
+SELECT
+  DISTINCT 
+  LAST_VALUE(DATETIME_ADD(DATETIME(TIMESTAMP(JSON_VALUE(details, "$.opted_in_at"))),INTERVAL 330 minute)) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) opted_in_at,
+  LAST_VALUE(DATETIME_ADD(DATETIME(TIMESTAMP(JSON_VALUE(details, "$.last_seen_at"))),INTERVAL 330 minute)) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)last_seen_at,
+  LAST_VALUE(DATETIME_ADD(DATETIME(TIMESTAMP(JSON_VALUE(details, "$.last_message_received_at"))),INTERVAL 330 minute)) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) last_message_received_at,
+  LAST_VALUE(DATETIME_ADD(DATETIME(TIMESTAMP(JSON_VALUE(details, "$.last_message_sent_at"))),INTERVAL 330 minute)) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) last_message_sent_at,
+  LAST_VALUE(JSON_VALUE(details, "$.name")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) name,
+  LAST_VALUE(JSON_VALUE(details, "$.whatsapp_profile_name")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) whatsappProfileName,
+  LAST_VALUE(JSON_VALUE(details, "$.is_blocked")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) isBlocked,
+  LAST_VALUE(JSON_VALUE(details, "$.isagent")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) isAgent,
+  LAST_VALUE(JSON_VALUE(details, "$.projectid")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) ProjectId,
+  LAST_VALUE(JSON_VALUE(details, "$.parentid")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) parentId,
+  LAST_VALUE(JSON_VALUE(details, "$.childid")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) childId,
+  LAST_VALUE(JSON_VALUE(details, "$.childname")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) childname,
+  LAST_VALUE(JSON_VALUE(details, "$.profile")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) profile,
+  LAST_VALUE(JSON_VALUE(details, "$.reward_points")) OVER(PARTITION BY id ORDER BY updated_at asc ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) rewardPoints,
+-- JSON_VALUE(details, "$.agentphonenumber") agentNumber,
+-- JSON_VALUE(details,"$.whatsapp_id") whatsapp_id,
+SAFE_CAST(urn AS int64) phone_number,
+  id,
+  
+FROM
+  ${ref("contacts")}
 
-datetime_add(datetime(timestamp(json_value(details, "$.opted_in_at"))),INTERVAL 330 minute)opted_in_at,
-datetime_add(datetime(timestamp(json_value(details, "$.last_seen_at"))),INTERVAL 330 minute)last_seen_at,
-datetime_add(datetime(timestamp(json_value(details, "$.last_message_received_at"))),INTERVAL 330 minute) last_message_received_at,
-datetime_add(datetime(timestamp(json_value(details, "$.last_message_sent_at"))),INTERVAL 330 minute) last_message_sent_at,
-json_value(details, "$.name") name,
-json_value(details, "$.whatsapp_profile_name") whatsappProfileName,
-json_value(details, "$.is_blocked") isBlocked,
-json_value(details, "$.isagent") isAgent,
-json_value(details, "$.projectid") ProjectId,
-json_value(details, "$.parentid") parentId,
-json_value(details, "$.childid") childId,
-json_value(details, "$.childname") childname,
-json_value(details, "$.profile") profile,
-json_value(details, "$.reward_points") rewardPoints,
-json_value(details, "$.agentphonenumber") agentNumber,
-safe_cast(JSON_VALUE(details,"$.whatsapp_id") as int64) whatsapp_id,
-safe_cast(urn as int64) phone_number
-
-from ${ref("contacts")}
-where safe_cast(urn as int64) is not null and char_length(right(urn,12)) = 12 and starts_with(right(urn, 12),"91")
+WHERE
+  SAFE_CAST(urn AS int64) IS NOT NULL
+  AND CHAR_LENGTH(RIGHT(urn,12)) = 12
+  AND STARTS_WITH(RIGHT(urn, 12),"91")
