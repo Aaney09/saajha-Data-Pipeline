@@ -8,12 +8,12 @@ SELECT
   childId,
   ParentMobile,
   CallstartDatetime,
-  Feedbacktype,
+  Feedbacktype, 
   Feedbackreason,
   isAutoDialerCall
 FROM
   ${ref("incoming")}
-  where ParentId is not null and childId is not null
+  where CallstartDatetime is not null
 UNION DISTINCT
 SELECT
   DISTINCT agentMobile,agentName,ProjectId,
@@ -26,4 +26,4 @@ SELECT
   isAutoDialerCall
 FROM
   ${ref("roster")}
-  where Childid is not null
+  where CallstartDatetime is not null
