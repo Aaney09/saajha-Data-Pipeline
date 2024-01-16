@@ -1,7 +1,7 @@
 config {
     type: "table",
     tags:"rewardProgram",
-    description: "Description of the table",
+    description: "metrics of reward program",
     columns: {
         TreatmentNames: "names of the three treatment arms",
         totalParents: "Count of Unique parent ids in each treatment arm",
