@@ -24,13 +24,15 @@ config {
         averageRound3CallAttempts: "average calls attempts in round 3",
         MaxRound1CallsAttempts: "maximum call attempts in round 1",
         MaxRound2CallsAttempts: "maximum call attempts in round 2",
-        MaxRound3CallsAttempts: "maximum call attempts in round 3"
+        MaxRound3CallsAttempts: "maximum call attempts in round 3",
+        totalOptedOutParents: "total opted out parents"
     }
 }
 
 SELECT
   Treatments AS TreatmentNames,
   count(distinct rosterParentid) AS totalParents,
+  count(distinct if(opt_out_status = true,rosterParentid,Null) )AS totalOptedOutParents,
   Round((count(distinct if(Round_1_assessment is not null,rosterParentid,Null))/count(distinct rosterParentid))*100,3) AS totalParentsToFirstAssessmentConversion,
   Round((count(distinct if(Round_2_assessment is not null,rosterParentid,Null))/count(distinct rosterParentid))*100,3) AS totalParentsToSecondAssessmentConversion,
   Round((count(distinct if(Round_3_assessment is not null,rosterParentid,Null))/count(distinct rosterParentid))*100,3) AS TotalParentsToThirdAssessmentConversion,
@@ -42,17 +44,17 @@ SELECT
 
   min(round1CallAttempts) minRound1CallsAttempts,
   STDDEV(round1CallAttempts) stdeviationRound1CallsAttempts,
-  round((sum(round1CallAttempts)/count(distinct rosterParentid))*100,3) averageRound1CallAttempts,
+  round(avg(round1CallAttempts)*100,3) averageRound1CallAttempts,
   max(round1CallAttempts) MaxRound1CallsAttempts,
 
   min(round2CallAttempts) minRound2CallsAttempts,
   STDDEV(round2CallAttempts) stdeviationRound2CallsAttempts,
-  round((sum(round2CallAttempts)/count(distinct rosterParentid))*100,3) averageRound2CallAttempts,
+  round(avg(round2CallAttempts)*100,3) averageRound2CallAttempts,
   max(round2CallAttempts) MaxRound2CallsAttempts,
 
   min(round3CallAttempts) minRound3CallsAttempts,
   STDDEV(round3CallAttempts) stdeviationRound3CallsAttempts,
-  round((sum(round3CallAttempts)/count(distinct rosterParentid))*100,3) averageRound3CallAttempts,
+  round(avg(round3CallAttempts)*100,3) averageRound3CallAttempts,
   max(round3CallAttempts) MaxRound3CallsAttempts,
  
 FROM
