@@ -9,7 +9,7 @@ config {
         totalParentsToSecondAssessmentConversion: "count Of ParentId with second assessment divide by total parent ids",
         TotalParentsToThirdAssessmentConversion: "count Of ParentId with third assessment divide by total parent ids",
         FirstAssessmentToSecondAssessmentConversion: "count Of ParentId with second assessment parentids divide by first assessment parent ids",
-        FirstAssessmentToSecondAssessmentConversion: "count Of ParentId with second assessment parentids divide by first assessment parent ids",
+        secondAssessmentToSecondAssessmentConversion: "count Of ParentId with third assessment parentids divide by second assessment parent ids",
         TotalRewardPoints: "total rewards point",
         AverageRewardPoint: "average rewards point",
         standardDeviationRewardPoints: "standard deviation of reward points",
