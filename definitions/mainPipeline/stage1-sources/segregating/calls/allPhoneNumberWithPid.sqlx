@@ -1,0 +1,42 @@
+config {
+    type:"table"
+}
+SELECT
+    DISTINCT
+  IF
+    (userRolesCode LIKE "%linked%",reportingUserId,userid)rosterparentId,
+    SAFE_CAST(CONCAT("91",userlogin) AS int64)number, ProjectId
+  FROM
+    ${ref("User")}
+  WHERE
+    UserRolesCode LIKE "%parent%"
+  UNION DISTINCT
+  SELECT
+    DISTINCT ParentId,
+    SAFE_CAST(CONCAT("91",ParentMobile) AS int64)number,
+     ProjectId
+  FROM
+    ${ref("roster")}
+  UNION DISTINCT
+  SELECT
+    DISTINCT ParentId,
+    SAFE_CAST(CONCAT("91",ParentMobile) AS int64)number,
+     ProjectId
+  FROM
+    ${ref("incoming")}
+  WHERE
+    ParentId IS NOT NULL
+  UNION DISTINCT
+  SELECT
+    DISTINCT ParentId,
+    SAFE_CAST(CONCAT("91",alternateMobileNumber) AS int64)number, ProjectId    
+  FROM
+    ${ref("prelim")}
+  WHERE
+    ParentId IS NOT NULL and ProjectId is not null
+ UNION DISTINCT
+ select OnboardedUserId,SAFE_CAST(CONCAT("91",onboardeduserlogin) AS int64)number, ProjectId
+ from ${ref("IE")}
+
+
+

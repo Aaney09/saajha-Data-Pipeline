@@ -1,0 +1,29 @@
+config {
+    type: "view"
+}
+
+SELECT
+  DISTINCT agentMobile,agentName,ProjectId,
+  ParentId,
+  childId,
+  ParentMobile,
+  CallstartDatetime,
+  Feedbacktype, 
+  Feedbackreason,
+  isAutoDialerCall
+FROM
+  ${ref("incoming")}
+  where CallstartDatetime is not null
+UNION DISTINCT
+SELECT
+  DISTINCT agentMobile,agentName,ProjectId,
+  ParentId,
+  childId,
+  ParentMobile,
+  CallstartDatetime,
+  Feedbacktype,
+  Feedbackreason,
+  isAutoDialerCall
+FROM
+  ${ref("roster")}
+  where CallstartDatetime is not null
