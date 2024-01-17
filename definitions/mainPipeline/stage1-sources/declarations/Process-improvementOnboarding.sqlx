@@ -1,0 +1,6 @@
+config {
+    type:"declaration",
+    database: "saajhadata",
+    schema : "process_improvement",
+    name: "enrolled_wa_parents"
+}
