@@ -1,0 +1,22 @@
+config {
+    type: "table"
+}
+
+SELECT
+  DISTINCT firstEnrolledOn,
+  phone_number,"main_number" number_type,
+  firstEnrolledAgentNumber,
+  FirstEnrollmentFlowType,
+  enrolled_in,
+from ${ref("pi_enroll")}
+
+ union distinct
+ 
+ SELECT
+  DISTINCT firstEnrolledOn,
+  alternateNumber,"alternate_number" number_type,
+  firstEnrolledAgentNumber,
+  FirstEnrollmentFlowType,
+  enrolled_in,
+from ${ref("pi_enroll")}
+where alternateNumber is not null
