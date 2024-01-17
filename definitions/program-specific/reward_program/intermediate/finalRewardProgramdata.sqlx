@@ -32,7 +32,7 @@ LEFT JOIN
 ON
   main.rosterparentId = a.parentId
 LEFT JOIN
-  ${ref("opt_outs")}optOut
+  ${ref("opted_out")}optOut
 ON
   main.rosterparentId = optOut.parentId
  
