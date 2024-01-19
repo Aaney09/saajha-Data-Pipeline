@@ -8,8 +8,7 @@ from ${ref("template-sent")}
 where date(sent_at) ="2024-01-17" 
 and 
 template_name in 
-("sandbox_request_assessment_button_generic",
-"sandbox_request_assessment_button"))
+("sandbox_request_assessment_button_generic","sandbox_request_assessment_button"))
 
 ,templateResponse as (
   select phone_number,template_button_template_name rfaTriggerTempName,responded_at
@@ -27,5 +26,5 @@ left join templateResponse tr
 using(phone_number,rfaTriggerTempName)
 left Join ConfirmationMsg  cm 
 using(phone_number)
-where ConfirmationMsgLastStatus is not null
+
 
