@@ -3,7 +3,7 @@ config {
     tags:"rfa"
 }
 
-select *except(phone_number)
+select *except(phone_number),if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
 from ${ref("rfaDryRun_AssessAnddOptOutsInRFA")}rfa
 left join ${ref("callAttemptsforDryRunRFA")}ca 
 using(PID, C_ID)

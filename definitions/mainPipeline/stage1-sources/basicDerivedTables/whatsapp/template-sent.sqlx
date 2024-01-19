@@ -17,6 +17,7 @@ SELECT distinct
     last_value(last_status) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
-    datetime_add(updated_at, Interval 330 minute)updated_status_at
+    last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at 
 from ${ref("messages")}
 where message_type = "template"
