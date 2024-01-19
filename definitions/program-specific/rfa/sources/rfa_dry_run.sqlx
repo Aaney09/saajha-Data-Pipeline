@@ -1,0 +1,7 @@
+config {
+    type: "declaration",
+    database: "saajhadata",
+    schema: "process_improvement",
+    name:"RFA_dry_run_17th_jan"
+}
+

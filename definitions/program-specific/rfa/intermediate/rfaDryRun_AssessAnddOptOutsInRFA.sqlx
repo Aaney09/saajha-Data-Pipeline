@@ -1,0 +1,17 @@
+config {
+    type: "view",
+    tags: "rfa"
+}
+
+
+select *
+from ${ref("RFA_dry_run_17th_jan")} as rfa
+left join ${ref("s3_all")} assess
+On rfa.C_ID= assess.childId
+left join ${ref("opted_out")} o
+on rfa.C_ID = o.childId
+left join ${ref("FLNAchieved")}fln
+on rfa.C_ID=fln.Childid
+-- make it subject wise or round wise later before 30 days finishes
+
+

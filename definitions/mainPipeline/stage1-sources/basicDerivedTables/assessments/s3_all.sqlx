@@ -1,0 +1,114 @@
+config {
+    type:"table",
+    tags: "assessments"
+}
+
+with hindiMath as (select md.*, hd.*Except(childId)
+from ${ref("s3_hindi")} hd 
+inner join ${ref("s3_math")} md
+on md.childId = hd.childId
+and md.mathrounds = hd.hindirounds
+)
+
+
+select *
+-- r1.* except(m1,h1),
+-- r2.Round_2_Assessment,
+-- r3.Round_3_Assessment,
+-- r4.Round_4_Assessment,
+-- r5.Round_5_Assessment,
+-- r6.Round_6_Assessment,
+-- r7.Round_7_Assessment,
+-- r8.Round_8_Assessment,
+-- r9.Round_9_Assessment,
+-- r10.Round_10_Assessment,
+-- r11.Round_11_Assessment,
+-- r12.Round_12_Assessment
+
+from
+(select distinct childId,mathassessdate m1,hindiAssessDate h1,greatest(hindiAssessDate,mathAssessDate)Round_1_assessment,hindiLevel as r1_hindiLevel,mathLevel
+as r1_mathlevel 
+from hindimath
+where hindiRounds=1)r1
+
+
+left join
+(select distinct  childId,
+mathAssessDate m2,hindiAssessDate h2,
+greatest(mathassessdate,hindiAssessDate)Round_2_Assessment,hindiLevel as r2_hindiLevel,mathLevel as r2_mathlevel
+from hindiMath
+where hindiRounds=2)r2
+using(childId)
+
+Left join(select childId,
+mathAssessDate m3,hindiAssessdate h3,
+greatest(mathassessdate,hindiAssessDate)Round_3_Assessment,hindiLevel as r3_hindiLevel,mathLevel as r3_mathlevel
+from hindiMath
+where mathRounds=3)r3
+using(childId)
+
+left join
+(select childId,
+mathAssessDate m4,hindiAssessdate h4,
+greatest(mathassessdate,hindiAssessDate)Round_4_Assessment,hindiLevel as r4_hindiLevel,mathLevel as r4_mathlevel
+from hindimath
+where mathRounds=4)r4
+using(childId)
+
+left join(select childId,
+mathAssessDate m5,hindiAssessdate h5,
+greatest(mathassessdate,hindiAssessDate) Round_5_Assessment,hindiLevel as r5_hindiLevel,mathLevel as r5_mathlevel
+from hindiMath
+where mathRounds=5)r5
+using(childId)
+
+left join(select childId,
+mathAssessDate m6,hindiAssessdate h6,
+greatest(mathassessdate,hindiAssessDate)Round_6_Assessment,hindiLevel as r6_hindiLevel,mathLevel as r6_mathlevel
+from hindiMath
+where mathRounds=6)r6
+using(childId)
+
+left join(select childId,
+mathAssessDate m7,hindiAssessdate h7,
+greatest(mathassessdate,hindiAssessDate)Round_7_Assessment,hindiLevel as r7_hindiLevel,mathLevel as r7_mathlevel
+from hindiMath
+where hindiRounds = 7)r7
+using(childId)
+
+
+left join(select childId,
+mathAssessDate m8,hindiAssessdate h8,
+greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hindiLevel,mathLevel as r8_mathlevel
+from hindiMath
+where hindiRounds = 8)r8
+using(childId)
+
+left join(select childId,
+mathAssessDate m9,hindiAssessdate h9,
+greatest(mathassessdate,hindiAssessDate) Round_9_Assessment,hindiLevel as r9_hindiLevel,mathLevel as r9_mathlevel
+from hindiMath
+where hindiRounds = 9)r9
+using(childId)
+
+left join(select childId,
+mathAssessDate m10,hindiAssessdate h10,
+greatest(mathassessdate,hindiAssessDate)  Round_10_Assessment,hindiLevel as r10_hindiLevel,mathLevel as r10_mathlevel
+from hindiMath
+where hindiRounds = 10)r10
+using(childId)
+
+left join(select childId,
+mathAssessDate m11,hindiAssessdate h11,
+greatest(mathassessdate,hindiAssessDate) Round_11_Assessment,hindiLevel as r11_hindiLevel,mathLevel as r11_mathlevel
+from hindiMath
+where hindiRounds = 11)r11
+using(childId)
+
+left join(select childId,
+mathAssessDate m12,hindiAssessdate h12,
+greatest(mathassessdate,hindiAssessDate) Round_12_Assessment,hindiLevel as r12_hindiLevel,mathLevel as r12_mathlevel
+from hindiMath
+where hindiRounds = 12)r12
+using(childId)
+

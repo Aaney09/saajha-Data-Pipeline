@@ -11,7 +11,8 @@ SELECT
   CallEndDatetime,
   Feedbacktype, 
   Feedbackreason,
-  isAutoDialerCall
+  isAutoDialerCall,
+  "incoming-outgoing" callFlowType
 FROM
   ${ref("incoming")}
   where CallstartDatetime is not null
@@ -25,7 +26,8 @@ SELECT
   CallEndDatetime,
   Feedbacktype,
   Feedbackreason,
-  isAutoDialerCall
+  isAutoDialerCall,
+  "outgoing-outgoing" callFlowType
 FROM
   ${ref("roster")}
   where CallstartDatetime is not null
