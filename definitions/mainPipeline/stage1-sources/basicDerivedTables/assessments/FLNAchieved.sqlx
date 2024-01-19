@@ -1,0 +1,7 @@
+config {
+    type: "table"
+}
+
+select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
+from ${ref("IE")}
+where FLNAchievedDate is not null
