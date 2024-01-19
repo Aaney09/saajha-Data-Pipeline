@@ -17,7 +17,7 @@ template_name in
 )
 ,ConfirmationMsg as (select phone_number,sent_at ConfirmationMsgSentAt,last_message_status ConfirmationMsgLastStatus,last_updated_status_at ConfirmationMsgSentAtLastUpdatedAt ,message_content as ConfirmationMsg
 from ${ref("otherMessages")}
-where message_content like "थोड़ा इंतज़ार करें, अगले 24 घंटे में हम हमारी टीम आपके%"
+where message_content like "थोड़ा इंतज़ार करें, अगले 24 घंटे में हम हमारी टीम आपके%" and flow_name= "Sandbox Request Assessment Experiment"
 and date(sent_at) >="2024-01-17")
 
 select *
