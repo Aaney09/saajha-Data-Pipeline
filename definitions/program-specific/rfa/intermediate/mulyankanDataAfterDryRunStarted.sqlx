@@ -17,5 +17,4 @@ and template_button_template_name= "mulyankan_pilot_template_v1")
 select *
 from mulyankanSent mul 
 left join mulyankanClicked mClicked
-on mul.phone_number= mclicked.phone_number
-and mul.mulyankanTemplate= mClicked.mulyankanTemplate
+using(phone_number,mulyankanTemplate)
