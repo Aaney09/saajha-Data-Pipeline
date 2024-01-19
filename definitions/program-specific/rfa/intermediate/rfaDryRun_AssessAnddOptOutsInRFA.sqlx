@@ -4,7 +4,11 @@ config {
 }
 
 
-select rfa.*,assess.*,o.opt_out_status,o.opt_out_reason,o.last_opted_out
+select rfa.*,Round_1_assessment,m1,r1_mathlevel,h1,r1_hindiLevel,m2,h2,Round_2_Assessment,r2_hindiLevel,r2_mathlevel
+
+Round_3_Assessment,m3 r3_mathlevel
+,h3,r3_hindiLevel
+,o.opt_out_status,o.opt_out_reason,o.last_opted_out
 from ${ref("RFA_dry_run_17th_jan")} as rfa
 left join ${ref("s3_all")} assess
 On rfa.C_ID= assess.childId
