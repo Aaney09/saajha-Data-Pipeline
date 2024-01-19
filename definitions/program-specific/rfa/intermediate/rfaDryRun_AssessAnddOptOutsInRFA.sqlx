@@ -4,7 +4,7 @@ config {
 }
 
 
-select *
+select rfa.*,assess.*,o.opt_out_status,o.opt_out_reason,o.last_opted_out
 from ${ref("RFA_dry_run_17th_jan")} as rfa
 left join ${ref("s3_all")} assess
 On rfa.C_ID= assess.childId
