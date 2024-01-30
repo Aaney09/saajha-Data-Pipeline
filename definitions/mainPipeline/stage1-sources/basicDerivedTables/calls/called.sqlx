@@ -4,10 +4,10 @@ config {
 }
 
 SELECT
-  DISTINCT agentMobile,agentName,ProjectId,
+  DISTINCT SAFE_CAST(CONCAT("91",agentMobile) AS int64)agentMobile,agentName,ProjectId,
   ParentId,
   childId,
-  ParentMobile,
+  SAFE_CAST(CONCAT("91",ParentMobile) AS int64)ParentMobile,
   CallstartDatetime,
   CallEndDatetime,
   Feedbacktype, 
@@ -19,10 +19,10 @@ FROM
   where CallstartDatetime is not null
 UNION DISTINCT
 SELECT
-  DISTINCT agentMobile,agentName,ProjectId,
+  DISTINCT SAFE_CAST(CONCAT("91",agentMobile) AS int64)agentMobile,agentName,ProjectId,
   ParentId,
   childId,
-  ParentMobile,
+  SAFE_CAST(CONCAT("91",ParentMobile) AS int64)ParentMobile,
   CallstartDatetime,
   CallEndDatetime,
   Feedbacktype,
