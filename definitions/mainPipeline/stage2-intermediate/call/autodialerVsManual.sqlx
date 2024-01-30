@@ -1,38 +1,50 @@
 config {
-    type: "table"
+    type: "table",
+    tags: "autoDialer"
 }
 
 with auto as (SELECT
-  DATE(CallstartDatetime)date_of_call,
+  DATE(CallstartDatetime)date_of_call,agentMobile,
   COUNT(DISTINCT CallstartDatetime)auto_totalttempts,
-  COUNT(DISTINCT ParentId)autoUniqueParentsCalled,
+  COUNT(DISTINCT ParentId)autoIniqueParentsCalled,
   count(distinct if(Feedbacktype like "%RESOLVED%",CallstartDatetime,Null))autoCallsMarkedResolved,
   count(distinct if(Feedbacktype like "%RESOLVED%",ParentId,Null))autoUniqueParentsMarkedResolved
 FROM
-  `dataform.called`
+ ${ref("called")}
 WHERE
   isAutoDialerCall = 1 and ProjectId = 1103233 and date(CallstartDatetime) >="2023-11-06"
 GROUP BY
-  date_of_call
+  date_of_call,agentMobile
 ORDER BY
   date_of_call desc)
 
 , manual as (SELECT
-  DATE(CallstartDatetime) date_of_call,
+  DATE(CallstartDatetime)date_of_call,agentMobile,
   COUNT(DISTINCT CallstartDatetime)manual_totalttempts,
   COUNT(DISTINCT ParentId)uniqueParentsCalled,
   count(distinct if(Feedbacktype like "%RESOLVED%",CallstartDatetime,Null))manualCallsMarkedResolved,
   count(distinct if(Feedbacktype like "%RESOLVED%",ParentId,Null))manualUniqueParentsMarkedResolved
 FROM
-  `dataform.called`
+  ${ref("called")}
 WHERE
   isAutoDialerCall = 0 and ProjectId = 1103233 and date(CallstartDatetime) >="2023-11-06"
 GROUP BY
-  date_of_call
+  date_of_call,agentMobile
 ORDER BY
   date_of_call desc)
+
+,agentdetals as (
+  select distinct agent_number,AgentName
+  from ${ref("agentData")}
+)
   
-select *
-from auto
-inner join manual
-on auto.date_of_call = manual.date_of_call
+, pre_final as (select a.*,m.* except(agentMobile,date_of_Call)
+from auto a
+inner join manual m 
+on a.date_of_call = m.date_of_call and a.agentMobile = m.agentMobile)
+
+select * except(agent_number)
+from pre_final pf
+left join agentdetals ad
+on pf.agentMobile = ad.agent_number
+
