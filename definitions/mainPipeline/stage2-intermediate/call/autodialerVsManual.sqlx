@@ -6,7 +6,7 @@ config {
 with auto as (SELECT
   DATE(CallstartDatetime)date_of_call,agentMobile,
   COUNT(DISTINCT CallstartDatetime)auto_totalttempts,
-  COUNT(DISTINCT ParentId)autoIniqueParentsCalled,
+  COUNT(DISTINCT ParentId)autoUniqueParentsCalled,
   count(distinct if(Feedbacktype like "%RESOLVED%",CallstartDatetime,Null))autoCallsMarkedResolved,
   count(distinct if(Feedbacktype like "%RESOLVED%",ParentId,Null))autoUniqueParentsMarkedResolved
 FROM
