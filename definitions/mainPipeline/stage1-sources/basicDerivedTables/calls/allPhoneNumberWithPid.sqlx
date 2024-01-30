@@ -10,6 +10,16 @@ SELECT
     ${ref("User")}
   WHERE
     UserRolesCode LIKE "%parent%"
+UNION DISTINCT 
+SELECT
+    DISTINCT
+  IF
+    (userRolesCode LIKE "%linked%",reportingUserId,userid)rosterparentId,
+    SAFE_CAST(CONCAT("91",USERMOBILE) AS int64)number, ProjectId
+  FROM
+    ${ref("User")}
+  WHERE
+    UserRolesCode LIKE "%parent%"
   UNION DISTINCT
   SELECT
     DISTINCT ParentId,
