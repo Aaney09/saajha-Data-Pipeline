@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "daily"
+    tags: "wa_daily"
 }
 select distinct
     safe_cast(trim(from_addr,"+") as int64) phone_number,
