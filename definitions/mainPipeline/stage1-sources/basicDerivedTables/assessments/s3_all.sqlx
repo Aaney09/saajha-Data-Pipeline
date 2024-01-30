@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "assessments"
+    tags: "call_daily"
 }
 
 with hindiMath as (select md.*, hd.*Except(childId)

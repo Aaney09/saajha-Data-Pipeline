@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "daily"
+    tags: "wa_daily"
 }
 
 
