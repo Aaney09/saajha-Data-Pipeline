@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "call_daily"
+    tags: "wa_daily"
 }
 
 SELECT *
