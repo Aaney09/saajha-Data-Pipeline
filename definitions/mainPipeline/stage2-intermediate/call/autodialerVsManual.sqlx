@@ -38,13 +38,14 @@ ORDER BY
   from ${ref("agentData")}
 )
   
-, pre_final as (select a.*,m.* except(agentMobile,date_of_Call)
-from auto a
-inner join manual m 
+, pre_final as (select m.*,a.* except(agentMobile,date_of_Call)
+from manual m 
+left join auto a
 on a.date_of_call = m.date_of_call and a.agentMobile = m.agentMobile)
 
 select * except(agent_number)
 from pre_final pf
-left join agentdetals ad
-on pf.agentMobile = ad.agent_number
+left join agentdetals ad 
+on pf.agentMobile = ad.agent_number 
+order by date_of_Call desc 
 
