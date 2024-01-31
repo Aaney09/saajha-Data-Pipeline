@@ -36,7 +36,7 @@ SELECT
     (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
     (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalUsers,
-  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) totalChildrenAssessed`,
+  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) totalChildrenAssessed,
   count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers
 from ${ref("mainRfaRawData")}
