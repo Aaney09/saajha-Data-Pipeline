@@ -8,12 +8,18 @@ SELECT
   COUNT(DISTINCT P_ID)TotalUsers,
   COUNT(DISTINCT
   IF
+    (sentFirstMessage = "yes",P_ID,NULL))totalFirstMsfSentUsers,
+  COUNT(DISTINCT
+  IF
     (firstMessageClicked = "yes",P_ID,NULL))totalFirstMsfCLickedUsers,
   SUM(
   IF
     (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
     (firstMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToFirstMsgClicked,
+   COUNT(DISTINCT
+  IF
+    (reminderMessageSent = "yes",P_ID,NULL))totalReminderMsfSentUsers,
   COUNT(DISTINCT
   IF
     (reminderMessageClicked = "yes",P_ID,NULL))totalReminderMsfCLickedUsers,
@@ -32,7 +38,7 @@ SELECT
     (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalusers,
   Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null))totalChildrenAssessed,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedusers
-from `${ref("mainRfaRawData")}
+from ${ref("mainRfaRawData")}
 WHERE
   assign = "Treatment"
 group by assign,days_of_Control
