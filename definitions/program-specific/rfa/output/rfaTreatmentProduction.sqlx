@@ -40,7 +40,7 @@ SELECT
   count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers
 from ${ref("mainRfaRawData")}
-WHERE
-  assign = "Treatment"
+-- WHERE
+  -- assign = "Treatment"
 group by assign,days_of_Control
 order by assign asc,days_of_Control asc
