@@ -5,39 +5,40 @@ config {
 
 SELECT
   assign,Days_of_Control as Cohort,
-  COUNT(DISTINCT P_ID)TotalUsers,
+  COUNT(DISTINCT P_ID)`Total Users`,
   COUNT(DISTINCT
   IF
-    (sentFirstMessage = "yes",P_ID,NULL))totalFirstMsfSentUsers,
+    (sentFirstMessage = "yes",P_ID,NULL))`total First Msg Sent Users`,
   COUNT(DISTINCT
   IF
-    (firstMessageClicked = "yes",P_ID,NULL))totalFirstMsfCLickedUsers,
+    (firstMessageClicked = "yes",P_ID,NULL))`total First Msg CLicked Users`,
   SUM(
   IF
     (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (firstMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToFirstMsgClicked,
+    (firstMessageClicked = "yes",IncomingCallAttempts,NULL))`total Call Attempts To First Msg Clicked`,
    COUNT(DISTINCT
   IF
-    (reminderMessageSent = "yes",P_ID,NULL))totalReminderMsfSentUsers,
+    (reminderMessageSent = "yes",P_ID,NULL))`total Reminder Msg Sent Users`,
   COUNT(DISTINCT
   IF
-    (reminderMessageClicked = "yes",P_ID,NULL))totalReminderMsfCLickedUsers,
+    (reminderMessageClicked = "yes",P_ID,NULL))`total Reminder Msg CLicked Users`,
   SUM(
   IF
     (reminderMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (reminderMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToReminderMsgClicked,
+    (reminderMessageClicked = "yes",IncomingCallAttempts,NULL)) `total total Call Attempts To Reminder Msg Clicked`,
   COUNT(DISTINCT
   IF
-    (TreatmentNormaCall = "yes",P_ID,NULL))totatNormalusers,
+    (TreatmentNormaCall = "yes",P_ID,NULL)) `totat Normal users`,
   SUM(
   IF
     (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalusers,
-  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null))totalChildrenAssessed,
-  count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedusers
+    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))`total Call Attempts To Normal users`,
+  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) `total Children Assessed`,
+  count(distinct if(mulyankanSent="yes",P_ID,null)) `mulyankan Sent Users`,
+  count(distinct if(mulyankanClicked="yes",P_ID,null)) `mulyankan Clicked Users`
 from ${ref("mainRfaRawData")}
 WHERE
   assign = "Treatment"
