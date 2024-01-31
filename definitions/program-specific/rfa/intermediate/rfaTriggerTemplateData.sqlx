@@ -25,12 +25,13 @@ and date(sent_at) >="2024-01-17")
 
 select distinct cm.phone_number,
 -- ConfirmationMsgSentAt,
-"yes" firstMessageClicked
+if(rfaTriggerTempNameSentAt is not null,"yes",null)sentFirstMessage,
+if(ConfirmationMsgSentAt is not null,"yes",null) firstMessageClicked
 from templateSent ts 
 -- left join templateResponse tr 
 -- using(phone_number,rfaTriggerTempName)
 left Join ConfirmationMsg  cm 
 using(phone_number)
-where ConfirmationMsgSentAt is not null
+
 
 
