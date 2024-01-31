@@ -5,6 +5,7 @@ config {
 
 select distinct * except(phone_number),
 if(assign = "Treatment" and (reminderMessageClicked is null and firstMessageClicked is null),"yes",null) TreatmentNormaCall,
+if(c.parentid is not null,"yes","no") callAttempted
 -- if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
 from ${ref("mainRfaAssessed")}rfa
 left join ${ref("mainRFAcallAttempt")}ca 
@@ -15,3 +16,5 @@ left join ${ref("rfaReminderTrigger")}reminrfa_temp
 on rfa.P_Mob_  = reminrfa_temp.phone_number
 left join ${ref("mulyankanDataAfterDryRunStarted")}mul
 on rfa.P_id = mul.parent_id
+left join (select distinct parentid from ${ref("called")} where date(callstartdatetime)>="2024-01-22")c
+on rfa.P_id = c.parentid

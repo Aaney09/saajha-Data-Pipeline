@@ -16,7 +16,7 @@ from ${ref("mainRfa")}
   from ${ref("s3_math_rfa")}
   )
 
-select m1.*,m.* except(childId),h.* except(childid),o.opt_out_status,fln.FLNSTATUS
+select distinct m1.*,m.* except(childId),h.* except(childid),o.opt_out_status,fln.FLNSTATUS
 from main m1
 left join Hindiassessed h
 on m1.C_id = h.childid

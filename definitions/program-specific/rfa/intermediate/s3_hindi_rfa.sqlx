@@ -41,7 +41,7 @@ group by childId,dateofHindiAssessment
 )
 
 ,hindiLevel as (
-  select lhq.*,h.level as hindiLevel
+  select distinct lhq.*,h.level as hindiLevel
   from lasthindiQuestion lhq
   inner join
   hindiAss h
@@ -49,12 +49,12 @@ group by childId,dateofHindiAssessment
 )
  
 , hindiAssessmentdata as(
-  select h.*,hl.hindiLevel
+  select distinct h.*,hl.hindiLevel
 from hindi h
 inner join hindiLevel hl
 on h.childid= hl.childid and h.hindiAssessDate= hl.dateofHindiAssessment
 
 )
 
-select *
+select distinct *
 from hindiAssessmentdata
