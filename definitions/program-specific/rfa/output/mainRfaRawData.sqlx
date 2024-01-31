@@ -3,9 +3,9 @@ config {
     tags:"rfa"
 }
 
-select *except(phone_number),
+select * except(phone_number),
 -- if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
-from ${ref("mainRfa")}rfa
+from ${ref("mainRfaAssessed")}rfa
 left join ${ref("mainRFAcallAttempt")}ca 
 using(P_ID, C_ID)
 left join ${ref("rfaTriggerTemplateData")}rfa_temp
