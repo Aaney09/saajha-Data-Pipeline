@@ -1,0 +1,29 @@
+config {
+    type:"table"
+}
+
+with main as (select *
+from ${ref("mainRfa")}
+)
+
+, Hindiassessed as (
+  select * except(hindidateDifference,hindiLagDate)
+  from `dataform.s3_hindi`
+  where hindiAssessDate >= "2024-01-22"
+)
+, mathAssessed as (
+  select * except(mathLagDate,mahtdateDifference)
+  from `dataform.s3_math`
+  where mathAssessDate >= "2024-01-22")
+
+select m1.*,m.* except(childId),h.* except(childid)
+from main m1
+left join Hindiassessed h
+on m1.C_id = h.childid
+left join mathAssessed m
+on m1.c_id = m.childid
+left join ${ref("opted_out")} o
+on m1.C_ID = o.childId
+left join ${ref("FLNAchieved")}fln
+on m1.C_ID=fln.Childid
+-- where mathAssessDate is not null or hindiAssessDate is not null

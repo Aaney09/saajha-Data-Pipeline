@@ -1,0 +1,36 @@
+config {
+    type: "table"
+}
+
+with dr_rfa_pids as (select distinct P_ID,C_ID
+from ${ref("mainRfa")})
+
+, callsAfter17thInExperimentProject as(
+    select *
+    from ${ref("called")}
+    where projectid = 1103641 
+)
+,callAttemptsToDryRunNumber as (select *
+from dr_rfa_pids rfa
+left join callsAfter17thInExperimentProject c
+on rfa.P_ID = c.ParentId
+and rfa.C_ID = c.childId)
+
+,incomingCallAttempts as (select P_ID, C_ID,count(distinct callstartdatetime)IncomingCallAttempts
+from callAttemptsToDryRunNumber
+where CallFlowType like "%incoming%"
+group by P_ID, C_ID,CallFlowType)
+
+,outgoingCallAttempts as (select P_ID, C_ID,count(distinct callstartdatetime)OutgoingCallAttempts
+from callAttemptsToDryRunNumber
+where CallFlowType not like "%incoming%"
+group by P_ID, C_ID,CallFlowType)
+
+select P_ID, C_ID,IncomingCallAttempts,OutgoingCallAttempts
+from dr_rfa_pids r
+left join outgoingCallAttempts o 
+using(P_ID, C_ID)
+left join incomingCallAttempts i
+using(P_ID, C_ID)
+
+order by IncomingCallAttempts desc,OutgoingCallAttempts desc
