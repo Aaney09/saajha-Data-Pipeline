@@ -5,40 +5,40 @@ config {
 
 SELECT
   assign,Days_of_Control as Cohort,
-  COUNT(DISTINCT P_ID)`Total Users`,
+  COUNT(DISTINCT P_ID)TotalUsers,
   COUNT(DISTINCT
   IF
-    (sentFirstMessage = "yes",P_ID,NULL))`total First Msg Sent Users`,
+    (sentFirstMessage = "yes",P_ID,NULL))totalFirstMsgSentUsers,
   COUNT(DISTINCT
   IF
-    (firstMessageClicked = "yes",P_ID,NULL))`total First Msg CLicked Users`,
+    (firstMessageClicked = "yes",P_ID,NULL))totalFirstMsgCLickedUsers,
   SUM(
   IF
     (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (firstMessageClicked = "yes",IncomingCallAttempts,NULL))`total Call Attempts To First Msg Clicked`,
+    (firstMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToFirstMsgClicked,
    COUNT(DISTINCT
   IF
-    (reminderMessageSent = "yes",P_ID,NULL))`total Reminder Msg Sent Users`,
+    (reminderMessageSent = "yes",P_ID,NULL))totalReminderMsgSentUsers,
   COUNT(DISTINCT
   IF
-    (reminderMessageClicked = "yes",P_ID,NULL))`total Reminder Msg CLicked Users`,
+    (reminderMessageClicked = "yes",P_ID,NULL))totalReminderMsgCLickedUsers,
   SUM(
   IF
     (reminderMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (reminderMessageClicked = "yes",IncomingCallAttempts,NULL)) `total total Call Attempts To Reminder Msg Clicked`,
+    (reminderMessageClicked = "yes",IncomingCallAttempts,NULL)) totalCallAttemptsToReminderMsgClicked,
   COUNT(DISTINCT
   IF
-    (TreatmentNormaCall = "yes",P_ID,NULL)) `totat Normal users`,
+    (TreatmentNormaCall = "yes",P_ID,NULL)) totatNormalUsers,
   SUM(
   IF
     (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))`total Call Attempts To Normal users`,
+    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalUsers,
   Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) `total Children Assessed`,
-  count(distinct if(mulyankanSent="yes",P_ID,null)) `mulyankan Sent Users`,
-  count(distinct if(mulyankanClicked="yes",P_ID,null)) `mulyankan Clicked Users`
+  count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
+  count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers
 from ${ref("mainRfaRawData")}
 WHERE
   assign = "Treatment"
