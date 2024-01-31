@@ -3,11 +3,14 @@ config {
     tags:"rfa"
 }
 
-select *except(phone_number),if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
+select *except(phone_number),
+-- if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
 from ${ref("rfaDryRun_AssessAnddOptOutsInRFA")}rfa
 left join ${ref("callAttemptsforDryRunRFA")}ca 
 using(PID, C_ID)
 left join ${ref("rfaTriggerTemplateData")}rfa_temp
 on rfa.P_Mob_  = rfa_temp.phone_number
+left join ${ref("rfaReminderTrigger")}reminrfa_temp
+on rfa.P_Mob_  = reminrfa_temp.phone_number
 left join ${ref("mulyankanDataAfterDryRunStarted")}mul
 on rfa.P_Mob_  = mul.phone_number

@@ -3,7 +3,9 @@ config {
     tags: "rfa"
 }
 with mulyankanSent as (
-select phone_number,template_name mulyankanTemplate,sent_at mulyankanSentAt,last_message_status last_message_statusOfMulyankan,updated_status_at mulyankanTemplateLastStausUpdatedAt
+select phone_number,
+template_name mulyankanTemplate,sent_at mulyankanSentAt,
+-- last_message_status last_message_statusOfMulyankan,updated_status_at mulyankanTemplateLastStausUpdatedAt
 from ${ref("template-sent")}
 where date(sent_at) >="2024-01-17" 
 and template_name = "mulyankan_pilot_template_v1"
