@@ -1,0 +1,39 @@
+config {
+    type: "table"
+}
+
+
+SELECT
+  assign,Days_of_Control as Cohort,
+  COUNT(DISTINCT P_ID)TotalUsers,
+  COUNT(DISTINCT
+  IF
+    (firstMessageClicked = "yes",P_ID,NULL))totalFirstMsfCLickedUsers,
+  SUM(
+  IF
+    (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
+  IF
+    (firstMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToFirstMsgClicked,
+  COUNT(DISTINCT
+  IF
+    (reminderMessageClicked = "yes",P_ID,NULL))totalReminderMsfCLickedUsers,
+  SUM(
+  IF
+    (reminderMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
+  IF
+    (reminderMessageClicked = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToReminderMsgClicked,
+  COUNT(DISTINCT
+  IF
+    (TreatmentNormaCall = "yes",P_ID,NULL))totatNormalusers,
+  SUM(
+  IF
+    (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
+  IF
+    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalusers,
+  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null))totalChildrenAssessed,
+  count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedusers
+from `${ref("mainRfaRawData")}
+WHERE
+  assign = "Treatment"
+group by assign,days_of_Control
+order by assign asc,days_of_Control asc

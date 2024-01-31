@@ -8,13 +8,13 @@ from ${ref("mainRfa")}
 
 , Hindiassessed as (
   select * except(hindidateDifference,hindiLagDate)
-  from `dataform.s3_hindi`
-  where hindiAssessDate >= "2024-01-22"
+  from ${ref("s3_hindi_rfa")}
+ 
 )
 , mathAssessed as (
   select * except(mathLagDate,mahtdateDifference)
-  from `dataform.s3_math`
-  where mathAssessDate >= "2024-01-22")
+  from ${ref("s3_math_rfa")}
+  )
 
 select m1.*,m.* except(childId),h.* except(childid)
 from main m1
