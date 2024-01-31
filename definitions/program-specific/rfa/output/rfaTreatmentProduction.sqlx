@@ -32,7 +32,7 @@ SELECT
     (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalusers,
   Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null))totalChildrenAssessed,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedusers
-from `${ref("mainRfaRawData")}
+from ${ref("mainRfaRawData")}
 WHERE
   assign = "Treatment"
 group by assign,days_of_Control
