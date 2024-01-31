@@ -26,7 +26,7 @@ from callAttemptsToDryRunNumber
 where CallFlowType not like "%incoming%"
 group by P_ID, C_ID,CallFlowType)
 
-select P_ID, C_ID,IncomingCallAttempts,OutgoingCallAttempts
+select distinct P_ID, C_ID,IncomingCallAttempts,OutgoingCallAttempts
 from dr_rfa_pids r
 left join outgoingCallAttempts o 
 using(P_ID, C_ID)
