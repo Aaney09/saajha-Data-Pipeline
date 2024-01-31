@@ -3,7 +3,7 @@ config {
     tags:"rfa"
 }
 
-select * except(phone_number),
+select * except(phone_number),if(assign = "Treament" and reminderMessageClicked is null and firstMessageClicked is null,"yes",null) TreatmentNormaCall,
 -- if(rfaTriggerTempName is not null,"Treatment","Control") experimentArm
 from ${ref("mainRfaAssessed")}rfa
 left join ${ref("mainRFAcallAttempt")}ca 
