@@ -1,0 +1,57 @@
+config {
+    type:"view",
+    tags: "assessments"
+}
+
+-- -- for the windows of 2023-24
+with mathAss as (select distinct assesseeActorId as childid,date(AssessmentTakenOn)mathAssessDate,level as mathLevel,AssessmentInstanceAssesseDRId
+from ${ref("assessment")}
+where QuestionText not like "%Ask%" and AssessmentId <> 6 and date(assessmentTakenOn) >="2024-01-22")
+
+, mathDates as
+( select distinct childId,mathAssessDate,
+lag(date(mathAssessDate)) over (partition by childId order by mathAssessDate asc)mathLagDate,
+from (select distinct childId,mathAssessDate
+from
+mathAss order by mathAssessDate asc)
+order by childId asc,mathAssessDate asc,mathLagDate asc)
+
+, mathData as((select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mahtdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0)
+
+UNION ALL
+(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))>=30)
+order by childId  desc)
+
+, math as
+(select *, row_number() over(partition by childId order by mathAssessDate asc)mathrounds
+from mathData
+order by childId asc,mathrounds asc)
+
+,lastmathQuestion as (select distinct 
+assesseeActorId as childId,date(AssessmentTakenOn) dateofmathAssessment,
+max(AssessmentInstanceAssesseDRId)lastmathQuestionId
+from ${ref("assessment")}
+where QuestionText not like "%Ask%" and AssessmentId <> 6 and date(AssessmentTakenOn) >="2024-01-22"
+group by childId,dateofmathAssessment
+)
+
+,mathLevel as (
+  select lmq.*,m.mathlevel
+  from lastmathQuestion lmq
+  inner join
+  mathAss m
+  on m.childId =lmq.childId and m.AssessmentInstanceAssesseDRId = lmq.lastmathQuestionId
+)
+,
+mathAssessmentData as (select m.*,ml.mathlevel
+from math m
+inner join mathLevel ml
+on m.childId= ml.childId and m.mathAssessDate= ml.dateofmathAssessment)
+
+
+select *
+from mathAssessmentData
