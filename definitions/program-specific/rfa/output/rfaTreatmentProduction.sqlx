@@ -58,7 +58,9 @@ SELECT
   count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers,
   count(distinct if(callAttempted ="yes",P_id,null)) uniquePhoneNumberCallAttempted,
-  count(distinct if(callAttempted ="no",P_id,null)) uniquePhoneNumberCallNotAttempted
+  count(distinct if(callAttempted ="no",P_id,null)) uniquePhoneNumberCallNotAttempted,
+  sum(incomingCallAttempts)+sum(OutgoingCallAttempts) DayWisetotalCallAttempts
+  
 from ${ref("mainRfaRawData")}
 -- WHERE
   -- assign = "Treatment"
