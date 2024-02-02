@@ -13,6 +13,8 @@ SELECT
   Feedbacktype, 
   Feedbackreason,
   isAutoDialerCall,
+  Recording,
+  null callingRound,
   "incoming-outgoing" callFlowType
 FROM
   ${ref("incoming")}
@@ -28,6 +30,8 @@ SELECT
   Feedbacktype,
   Feedbackreason,
   isAutoDialerCall,
+  Recording,
+  Round callingRound,
   "outgoing-outgoing" callFlowType
 FROM
   ${ref("roster")}
