@@ -21,7 +21,7 @@ ORDER BY
 , manual as (SELECT
   DATE(CallstartDatetime)date_of_call,agentMobile,
   COUNT(DISTINCT CallstartDatetime)manual_totalttempts,
-  COUNT(DISTINCT ParentId)uniqueParentsCalled,
+  COUNT(DISTINCT ParentId)manual_uniqueParentsCalled,
   count(distinct if(Feedbacktype like "%RESOLVED%",CallstartDatetime,Null))manualCallsMarkedResolved,
   count(distinct if(Feedbacktype like "%RESOLVED%",ParentId,Null))manualUniqueParentsMarkedResolved
 FROM
@@ -50,6 +50,7 @@ ORDER BY
 )
   
 , pre_final as (select m.*,a.* except(agentMobile,date_of_Call)
+,uc.uniqueNumberDialed_both_auto_manual
 from manual m 
 left join auto a
 on a.date_of_call = m.date_of_call and a.agentMobile = m.agentMobile
