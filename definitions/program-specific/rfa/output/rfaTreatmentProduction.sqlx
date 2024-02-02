@@ -12,6 +12,12 @@ SELECT
   COUNT(DISTINCT
   IF
     (firstMessageClicked = "yes",P_ID,NULL))totalFirstMsgCLickedUsers,
+  COUNT(DISTINCT
+  IF
+    (firstMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueUsersCallAttemptedToFirstMsgCLicked,
+    COUNT(DISTINCT
+  IF
+    ((hindiAssessDate is not null or mathAssessDate is not null) and firstMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfFirstMsgCLicked,
   SUM(
   IF
     (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
@@ -23,6 +29,12 @@ SELECT
   COUNT(DISTINCT
   IF
     (reminderMessageClicked = "yes",P_ID,NULL))totalReminderMsgCLickedUsers,
+  COUNT(DISTINCT
+  IF
+    (reminderMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueUsersCallAttemptedToReminderMsgCLicked,
+    COUNT(DISTINCT
+  IF
+    ((hindiAssessDate is not null or mathAssessDate is not null) and reminderMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfReminderMsgCLicked,
   SUM(
   IF
     (reminderMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
@@ -30,12 +42,18 @@ SELECT
     (reminderMessageClicked = "yes",IncomingCallAttempts,NULL)) totalCallAttemptsToReminderMsgClicked,
   COUNT(DISTINCT
   IF
-    (TreatmentNormaCall = "yes",P_ID,NULL)) totatNormalUsers,
+    (TreatmentNormaCall = "yes",P_ID,NULL)) totatNormalRosterUsers,
+  COUNT(DISTINCT
+  IF
+    (TreatmentNormaCall = "yes" and callAttempted ="yes",P_ID,NULL)) UniqueUsersCallAttemptedToNormalUsers,
+    COUNT(DISTINCT
+  IF
+    ((hindiAssessDate is not null or mathAssessDate is not null) and TreatmentNormaCall = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfNormalUsers,
   SUM(
   IF
     (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
-    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalUsers,
+    (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalRosterUsers,
   Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) totalChildrenAssessed,
   count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers,
