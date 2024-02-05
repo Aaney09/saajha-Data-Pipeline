@@ -16,7 +16,8 @@ SELECT
   agentName,
   opt_out_status,
   last_opted_out optedOutOn,
-  opt_out_reason
+  opt_out_reason,
+  if(Round_1_assessment is not null and fln.FLNSTATUS is not null,"yes","no")FLN_status
 FROM
   ${ref("removedBau")} main
 LEFT JOIN
@@ -35,6 +36,8 @@ LEFT JOIN
   ${ref("opted_out")}optOut
 ON
   main.rosterparentId = optOut.parentId
+left join ${ref("FLNAchieved")}fln
+on main.childId =fln.Childid
  
 
 
