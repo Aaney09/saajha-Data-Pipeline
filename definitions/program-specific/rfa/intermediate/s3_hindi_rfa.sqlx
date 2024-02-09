@@ -6,7 +6,7 @@ config {
 -- for the windows of 2023-24
 with hindiAss as (select distinct AssesseeActorId as childId,date(AssessmentTakenOn)hindiAssessDate,Level,AssessmentInstanceAssesseDRId
 from ${ref("assessment")}
-where QuestionText like "%Ask%" and date(AssessmentTakenOn) >"2024-01-22")
+where QuestionText like "%Ask%" and date(AssessmentTakenOn) >="2024-01-22")
 
 ,
 hindiDates  as(select distinct  childId,hindiAssessDate,
@@ -36,7 +36,7 @@ order by childId asc,hindirounds asc)
 AssesseeActorId as childId,date(AssessmentTakenOn) dateofHindiAssessment,
 max(AssessmentInstanceAssesseDRId)lastHindiQuestionId
 from ${ref("assessment")}
-where QuestionText like "%Ask%" and date(AssessmentTakenOn) >"2024-01-22"
+where QuestionText like "%Ask%" and date(AssessmentTakenOn) >="2024-01-22"
 group by childId,dateofHindiAssessment
 )
 
