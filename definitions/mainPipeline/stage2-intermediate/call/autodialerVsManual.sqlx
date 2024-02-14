@@ -35,7 +35,7 @@ ORDER BY
 
 ,agentdetals as (
   select distinct agent_number,AgentName
-  from ${ref("agentData")}
+  from ${ref("last_called_agent")}
 )
 
 ,uniqueCalls as (
