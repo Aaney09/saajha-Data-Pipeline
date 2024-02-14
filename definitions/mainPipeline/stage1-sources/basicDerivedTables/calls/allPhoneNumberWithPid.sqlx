@@ -40,7 +40,7 @@ SELECT
   UNION DISTINCT
   SELECT
     DISTINCT ParentId,
-    If(alternateMobileNumber is not null,SAFE_CAST(CONCAT("91",alternateMobileNumber) AS int64),null)number, ProjectId    
+    If(safe_cast(alternateMobileNumber as int64)  is not null,SAFE_CAST(CONCAT("91",alternateMobileNumber) AS int64),null)number, ProjectId    
   FROM
     ${ref("prelim")}
   WHERE
