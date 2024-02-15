@@ -1,0 +1,10 @@
+config {
+    type: "table",
+    tags: "wa_daily"
+}
+
+SELECT *
+from ${ref("all_bau_enrolled_numbers")}
+union distinct 
+SELECT *
+from ${ref("all_pi_enrolled_numbers")}

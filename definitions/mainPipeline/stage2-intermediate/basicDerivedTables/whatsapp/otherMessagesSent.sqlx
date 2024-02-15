@@ -1,0 +1,26 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+
+SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    message_type,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type, 
+    content message_content, 
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at
+from ${ref("messages")}
+-- ${when(incremental(), 
+-- `WHERE 
+-- (datetime_add(inserted_at, Interval 330 minute) > (SELECT MAX(sent_at) FROM ${self()})
+-- or datetime_add(updated_at, Interval 330 minute) > (SELECT MAX(last_updated_status_at) FROM ${self()})) `) }
+where message_type not in ("interactive","template") and direction="outbound" 

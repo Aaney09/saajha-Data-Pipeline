@@ -1,0 +1,23 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    template template_meta_data,
+    rendered_content as message_content,
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at 
+from ${ref("messages")}
+where message_type = "template"
