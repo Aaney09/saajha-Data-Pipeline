@@ -8,7 +8,7 @@ case
   when lastMathAssessedDate>firstMathAssessedDate and firstMlevel=lastMlevel then "Same"
   when lastMathAssessedDate>firstMathAssessedDate and firstMlevel>lastMlevel then "Declined"
   when lastMathAssessedDate=firstMathAssessedDate or firstMathAssessedDate is null or LastMathAssessedDate is null then "single_assessment"
-end improvementStatus
+end mathImprovementStatus
 from ${ref("valid_first_math_assess")} firstAss 
 left join ${ref("valid_last_math_assess")} lastAss 
 on firstAss.childId = lastAss.childId
