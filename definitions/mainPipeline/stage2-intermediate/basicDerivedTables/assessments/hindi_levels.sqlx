@@ -1,0 +1,9 @@
+config {
+    type:"table"
+}
+select distinct childId,
+      SAFE_CAST(REPLACE(replace(level,
+              "BEGINNER",
+              "0"),"LEVEL","")AS INT64) AS hindiLevel,
+      assessmentTakenOn
+from ${ref("hindiAssessment")}
