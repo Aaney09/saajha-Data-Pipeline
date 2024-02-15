@@ -1,0 +1,19 @@
+config {
+    type:"table"
+}
+with firstMathAssTakenOn as(
+  select distinct childId,min(assessmentTakenON)firstAssessmentTakenOn
+  from ${ref("mathAssessment")}
+  group by childId
+)
+, firstMathLevels as(
+  select distinct fmd.*,date(fmd.firstAssessmentTakenOn)firstMathAssessedDate,last_value(mLevel)over(partition by fmd.childId order by firstAssessmentTakenOn asc rows between unbounded preceding and unbounded following)  as firstMLevel
+  from firstMathAssTakenOn fmd
+  inner join ${ref("math_levels")} ml
+  on fmd.firstAssessmentTakenOn = ml.assessmentTakenOn and fmd.childId = ml.childId
+)
+
+  select lml.*
+  from firstMathLevels lml
+  inner join ${ref("valid_math_assessment")} va
+  on lml.childId=va.childId and lml.firstMathAssessedDate= va.mathAssessDate

@@ -1,0 +1,9 @@
+config {
+    type:"table"
+}
+
+select *, assesseeActorId as childId
+from ${ref("assessment")}
+where QuestionText NOT LIKE "%Ask%"
+    AND DATE(assessmentTakenOn) >= "2023-04-10"
+    and AssessmentId<>6
