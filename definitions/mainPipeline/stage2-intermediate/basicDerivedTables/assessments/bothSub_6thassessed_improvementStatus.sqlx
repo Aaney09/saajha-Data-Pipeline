@@ -1,0 +1,11 @@
+config {
+    type: "table"
+}
+
+select a.childId,mathImprovementStatus,hindiImprovementStatus
+from  ${ref("s3_all")} a
+left join ${ref("hindi_valid_first_last_assess")} h 
+using(childId)
+left join ${ref("math_valid_first_last_assess")} m
+using(childId)
+where h6 is not null and m6 is not null
