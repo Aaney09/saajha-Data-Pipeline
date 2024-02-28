@@ -2,7 +2,7 @@ config {
     type: "table"
 }
 
-
+ 
 SELECT
   assign,Days_of_Control as Cohort,
   COUNT(DISTINCT P_ID)TotalUsers,
@@ -17,7 +17,7 @@ SELECT
     (firstMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueUsersCallAttemptedToFirstMsgCLicked,
     COUNT(DISTINCT
   IF
-    ((hindiAssessDate is not null or mathAssessDate is not null) and firstMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfFirstMsgCLicked,
+    (Round_1_assessment is not null and firstMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfFirstMsgCLicked,
   SUM(
   IF
     (firstMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
@@ -34,7 +34,7 @@ SELECT
     (reminderMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueUsersCallAttemptedToReminderMsgCLicked,
     COUNT(DISTINCT
   IF
-    ((hindiAssessDate is not null or mathAssessDate is not null) and reminderMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfReminderMsgCLicked,
+    (Round_1_assessment is not null and reminderMessageClicked = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfReminderMsgCLicked,
   SUM(
   IF
     (reminderMessageClicked = "yes",OutgoingCallAttempts,NULL)) + SUM(
@@ -48,13 +48,13 @@ SELECT
     (TreatmentNormaCall = "yes" and callAttempted ="yes",P_ID,NULL)) UniqueUsersCallAttemptedToNormalUsers,
     COUNT(DISTINCT
   IF
-    ((hindiAssessDate is not null or mathAssessDate is not null) and TreatmentNormaCall = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfNormalUsers,
+    (Round_1_assessment is not null and TreatmentNormaCall = "yes" and callAttempted ="yes",P_ID,NULL))UniqueChildrenAssesedOfNormalUsers,
   SUM(
   IF
     (TreatmentNormaCall = "yes",OutgoingCallAttempts,NULL)) + SUM(
   IF
     (TreatmentNormaCall = "yes",IncomingCallAttempts,NULL))totalCallAttemptsToNormalRosterUsers,
-  Count(distinct if(hindiAssessDate is not null or mathAssessDate is not null,p_ID,Null)) totalChildrenAssessed,
+  Count(distinct if(Round_1_assessment is not null,p_ID,Null)) totalChildrenAssessed,
   count(distinct if(mulyankanSent="yes",P_ID,null)) mulyankanSentUsers,
   count(distinct if(mulyankanClicked="yes",P_ID,null)) mulyankanClickedUsers,
   count(distinct if(callAttempted ="yes",P_id,null)) uniquePhoneNumberCallAttempted,
