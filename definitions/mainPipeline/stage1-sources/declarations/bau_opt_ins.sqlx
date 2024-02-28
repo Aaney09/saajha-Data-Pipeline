@@ -1,0 +1,6 @@
+config {
+    type:"declaration",
+    database: "saajhadata",
+    schema : "opt_in_records",
+    name: "opt_in_users"
+}

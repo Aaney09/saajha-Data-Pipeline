@@ -2,26 +2,15 @@ config {
     type:"table"
 }
 
-with main as (select *
-from ${ref("mainRfa")}
-)
 
-, Hindiassessed as (
-  select * except(hindidateDifference,hindiLagDate)
-  from ${ref("s3_hindi_rfa")}
- 
-)
-, mathAssessed as (
-  select * except(mathLagDate,mahtdateDifference)
-  from ${ref("s3_math_rfa")}
-  )
 
-select distinct m1.*,m.* except(childId),h.* except(childid),o.opt_out_status,replace(fln.FLNSTATUS,"BENEFICIARY_PROGRESS_STATUS.","")FLNSTATUS
-from main m1
-left join Hindiassessed h
-on m1.C_id = h.childid
-left join mathAssessed m
-on m1.c_id = m.childid
+SELECT m1.*,a.* except(childId),
+-- m.* except(childId),h.* except(childid),
+o.opt_out_status,replace(fln.FLNSTATUS,"BENEFICIARY_PROGRESS_STATUS.","")FLNSTATUS
+from ${ref("mainRfa")} m1
+left join ${ref("rfa_bothSubAssessment")} a
+on m1.C_ID=a.childId
+
 left join ${ref("opted_out")} o
 on m1.C_ID = o.childId
 left join ${ref("FLNAchieved")}fln

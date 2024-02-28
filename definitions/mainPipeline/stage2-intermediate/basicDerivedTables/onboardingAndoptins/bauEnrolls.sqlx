@@ -5,10 +5,14 @@ config {
 SELECT
   DISTINCT FIRST_VALUE(enrolled_at) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)firstEnrolledOn,
   parent_phone_number,
+  First_VALUE(child_name) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) child_name,
+  First_VALUE(child_class) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) child_class,
+  First_VALUE(parent_name) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) parent_name,
   FIRST_VALUE(agent_phone_number) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)firstEnrolledAgentNumber,
   FIRST_VALUE(stack_name) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS FirstEnrollmentFlowType,
   "BAU" enrolled_in,
   if(alternate_parent_number<>0,safe_cast(concat("91",alternate_parent_number) as int64),null) alternateNumber
 
 from ${ref("opt_in_records","enrolled_wa_parents")}
+where stack_name = "ACT"
 
