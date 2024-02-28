@@ -1,0 +1,6 @@
+config {
+    type:"declaration",
+    database: "saajhadata",
+    schema : "process_improvement",
+    name: "opt_in_users"
+}
