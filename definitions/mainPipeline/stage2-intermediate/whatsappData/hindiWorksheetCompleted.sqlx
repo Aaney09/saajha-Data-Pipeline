@@ -1,0 +1,13 @@
+
+config {
+    type:"table"
+}
+
+SELECT
+    DISTINCT phone_number,
+    dateTime(end_time) submitted_time,
+    SAFE_CAST(REPLACE(SUBSTRING(form_id,1,7),"hindiL","")AS int64)hindiLevel,
+    SAFE_CAST(REPLACE(SUBSTRING(form_id,8),"Worksheet","")AS int64)worksheet_number
+FROM
+    `whatsapp_tools.hindi_fln_forms`
+where phone_number not in (918527647594,919915539829)

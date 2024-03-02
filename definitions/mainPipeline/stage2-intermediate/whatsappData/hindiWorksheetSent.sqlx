@@ -1,0 +1,65 @@
+config {
+    type :  "table"
+    }
+
+
+with component1 as (
+-- Hindi component[1] from 20th Dec 2023 to 25th jan 2024
+
+SELECT
+    distinct
+    phone_number,
+    template_name,
+    sent_at,
+    ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfArray,
+    -- SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&")[1]ContentId,
+    -- SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    --       "&")[1],"=")[1],8)worksheet,
+    split(SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&")[2],"=")[1] worksheetLink,
+    
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&")[1],"=")[1],8),"Worksheet","") AS int64)WorksheetNumber,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+              "&")[1],"=")[1],1,7),"hindiL","")AS int64)hindiLevel,
+  FROM
+    ${ref("template-sent")}
+  WHERE
+    template_name  = "hfln_comic_2_with_button"
+    AND ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) >1
+
+order by sent_at desc)
+
+
+-- Hindi component[2] from 20th Jan 2024 to 29th Feb 2024, 2024-02-29T06:06:08
+, component2 as (
+    SELECT
+    distinct
+    phone_number,
+    template_name,
+    sent_at,
+    ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfArray,
+    -- SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[1]ContentId,
+    -- SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+        --   "&")[1],"=")[1],8)worksheet,
+    split(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[2],"=")[1] worksheetLink,
+    
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[1],"=")[1],8),"Worksheet","") AS int64)WorksheetNumber,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+              "&")[1],"=")[1],1,7),"hindiL","")AS int64)hindiLevel,
+  FROM
+    ${ref("template-sent")}
+  WHERE
+    template_name  = "hfln_comic_2_with_button"
+    AND ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) >1
+    
+
+order by sent_at desc
+)
+
+
+SELECT *
+FROM component1
+where phone_number not in (918527647594,919915539829)
+UNION distinct 
+SELECT *
+FROM component2
+where phone_number not in (918527647594,919915539829)

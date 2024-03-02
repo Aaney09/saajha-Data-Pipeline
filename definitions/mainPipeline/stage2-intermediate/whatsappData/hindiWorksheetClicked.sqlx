@@ -1,0 +1,20 @@
+config {
+    type:"table"
+}
+
+
+ SELECT
+    DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
+    link_clicked,
+    datetime(time)clicked_time,
+    SAFE_CAST(REPLACE(SUBSTRING(content_id,1,7),"hindiL","")AS int64)hindiLevel,
+    SAFE_CAST(REPLACE(SUBSTRING(content_id,8),"Worksheet","")AS int64)worksheet_number
+  FROM
+    `redirector.FLN_links`
+  WHERE
+    SAFE_CAST(RIGHT(phone_number,12) AS int64) IS NOT NULL
+    AND content_id LIKE "%hindiL%" 
+    AND content_id LIKE "%Worksheet%"
+    and SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
+  ORDER BY
+    worksheet_number ASC
