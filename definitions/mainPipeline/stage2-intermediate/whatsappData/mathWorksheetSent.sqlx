@@ -1,0 +1,11 @@
+config {
+    type:"table"
+    }
+
+select *
+from ${ref("mathMediaWorksheetSent")}
+where phone_number not in (918527647594,919915539829)
+UNION DISTINCT
+select *
+from ${ref("mathNoMediaWorksheetSent")}
+where phone_number not in (918527647594,919915539829)

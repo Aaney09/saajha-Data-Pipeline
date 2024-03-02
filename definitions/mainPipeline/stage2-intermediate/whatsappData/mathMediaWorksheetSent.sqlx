@@ -1,0 +1,60 @@
+config {
+    type : "table"
+    }
+
+with  component1 as (
+    select distinct phone_number,id,chat_id,template_name,sent_at,
+    ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfArray,
+    -- SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&")[1]ContentId,
+    SPLIT(SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&")[2],"=")[1]worksheetLink,
+    -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    --     "&")[1],"=")[1 ]LevelWorksheet,
+    -- SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    --       "&")[1],"=")[1],12)worksheet,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+              "&")[1],"=")[1],12),"Worksheet","") AS int64)WorksheetNumber,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+              "&")[1],"=")[1],1,11),"MathsLevel","")AS int64)mathLevel,
+from ${ref("template-sent")}
+where 
+( 
+  
+  upper(template_name) = "MATHS_WORKSHEET_MEDIA_V1")
+
+AND ARRAY_LENGTH((SPLIT(REPLACE(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"https://saajhacontent.xyz/?",""),"&"))) >1
+and SUBSTRING(SPLIT(split(REPLACE(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"https://saajhacontent.xyz/?",""),"&")[1],"=")[1],12) <>""
+order by sent_at desc
+)
+
+
+
+,component2 as (
+    
+select distinct phone_number,id,chat_id,template_name,sent_at,
+    ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfArray,
+    -- SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[1]ContentId,
+    SPLIT(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[2],"=")[1]worksheetLink,
+    -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    --     "&")[1],"=")[1 ]LevelWorksheet,
+    -- SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    --       "&")[1],"=")[1],12)worksheet,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+              "&")[1],"=")[1],12),"Worksheet","") AS int64)WorksheetNumber,
+    SAFE_CAST(REPLACE(SUBSTRING(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+              "&")[1],"=")[1],1,11),"MathsLevel","")AS int64)mathLevel,
+from ${ref("template-sent")}
+where 
+( 
+  
+  upper(template_name) = "MATHS_WORKSHEET_MEDIA_V1")
+
+AND ARRAY_LENGTH((SPLIT(REPLACE(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"https://saajhacontent.xyz/?",""),"&"))) >1
+and SUBSTRING(SPLIT(split(REPLACE(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"https://saajhacontent.xyz/?",""),"&")[1],"=")[1],12) <>""
+order by sent_at desc
+)
+
+select *
+from component1
+UNION DISTINCT 
+SELECT *
+FROM component2

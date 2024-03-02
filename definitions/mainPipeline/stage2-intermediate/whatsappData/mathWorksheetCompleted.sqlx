@@ -1,0 +1,28 @@
+config {
+    type:"table"
+}
+with google_form AS (
+   SELECT
+    DISTINCT phone_number,
+    datetime(submit_time)submitted_time,
+    Level as mathLevel,
+    worksheet as worksheet_number
+  FROM
+    `whatsapp_tools.maths_fln_forms`)
+,react_form as (
+    SELECT
+        DISTINCT phone_number,
+        date(end_time)submmitted_time,
+        SAFE_CAST(REPLACE(SUBSTRING(form_id,1,11),"MathsLevel","")AS int64)Level,
+        SAFE_CAST(REPLACE(SUBSTRING(form_id,12),"Worksheet","")AS int64)worksheet_number
+    FROM
+    `saajhadata.whatsapp_tools.maths_react_forms`
+)
+
+select *
+from google_form
+where phone_number not in (918527647594,919915539829)
+UNION DISTINCT
+select *
+from react_form
+where phone_number not in (918527647594,919915539829)
