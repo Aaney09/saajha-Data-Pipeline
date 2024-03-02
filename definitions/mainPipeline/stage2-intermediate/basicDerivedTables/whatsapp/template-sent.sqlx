@@ -12,7 +12,7 @@ SELECT distinct
     json_value(author,"$.name")flow_name,
     json_value(author,"$.type")flow_type,
     json_value(template,"$.name")template_name, 
-    template template_meta_data,
+    template template_meta_data, 
     rendered_content as message_content,
     last_value(last_status) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
@@ -20,4 +20,4 @@ SELECT distinct
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at 
 from ${ref("messages")}
-where message_type = "template"
+where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
