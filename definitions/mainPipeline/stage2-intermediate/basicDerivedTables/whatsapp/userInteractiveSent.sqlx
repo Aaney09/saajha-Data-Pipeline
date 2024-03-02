@@ -18,4 +18,4 @@ SELECT distinct
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     datetime_add(updated_at, Interval 330 minute)last_updated_status_at
 from ${ref("messages")}
-where message_type = "interactive" and direction="outbound"
+where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()

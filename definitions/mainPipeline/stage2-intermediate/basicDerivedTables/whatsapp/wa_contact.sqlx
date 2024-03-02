@@ -31,3 +31,4 @@ WHERE
   SAFE_CAST(urn AS int64) IS NOT NULL
   AND CHAR_LENGTH(RIGHT(urn,12)) = 12
   AND STARTS_WITH(RIGHT(urn, 12),"91")
+  and datetime_add(inserted_at, Interval 330 minute)<current_date()

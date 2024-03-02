@@ -14,4 +14,4 @@ select distinct
     datetime_add(inserted_at, Interval 330 minute)responded_at 
 
 from ${ref("messages")}
-where message_type="button"
+where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()

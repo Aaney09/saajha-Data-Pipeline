@@ -12,4 +12,4 @@ SELECT distinct
     content message_content, 
     datetime_add(inserted_at, Interval 330 minute)sent_at,
 from ${ref("messages")}
-where message_type not in ("interactive","button") and direction="inbound"
+where message_type not in ("interactive","button") and direction="inbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()

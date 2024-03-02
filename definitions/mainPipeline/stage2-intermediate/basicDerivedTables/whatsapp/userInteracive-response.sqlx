@@ -15,3 +15,4 @@ SELECT distinct
     button_reply_id,button_reply_title
 from ${ref("messages")}
 where message_type = "interactive" and direction="inbound"
+and datetime_add(inserted_at, Interval 330 minute)<current_date()
