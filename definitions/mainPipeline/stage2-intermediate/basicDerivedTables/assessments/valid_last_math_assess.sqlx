@@ -7,7 +7,8 @@ with lastMathAssTakenOn as(
   group by childId
 )
 , lastMathLevels as(
-  select distinct lmd.*,date(lmd.lastAssessmentTakenOn)lastMathAssessedDate,last_value(mLevel)over(partition by lmd.childId order by lastAssessmentTakenOn asc rows between unbounded preceding and unbounded following)  as lastMLevel
+  select distinct lmd.*,date(lmd.lastAssessmentTakenOn)lastMathAssessedDate
+  ,last_value(mLevel)over(partition by lmd.childId order by lastAssessmentTakenOn asc rows between unbounded preceding and unbounded following)  as lastMLevel
   from lastMathAssTakenOn lmd
   inner join ${ref("math_levels")} ml
   on lmd.lastAssessmentTakenOn = ml.assessmentTakenOn and lmd.childId = ml.childId
@@ -17,3 +18,5 @@ with lastMathAssTakenOn as(
   from lastMathLevels lml
   inner join ${ref("valid_math_assessment")} va
   on lml.childId=va.childId and lml.lastMathAssessedDate= va.mathAssessDate
+
+ 
