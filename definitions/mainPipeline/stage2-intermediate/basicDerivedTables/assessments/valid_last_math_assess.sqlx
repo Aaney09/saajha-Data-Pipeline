@@ -16,7 +16,7 @@ with lastMathAssTakenOn as(
 
   select lml.*
   from lastMathLevels lml
-  inner join ${ref("valid_math_assessment")} va
-  on lml.childId=va.childId and lml.lastMathAssessedDate= va.mathAssessDate
-
+  -- inner join ${ref("valid_math_assessment")} va
+  -- on lml.childId=va.childId and lml.lastMathAssessedDate= va.mathAssessDate
+  where lml.childId=103230242222307320
  
