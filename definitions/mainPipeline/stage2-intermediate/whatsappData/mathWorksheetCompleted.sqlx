@@ -5,16 +5,20 @@ with google_form AS (
    SELECT
     DISTINCT phone_number,
     datetime(submit_time)submitted_time,
-    Level as mathLevel,
-    worksheet as worksheet_number
+    Level as LevelNumber,
+    worksheet as worksheetNumber,
+    1 as monthNumber,
   FROM
     `whatsapp_tools.maths_fln_forms`)
 ,react_form as (
     SELECT
         DISTINCT phone_number,
-        date(end_time)submmitted_time,
-        SAFE_CAST(REPLACE(SUBSTRING(form_id,1,11),"MathsLevel","")AS int64)Level,
-        SAFE_CAST(REPLACE(SUBSTRING(form_id,12),"Worksheet","")AS int64)worksheet_number
+        datetime(end_time)submmitted_time,
+    SAFE_CAST(regexp_extract(regexp_extract(form_id,'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64)
+     LevelNumber,
+    SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+    ifnull(SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+
     FROM
     `saajhadata.whatsapp_tools.maths_react_forms`
 )
