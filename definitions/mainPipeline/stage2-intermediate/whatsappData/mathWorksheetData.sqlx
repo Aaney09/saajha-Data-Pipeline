@@ -28,14 +28,14 @@ on s.phone_number = cl.phone_number
    s.WorksheetNumber=cl.worksheetNumber
     AND
    s.LevelNumber=cl.LevelNumber
-   and s.monthNumber = cl.monthNumber
+--    and s.monthNumber = cl.monthNumber
 left join sheet_completed com 
 on s.phone_number = com.phone_number
     AND
    s.WorksheetNumber=com.worksheetNumber
     AND
    s.LevelNumber=com.LevelNumber
-   and s.monthNumber = com.monthNumber
+--    and s.monthNumber = com.monthNumber
 
 -- select workSheetNumber
 --     ,count(distinct phone_number)uniqueSentTo
