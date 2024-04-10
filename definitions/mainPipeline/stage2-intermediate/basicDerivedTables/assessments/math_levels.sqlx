@@ -1,5 +1,7 @@
 config {
-    type:"table"
+    type:"table",
+    tags: "call_daily"
+
 }
 select distinct childId,
       SAFE_CAST(REPLACE(replace(level,

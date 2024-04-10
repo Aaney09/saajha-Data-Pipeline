@@ -11,8 +11,11 @@ SELECT
   FIRST_VALUE(agent_phone_number) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)firstEnrolledAgentNumber,
   FIRST_VALUE(stack_name) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS FirstEnrollmentFlowType,
   "BAU" enrolled_in,
-  if(alternate_parent_number<>0,safe_cast(concat("91",alternate_parent_number) as int64),null) alternateNumber
+  if(alternate_parent_number<>0,safe_cast(concat("91",alternate_parent_number) as int64),null) alternateNumber,
+  FIRST_VALUE(school_id) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS schoolId,
+  FIRST_VALUE(child_shift) OVER(PARTITION BY parent_phone_number ORDER BY enrolled_at ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS shift,
+    
 
 from ${ref("opt_in_records","enrolled_wa_parents")}
-where stack_name = "ACT"
+-- where stack_name = "ACT"
 
