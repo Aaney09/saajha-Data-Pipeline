@@ -3,37 +3,39 @@ config {
 }
 with sheet_sent as (
     select *
-    -- WorksheetNumber,phone_number,mathLevel
+    -- WorksheetNumber,phone_number,LevelNumber
     from ${ref("mathWorksheetSent")}
     -- where date(sent_at) >="2024-02-10"
     )
 , sheet_clicked as (
     select *
-    -- worksheet_number,phone_number,mathLevel
+    -- worksheetNumber,phone_number,LevelNumber
     from ${ref("mathWorksheetClicked")}
     -- where date(clicked_time) >="2024-02-10"
     )
 , sheet_completed as (
     select *
-    -- Worksheet_Number,phone_number,mathLevel
+    -- WorksheetNumber,phone_number,LevelNumber
     from ${ref("mathWorksheetCompleted")}
     -- where(submitted_time)>="2024-02-10"
 )
 
-select s.*,cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
+select s.* except(linkClicked),cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
 from sheet_sent s
 left join sheet_clicked cl 
 on s.phone_number = cl.phone_number
     AND
-   s.WorksheetNumber=cl.worksheet_number
+   s.WorksheetNumber=cl.worksheetNumber
     AND
-   s.mathLevel=cl.mathLevel
+   s.LevelNumber=cl.LevelNumber
+--    and s.monthNumber = cl.monthNumber
 left join sheet_completed com 
 on s.phone_number = com.phone_number
     AND
-   s.WorksheetNumber=com.worksheet_number
+   s.WorksheetNumber=com.worksheetNumber
     AND
-   s.mathLevel=com.mathLevel
+   s.LevelNumber=com.LevelNumber
+--    and s.monthNumber = com.monthNumber
 
 -- select workSheetNumber
 --     ,count(distinct phone_number)uniqueSentTo
@@ -43,12 +45,12 @@ on s.phone_number = com.phone_number
 -- from raw
 -- group by worksheetNumber
 
--- select workSheetNumber,mathLevel
+-- select workSheetNumber,LevelNumber
 --     ,count(distinct phone_number)uniqueSentTo
 --     ,count(distinct clickedNumber)uniqueClickedNumber
 --     ,count(distinct completedNumber)uniqueCompletedNumber
 
 -- from raw
--- group by worksheetNumber,mathLevel
+-- group by worksheetNumber,LevelNumber
 
 
