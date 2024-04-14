@@ -1,5 +1,6 @@
 config {
-    type:"table"
+    type:"table",
+    tags: "wa_daily"
 }
 with sheet_sent as (
     select *
@@ -20,7 +21,7 @@ with sheet_sent as (
     -- where(submitted_time)>="2024-02-10"
 )
 
-select s.* except(linkClicked),cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
+select s.* except(link),cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
 from sheet_sent s
 left join sheet_clicked cl 
 on s.phone_number = cl.phone_number
@@ -30,11 +31,11 @@ on s.phone_number = cl.phone_number
    s.LevelNumber=cl.LevelNumber
 --    and s.monthNumber = cl.monthNumber
 left join sheet_completed com 
-on s.phone_number = com.phone_number
+on cl.phone_number = com.phone_number
     AND
-   s.WorksheetNumber=com.worksheetNumber
+   cl.WorksheetNumber=com.worksheetNumber
     AND
-   s.LevelNumber=com.LevelNumber
+   cl.LevelNumber=com.LevelNumber
 --    and s.monthNumber = com.monthNumber
 
 -- select workSheetNumber
