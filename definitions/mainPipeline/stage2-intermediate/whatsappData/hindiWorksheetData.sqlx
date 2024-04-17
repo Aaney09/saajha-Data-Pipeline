@@ -20,20 +20,21 @@ with sheet_sent as (
     -- where(submitted_time)>="2024-02-10"
 )
 
-select s.*,cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
+select s.* except(link),cl.phone_number ClickedNumber,clicked_time,com.phone_number as completedNumber,submitted_time
 from sheet_sent s
 left join sheet_clicked cl 
 on s.phone_number = cl.phone_number
     AND
-   s.WorksheetNumber=cl.worksheet_number
+   s.WorksheetNumber=cl.worksheetNumber
     AND
-   s.hindiLevel=cl.hindiLevel
+   s.LevelNumber=cl.LevelNumber
+--    and s.monthNumber = cl.monthNumber
 left join sheet_completed com 
-on s.phone_number = com.phone_number
+on cl.phone_number = com.phone_number
     AND
-   s.WorksheetNumber=com.worksheet_number
+   cl.WorksheetNumber=com.worksheetNumber
     AND
-   s.hindiLevel=com.hindiLevel
+   cl.LevelNumber=com.LevelNumber
 
 -- select workSheetNumber
 --     ,count(distinct phone_number)uniqueSentTo

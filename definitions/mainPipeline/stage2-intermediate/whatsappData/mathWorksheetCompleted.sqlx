@@ -13,7 +13,7 @@ with google_form AS (
 ,react_form as (
     SELECT
         DISTINCT phone_number,
-        datetime(end_time)submmitted_time,
+        datetime(end_time)submitted_time,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64)
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
