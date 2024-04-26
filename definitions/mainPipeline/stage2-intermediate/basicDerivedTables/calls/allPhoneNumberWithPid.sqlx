@@ -56,6 +56,14 @@ SELECT
  UNION DISTINCT
  select OnboardedUserId,SAFE_CAST(CONCAT("91",onboardeduserlogin) AS int64)number, ProjectId
  from ${ref("IE")}
+  UNION DISTINCT
+  SELECT
+    DISTINCT ParentId,
+    SAFE_CAST(CONCAT("91",ParentMobile) AS int64)number,
+     ProjectId
+  FROM
+    ${ref("futureRoster")} 
+
 
 
 
