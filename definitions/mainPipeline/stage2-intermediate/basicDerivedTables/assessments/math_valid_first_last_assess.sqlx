@@ -12,4 +12,4 @@ end mathImprovementStatus
 from ${ref("valid_first_math_assess")} firstAss 
 left join ${ref("valid_last_math_assess")} lastAss 
 on firstAss.childId = lastAss.childId
-where firstAss.childId =103230242222307320
+-- where firstAss.childId =103230242222307320
