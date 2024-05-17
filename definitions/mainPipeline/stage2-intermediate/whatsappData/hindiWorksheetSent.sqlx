@@ -76,7 +76,7 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
   order by sent_at desc
 )
 ,newHindiWorksheetFLowWithVideo as (
-    select 
+select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
 SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
@@ -93,9 +93,8 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
 
-
   FROM
-      ${ref("template-sent")}
+    ${ref("template-sent")}
    where template_name = "hfln_worksheet_with_video"
   order by sent_at desc
 )
@@ -105,6 +104,9 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     union distinct
     select *
     from array_5_assessment_and_month_media
+    union distinct
+    select *
+    from newHindiWorksheetFLowWithVideo
 )
 
 SELECT *
