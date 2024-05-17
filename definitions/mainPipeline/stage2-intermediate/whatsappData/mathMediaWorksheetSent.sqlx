@@ -36,7 +36,7 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
-1 as  monthNumber,
+null as  monthNumber,
 null as mathAssessmentNumber,
 null as mathAssessmentNumber
 
@@ -59,8 +59,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
-ifnull(safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
@@ -74,12 +74,39 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     And upper(template_name) = "MATHS_WORKSHEET_MEDIA_V1"
   order by sent_at desc
 )
+,allMathWorksheetWithVideo as(
+    select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+
+
+  FROM
+    ${ref("template-sent")}
+    where template_name = "maths_worksheet_media_v2"
+  order by sent_at desc
+)
 ,component2 as (
     select*
     from array_3_assessment_and_month_media
     union distinct
     select *
     from array_5_assessment_and_month_media
+    union distinct
+    select *
+    from allMathWorksheetWithVideo
 )
 
 select *
