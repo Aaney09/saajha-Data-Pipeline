@@ -18,7 +18,7 @@ null as mathAssessmentNumber,
 null as hindiAssessmentNumber
 
 FROM
-  `dataform.template-sent`
+   ${ref("template-sent")}
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
@@ -43,7 +43,7 @@ null as mathAssessmentNumber
 
 
 FROM
-  `dataform.template-sent`
+   ${ref("template-sent")}
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
@@ -69,10 +69,33 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
 
 
   FROM
-    `dataform.template-sent`
+     ${ref("template-sent")}
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
     and template_name  = "hfln_comic_2_with_button"
+  order by sent_at desc
+)
+,newHindiWorksheetFLowWithVideo as (
+select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+ifnull(safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+
+  FROM
+    ${ref("template-sent")}
+   where template_name = "hfln_worksheet_with_video"
   order by sent_at desc
 )
 ,component2 as (
@@ -81,6 +104,9 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     union distinct
     select *
     from array_5_assessment_and_month_media
+    union distinct
+    select *
+    from newHindiWorksheetFLowWithVideo
 )
 
 SELECT *
