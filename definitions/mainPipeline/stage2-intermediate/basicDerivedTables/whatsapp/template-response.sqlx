@@ -9,6 +9,7 @@ select distinct
     chat_id,
     template_button_text,
     template_button_index,
+    template_button_payload,
     template_button_template_name,
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at 
