@@ -13,7 +13,7 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
-1 as  monthNumber,
+null as  monthNumber,
 null as mathAssessment,
 null as hindiAssessmentAssessment
 
@@ -37,8 +37,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
-ifnull(safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
-    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64)monthNumber,
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),

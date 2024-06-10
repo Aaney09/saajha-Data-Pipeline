@@ -13,7 +13,7 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 -- 
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
-1 as  monthNumber,
+null as  monthNumber,
 null as mathAssessmentNumber,
 null as hindiAssessmentNumber
 
@@ -37,7 +37,7 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
-null as  monthNumber,
+null as  monthNumber, 
 null as mathAssessmentNumber,
 null as mathAssessmentNumber
 

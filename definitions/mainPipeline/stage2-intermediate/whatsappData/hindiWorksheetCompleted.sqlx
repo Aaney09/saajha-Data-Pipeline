@@ -11,7 +11,7 @@ SELECT
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64)
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
-    ifnull(SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+    SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
 FROM
     `whatsapp_tools.hindi_fln_forms`
 where phone_number not in (918527647594,919915539829)
