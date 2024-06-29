@@ -1,5 +1,5 @@
 config {
-    type :  "table",
+    type : "table",
     tags: "wa_daily"
     }
 
@@ -117,10 +117,10 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
-1 as  monthNumber,
+null as  monthNumber,
 null as mathAssessmentNumber,
 null as hindiAssessmentNumber
-FROM `dataform.template-sent`
+FROM ${ref("template-sent")}
 where template_name = "hfln_comic_2_with_link_and_button_level0" 
 and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3)
 
@@ -145,7 +145,7 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
 
 
-  FROM `dataform.template-sent`
+  FROM ${ref("template-sent")}
   where template_name = "hfln_comic_2_with_link_and_button_level0" 
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
 )
@@ -165,7 +165,7 @@ null as mathAssessmentNumber,
 null as hindiAssessmentNumber
 
 
-  FROM `dataform.template-sent`
+  FROM ${ref("template-sent")}
   where template_name = "hfln_comic_2_with_link_and_button_level0" 
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
 )
@@ -187,7 +187,7 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
 safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
 FROM
-  `dataform.template-sent`
+  ${ref("template-sent")}
   where 
   template_name  = "hfln_worksheet_v3"
   order by sent_at desc
