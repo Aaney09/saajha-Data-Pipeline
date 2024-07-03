@@ -8,10 +8,11 @@ SELECT
 
     DISTINCT phone_number,
     datetime(end_time)submitted_time,
+    form_id,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64)
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
 FROM
     `whatsapp_tools.hindi_fln_forms`
-where phone_number not in (918527647594,919915539829)
+where phone_number not in (918527647594,919915539829) and not regexp_contains(form_id,'(Maths)')
