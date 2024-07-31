@@ -14,8 +14,10 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
 null as  monthNumber,
-null as mathAssessment,
-null as hindiAssessmentAssessment
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
 
 
   FROM
@@ -39,10 +41,16 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64)monthNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
-    "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
-    "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[3],"=")[1] hindi_assessment_name,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
 
 
   FROM
@@ -64,9 +72,10 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
 null as  monthNumber,
-null as mathAssessment,
-null as hindiAssessmentAssessment
-
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
 
   FROM
     ${ref("template-sent")}

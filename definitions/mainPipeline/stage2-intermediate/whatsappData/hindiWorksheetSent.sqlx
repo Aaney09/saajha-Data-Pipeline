@@ -15,8 +15,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 null as  monthNumber,
-safe_cast(null as string) mathAssessmentNumber,
-safe_cast(null as string) hindiAssessmentNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 datetime(null) as hindi_assessment_date,
 datetime(null) as math_assessment_date,
 
@@ -41,8 +41,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
     "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
 null as  monthNumber,
-safe_cast(null as string) mathAssessmentNumber,
-safe_cast(null as string) hindiAssessmentNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 datetime(null) as hindi_assessment_date,
 datetime(null) as math_assessment_date,
 
@@ -131,8 +131,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 null as  monthNumber,
-safe_cast(null as string) mathAssessmentNumber,
-safe_cast(null as string) hindiAssessmentNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 datetime(null) as hindi_assessment_date,
 datetime(null) as math_assessment_date,
 
@@ -183,8 +183,8 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 null as  monthNumber,
-safe_cast(null as string) mathAssessmentNumber,
-safe_cast(null as string) hindiAssessmentNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 datetime(null) as hindi_assessment_date,
 datetime(null) as math_assessment_date,
 
