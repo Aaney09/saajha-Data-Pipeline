@@ -12,8 +12,10 @@ config {
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(content_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
     SAFE_CAST(regexp_extract(regexp_extract(content_id,'([M][0-9]+)'),'([0-9]+)') as int64)monthNumber,
-maths_assessment_date,
-hindi_assessment_date,
+    maths_assessment,
+    hindi_assessment,
+    maths_assessment_date,
+    hindi_assessment_date,
   FROM
     `redirector.FLN_links`
   WHERE
