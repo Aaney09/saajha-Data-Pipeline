@@ -7,15 +7,16 @@ with  component1 as (
     select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfSplitedArray,
-SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[2],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[2],"=")[1] link,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
--- 
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 null as  monthNumber,
-null as mathAssessmentNumber,
-null as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
 
 FROM
   ${ref("template-sent")}
@@ -29,7 +30,7 @@ FROM
   select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
-SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[2],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[2],"=")[1] link,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
 --     "&")[1],"=")[1] content_id,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
@@ -37,9 +38,11 @@ safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_dat
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
 
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
 null as  monthNumber, 
-null as mathAssessmentNumber,
-null as mathAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
 
 
 FROM
@@ -53,19 +56,25 @@ order by sent_at desc
   select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
-SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
 --     "&")[1],"=")[1] content_id,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] math_assessment_name ,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
 
 
   FROM
@@ -79,19 +88,25 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
-SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
 --     "&")[1],"=")[1] content_id,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] math_assessment_name ,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
-safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
 
 
   FROM
@@ -109,9 +124,49 @@ safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components
     select *
     from allMathWorksheetWithVideo
 )
+, v4_datetime_added as (
+select distinct
+phone_number,
+id,chat_id,template_name,
+sent_at,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] math_assessment_name ,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),","," ")))math_assessment_date ,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),","," "),"/"," ")))hindi_assessment_date ,
 
+FROM
+   ${ref("template-sent")}
+where 
+template_name in ("maths_worksheet_media_v2"
+ ,"maths_worksheet_media_v1"
+)
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))>=7
+and   replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),",","")  != ""
+and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),",","")  != ""
+and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),",","")!="3/14/2024 14:27:30"
+and template_meta_data not like "%@mathsdate%"
+and template_meta_data not like "%@hindidate%"
+
+)
 select *
 from component1
 UNION DISTINCT 
 SELECT *
 FROM component2
+UNION DISTINCT
+select *
+from v4_datetime_added
