@@ -8,7 +8,9 @@ with google_form AS (
     datetime(submit_time)submitted_time,
     Level as LevelNumber,
     worksheet as worksheetNumber,
-    1 as monthNumber,
+    null as monthNumber,
+    datetime(null) maths_assessment_date,
+    datetime(null) hindi_assessment_date,
   FROM
     `whatsapp_tools.maths_fln_forms`)
 ,react_form as (
@@ -19,6 +21,8 @@ with google_form AS (
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+    maths_assessment_date,
+    hindi_assessment_date,
 
     FROM
     `saajhadata.whatsapp_tools.maths_react_forms`
