@@ -1,0 +1,27 @@
+config {
+    type:"table"
+}
+with joinedLastTwoAssessmentAndHindiWorksheet as (select distinct lsa.*, hwNi.*except(rosterparentId),concat(worksheetNumber,LevelNumber,monthNumber)id
+from ${ref("notImprovedLastTwoAssessment")} lsa
+left join ${ref("hindiWorksheetNoImprovement")} hwNI
+on lsa.rosterparentId=hwNI.rosterparentId )
+,
+lastAssessmentWorksheets as (select 
+    rosterparentId,
+    count( distinct if(date(sent_at)>=last_Assessment_date,id,null)) hindiWorksheetSentInLastAssessment ,
+    count( distinct if(date(clicked_time)>=last_Assessment_date,id,null)) hindiWorksheetAttemptedInLastAssessment ,
+    count( distinct if(date(submitted_time)>=last_Assessment_date,id,null)) hindiworksheetCompletedInLastAssessment ,
+from joinedLastTwoAssessmentAndHindiWorksheet
+group by all)
+,
+secondlastAssessmentWorksheets as (select 
+    rosterparentId,
+    count( distinct if(date(sent_at)>=second_last_Assessment_date,id,null)) hindiWorksheetSentInSecondLastAssessment ,
+    count( distinct if(date(clicked_time)>=second_last_Assessment_date,id,null)) hindiWorksheetAttemptedInSecondLastAssessment ,
+    count( distinct if(date(submitted_time)>=second_last_Assessment_date,id,null)) hindiWorksheetCompletedInSecondLastAssessment ,
+from joinedLastTwoAssessmentAndHindiWorksheet
+group by all)
+select distinct *
+from secondlastAssessmentWorksheets
+inner join lastAssessmentWorksheets
+using(rosterparentId)
