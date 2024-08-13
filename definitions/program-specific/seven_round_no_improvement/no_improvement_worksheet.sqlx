@@ -1,0 +1,9 @@
+config {
+    type: "table"
+}
+select *
+from ${ref("notImprovedLastTwoAssessment")} 
+left join ${ref("mathWorksheetNoImprovementCounts")}
+using(rosterparentId)
+left join ${ref("hindiWorksheetNoImprovementCounts")}
+using(rosterparentId)

@@ -1,0 +1,9 @@
+config {
+    type: "table"
+}
+
+select distinct a.*
+-- a.*except(number)
+from ${ref("seventhRoundNoImprovement")} n
+inner join ${ref("last_two_asssessment")} a
+on parentid = rosterparentId 
