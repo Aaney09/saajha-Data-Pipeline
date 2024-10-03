@@ -25,7 +25,7 @@ FROM
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
-  order by sent_at desc
+
 )
 
 ,array_3_assessment_and_month_media as (
@@ -52,7 +52,7 @@ FROM
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
-order by sent_at desc
+
 )
 ,array_5_assessment_and_month_media as (
   select 
@@ -80,7 +80,7 @@ datetime(null) as math_assessment_date,
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
     and template_name  = "hfln_comic_2_with_button"
-  order by sent_at desc
+
 )
 ,newHindiWorksheetFLowWithVideo as (
 select 
@@ -106,7 +106,7 @@ datetime(null) as math_assessment_date,
   FROM
     ${ref("template-sent")}
    where template_name = "hfln_worksheet_with_video"
-  order by sent_at desc
+
 )
 
 ,component2 as (
@@ -229,7 +229,6 @@ FROM
   ${ref("template-sent")}
   where 
   template_name  = "hfln_worksheet_v3"
-  order by sent_at desc
 )
 
 ,v4HindiRedirector_with_dateTime as (
@@ -265,6 +264,10 @@ and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].p
     "&")[4],"=")[1],"%20"," "),",","")  != ""
 
 )
+,aug_2024_version as (
+    select *
+    from ${ref("hindiworksheetAUG24Version")}
+)
 select *
 from v4HindiRedirector_with_dateTime
 where phone_number not in (918527647594,919915539829)
@@ -284,6 +287,9 @@ UNion distinct
 select *
 from level0
 where phone_number not in (918527647594,919915539829)
+-- UNION distinct 
+-- select *
+-- from aug_2024_version
 
 -- select *
 -- from hindiFLNContentV3_level2and3
