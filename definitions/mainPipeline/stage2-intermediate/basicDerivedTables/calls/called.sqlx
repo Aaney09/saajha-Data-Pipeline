@@ -15,7 +15,10 @@ SELECT
   isAutoDialerCall,
   Recording,
   null callingRound,
-  "incoming-outgoing" callFlowType
+  "incoming-outgoing" callFlowType,
+  agentMobile,
+  agentName,
+  agentRemarks,
 FROM
   ${ref("incoming")}
   where CallstartDatetime is not null
@@ -32,7 +35,10 @@ SELECT
   isAutoDialerCall,
   Recording,
   Round callingRound,
-  "outgoing-outgoing" callFlowType
+  "outgoing-outgoing" callFlowType,
+  agentMobile,
+  agentName,
+  agentRemarks,
 FROM
   ${ref("roster")}
   where CallstartDatetime is not null
