@@ -16,8 +16,6 @@ SELECT
   Recording,
   null callingRound,
   "incoming-outgoing" callFlowType,
-  agentMobile,
-  agentName,
   agentRemarks,
 FROM
   ${ref("incoming")}
@@ -36,8 +34,6 @@ SELECT
   Recording,
   Round callingRound,
   "outgoing-outgoing" callFlowType,
-  agentMobile,
-  agentName,
   agentRemarks,
 FROM
   ${ref("roster")}
