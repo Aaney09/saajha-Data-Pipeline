@@ -1,0 +1,59 @@
+config {
+    type: "table"
+}
+
+
+with hindi_worksheet_extract as (select distinct
+phone_number,id,chat_id,template_name,sent_at,
+-- SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")splits,
+ARRAY_LENGTH(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")) lengthOfSplitedArray,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] hindi_assessment_name ,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1] mathAssessedDate_raw ,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1] hindiAssessedDate_raw,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),","," ")))math_assessment_date ,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),","," "),"/"," ")))hindi_assessment_date ,
+regexp_extract( split(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[6],"=")[1],'(h[a-zA-Z]+[0-4]W[a-zA-Z]+[0-9]+[M][0-9]+)')content_id,
+safe_Cast(regexp_extract(regexp_extract( split(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[6],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) hLevel,
+safe_Cast(regexp_extract(regexp_extract( split(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[6],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)' )as int64)worksheet,
+safe_Cast(regexp_extract(regexp_extract( split(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[6],"=")[1],'([M][0-9]+)'),'([0-9]+)' ) as int64)month,
+from ${ref("template-sent")}
+
+
+where 
+template_name in("hfln_worksheet_","hfln_worksheet_v4") and phone_number not in(918888727876
+,919971478794,918527647594)
+
+-- template_name =  "hfln_worksheet_v4" and phone_number not in(918888727876
+-- ,919971478794,918527647594)
+ 
+
+order by lengthOfSplitedArray asc
+
+)
+select distinct phone_number,id,chat_id,template_name,sent_at,lengthOfSplitedArray,
+ifnull(worksheetNumber,worksheet)as worksheetNumber,
+ifnull(LevelNumber, hLevel)levelNumber,
+ifnull(monthNumber,month) monthNumber,
+math_assessment_name,
+hindi_assessment_name,
+hindi_assessment_date,
+math_assessment_date
+
+from hindi_worksheet_extract
+where mathAssessedDate_raw != "" and  hindiAssessedDate_raw !=""
+
+order by sent_at desc
+
