@@ -17,6 +17,7 @@ SELECT
   null callingRound,
   "incoming-outgoing" callFlowType,
   agentRemarks,
+  null rosterCallSequence,
 FROM
   ${ref("incoming")}
   where CallstartDatetime is not null
@@ -35,6 +36,7 @@ SELECT
   Round callingRound,
   "outgoing-outgoing" callFlowType,
   agentRemarks,
+  rosterCallSequence,
 FROM
   ${ref("roster")}
   where CallstartDatetime is not null
