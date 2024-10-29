@@ -10,3 +10,6 @@ UNION DISTINCT
 select *
 from ${ref("mathNoMediaWorksheetSent")}
 where phone_number not in (918527647594,919915539829)
+union distinct 
+select *
+from ${ref("math_aug_2024_version")}

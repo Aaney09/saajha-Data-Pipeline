@@ -229,6 +229,7 @@ FROM
   ${ref("template-sent")}
   where 
   template_name  = "hfln_worksheet_v3"
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=5
 )
 
 ,v4HindiRedirector_with_dateTime as (
@@ -257,17 +258,17 @@ where
 template_name in ("hfln_comic_2_with_button"
  ,"hfln_worksheet_with_video"
 , "hfln_worksheet_v3")
-  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))>=7
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=7
 and   replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[5],"=")[1],"%20"," "),",","")  != ""
 and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[4],"=")[1],"%20"," "),",","")  != ""
 
 )
--- ,aug_2024_version as (
---     select *
---     from ${ref("hindiworksheetAUG24Version")}
--- )
+,aug_2024_version as (
+    select *
+    from ${ref("hindiworksheetAUG24Version")}
+)
 select *
 from v4HindiRedirector_with_dateTime
 where phone_number not in (918527647594,919915539829)
@@ -283,14 +284,11 @@ UNION distinct
 SELECT *
 FROM component2
 where phone_number not in (918527647594,919915539829)
--- UNion distinct
--- select *
--- from level0
--- where phone_number not in (918527647594,919915539829)
--- UNION distinct 
--- select *
--- from aug_2024_version
+UNion distinct
+select *
+from level0
+where phone_number not in (918527647594,919915539829)
+UNION distinct 
+select *
+from aug_2024_version
 
--- select *
--- from hindiFLNContentV3_level2and3
--- where phone_number not in (918527647594,919915539829)
