@@ -3,7 +3,7 @@ config {
     tags: "wa_daily"
 }
 
-SELECT distinct 
+with _911171279787 as (SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
     id,
     uuid, 
@@ -16,6 +16,80 @@ SELECT distinct
     last_value(last_status) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
-    datetime_add(updated_at, Interval 330 minute)last_updated_status_at
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
+    911171279787 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
 from ${ref("911171279787","messages")}
 where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+, _912250555658 as (SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type, 
+    json_value(interactive,"$.type") interactiveType,
+    interactive interactive_sent_metadata, 
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
+    912250555658 saajha_whatsapp_number,
+    "only fln" wa_number_purpose
+from ${ref("912250555658","messages")}
+where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _911171817073 as (SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type, 
+    json_value(interactive,"$.type") interactiveType,
+    interactive interactive_sent_metadata, 
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
+    911171817073 saajha_whatsapp_number,
+    "Noida" wa_number_purpose
+from ${ref("911171817073","messages")}
+where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _912250323343 as (SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type, 
+    json_value(interactive,"$.type") interactiveType,
+    interactive interactive_sent_metadata, 
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose
+from ${ref("912250323343","messages")}
+where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+select *
+from _911171279787
+union distinct 
+select *
+from _912250555658
+union distinct
+select *
+from _911171817073
+union distinct 
+select *
+from _912250323343

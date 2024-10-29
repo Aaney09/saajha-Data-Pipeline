@@ -3,7 +3,7 @@ config {
     tags: "wa_daily"
 }
 
-SELECT distinct 
+with _911171279787 as (SELECT distinct 
     safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
     id,
     uuid, 
@@ -12,7 +12,71 @@ SELECT distinct
     json_value(interactive,"$.type") responseType,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     list_reply_description,list_reply_id,list_reply_title,
-    button_reply_id,button_reply_title
+    button_reply_id,button_reply_title,
+    911171279787 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
 from ${ref("911171279787","messages")}
 where message_type = "interactive" and direction="inbound"
 and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+, _912250555658 as (SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    interactive interactive_response_metadata, 
+    json_value(interactive,"$.type") responseType,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    list_reply_description,list_reply_id,list_reply_title,
+    button_reply_id,button_reply_title,
+    912250555658 saajha_whatsapp_number,
+    "only fln" wa_number_purpose
+from ${ref("912250555658","messages")}
+where message_type = "interactive" and direction="inbound"
+and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _911171817073 as (SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    interactive interactive_response_metadata, 
+    json_value(interactive,"$.type") responseType,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    list_reply_description,list_reply_id,list_reply_title,
+    button_reply_id,button_reply_title,
+    911171817073 saajha_whatsapp_number,
+    "Noida" wa_number_purpose
+from ${ref("911171817073","messages")}
+where message_type = "interactive" and direction="inbound"
+and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _912250323343 as (SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    interactive interactive_response_metadata, 
+    json_value(interactive,"$.type") responseType,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    list_reply_description,list_reply_id,list_reply_title,
+    button_reply_id,button_reply_title,
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose
+from ${ref("912250323343","messages")}
+where message_type = "interactive" and direction="inbound"
+and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+select *
+from _911171279787
+union distinct 
+select *
+from _912250555658
+union distinct 
+select *
+from _911171817073
+union distinct 
+select *
+from _912250323343
