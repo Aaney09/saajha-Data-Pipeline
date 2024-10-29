@@ -13,6 +13,6 @@ SELECT distinct
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     list_reply_description,list_reply_id,list_reply_title,
     button_reply_id,button_reply_title
-from ${ref("messages")}
+from ${ref("911171279787","messages")}
 where message_type = "interactive" and direction="inbound"
 and datetime_add(inserted_at, Interval 330 minute)<current_date()

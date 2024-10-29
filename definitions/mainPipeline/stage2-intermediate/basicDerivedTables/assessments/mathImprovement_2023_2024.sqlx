@@ -1,0 +1,133 @@
+config {
+    type: "table"
+}
+with 
+    assessmentDetails as (
+    select * except(firstHindiLevel,lasthindiLevel,hindiImprovedStatusAfter3Assessments)
+    from ${ref("2023_2024_assessment")}
+)
+
+, prelim_2023_2024_child_class as (
+  select distinct childId,
+  last_value(childClass) over(partition by childId order by assessmentDate rows between unbounded preceding and unbounded following)child_class_2023_2024
+from ${ref("prelim")}
+where date(assessmentDate) between "2023-04-01" and "2024-03-31" and childId is not null 
+)
+
+, baseTable as (select distinct 
+      a.*except(rounds,hindiAssessDate,mathAssessDate,hindiLevel,mathLevel),
+      max(rounds) as totalAssessmentsInFY2023_2024,
+      safe_cast(regexp_extract(Education,'([0-9]+)') as int64)as current_class_information,
+      OnBoardedUserId as PID,
+      child_class_2023_2024,
+      regexp_extract(Gender,'(FEMALE|MALE)') AS CHILD_GENDER, 
+      -- if(rounds=1)        
+from assessmentDetails a
+left join `platform_commons.IE`
+on assesseeActorId = ieid
+left join prelim_2023_2024_child_class
+on assesseeActorid = childid
+where 
+ProjectId in(1103213,1103005)
+and  mathImprovedStatusAfter3Assessments="Improved"
+group by all)
+
+
+,r1 as (select distinct assesseeActorId, 
+    if(rounds=1,mathAssessDate,null)round1_mathAssessDate,
+    if(rounds=1,mathLevel,null)round1_mathLevel,
+from assessmentDetails a
+where rounds = 1)
+
+,r2 as (select distinct assesseeActorId, 
+    if(rounds=2,mathAssessDate,null)round2_mathAssessDate,
+    if(rounds=2,mathLevel,null)round2_mathLevel,
+from assessmentDetails a
+where rounds = 2)
+
+,r3 as (select distinct assesseeActorId, 
+    if(rounds=3,mathAssessDate,null)round3_mathAssessDate,
+    if(rounds=3,mathLevel,null)round3_mathLevel,
+from assessmentDetails a
+where rounds = 3)
+
+,r4 as (select distinct assesseeActorId, 
+    if(rounds=4,mathAssessDate,null)round4_mathAssessDate,
+    if(rounds=4,mathLevel,null)round4_mathLevel,
+from assessmentDetails a
+where rounds = 4)
+
+,r5 as (select distinct assesseeActorId, 
+    if(rounds=5,mathAssessDate,null)round5_mathAssessDate,
+    if(rounds=5,mathLevel,null)round5_mathLevel,
+from assessmentDetails a
+where rounds = 5)
+
+,r6 as (select distinct assesseeActorId, 
+    if(rounds=6,mathAssessDate,null)round6_mathAssessDate,
+    if(rounds=6,mathLevel,null)round6_mathLevel,
+from assessmentDetails a
+where rounds = 6)
+
+,r7 as (select distinct assesseeActorId, 
+    if(rounds=7,mathAssessDate,null)round7_mathAssessDate,
+    if(rounds=7,mathLevel,null)round7_mathLevel,
+from assessmentDetails a
+where rounds = 7)
+
+,r8 as (select distinct assesseeActorId, 
+    if(rounds=8,mathAssessDate,null)round8_mathAssessDate,
+    if(rounds=8,mathLevel,null)round8_mathLevel,
+from assessmentDetails a
+where rounds = 8)
+
+,r9 as (select distinct assesseeActorId, 
+    if(rounds=9,mathAssessDate,null)round9_mathAssessDate,
+    if(rounds=9,mathLevel,null)round9_mathLevel,
+from assessmentDetails a
+where rounds = 9)
+
+,r10 as (select distinct assesseeActorId, 
+    if(rounds=10,mathAssessDate,null)round10_mathAssessDate,
+    if(rounds=10,mathLevel,null)round10_mathLevel,
+from assessmentDetails a
+where rounds = 10)
+
+,r11 as (select distinct assesseeActorId, 
+    if(rounds=11,mathAssessDate,null)round11_mathAssessDate,
+    if(rounds=11,mathLevel,null)round11_mathLevel,
+from assessmentDetails a
+where rounds = 11)
+
+,r12 as (select distinct assesseeActorId, 
+    if(rounds=12,mathAssessDate,null)round12_mathAssessDate,
+    if(rounds=12,mathLevel,null)round12_mathLevel,
+from assessmentDetails a
+where rounds = 12)
+
+select *
+from baseTable
+left join r1
+using(assesseeActorid)
+left join r2
+using(assesseeActorid)
+left join r3
+using(assesseeActorid)
+left join r4
+using(assesseeActorid)
+left join r5
+using(assesseeActorid)
+left join r6
+using(assesseeActorid)
+left join r7
+using(assesseeActorid)
+left join r8
+using(assesseeActorid)
+left join r9
+using(assesseeActorid)
+left join r10
+using(assesseeActorid)
+left join r11
+using(assesseeActorid)
+left join r12
+using(assesseeActorid)

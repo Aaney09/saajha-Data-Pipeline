@@ -3,7 +3,7 @@ config {
     tags: "wa_daily"
 }
 
-SELECT distinct 
+with _87 as  (SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
     id,
     uuid, 
@@ -18,6 +18,90 @@ SELECT distinct
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
-    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at 
-from ${ref("messages")}
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
+    911171279787 saajha_whatsapp_number,
+    "onboarding" wa_number_purpose
+from ${ref("911171279787","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+, fln_number as (
+    SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    template template_meta_data, 
+    rendered_content as message_content,
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
+    912250555658 saajha_whatsapp_number,
+    "only fln" wa_number_purpose
+from ${ref("912250555658","messages")}
+where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+,
+_911171817073_noida as (
+    SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    template template_meta_data, 
+    rendered_content as message_content,
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
+    911171817073 saajha_whatsapp_number,
+    "Noida" wa_number_purpose
+from ${ref("911171817073","messages")}
+where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+    )
+,
+agents as (
+    SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    template template_meta_data, 
+    rendered_content as message_content,
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose
+from ${ref("912250323343","messages")}
+where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+    )
+
+
+select *
+from _87
+union distinct 
+select *
+from fln_number
+union distinct
+select *
+from _911171817073_noida
+union distinct 
+select *
+from agents

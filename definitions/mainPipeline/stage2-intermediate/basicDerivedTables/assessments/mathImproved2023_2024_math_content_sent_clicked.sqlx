@@ -1,0 +1,131 @@
+config {
+    type: "table"
+}
+
+with content_template_sent as (select distinct phone_number,message_content,sent_at, date(sent_at) sent_date,rosterParentId
+from ${ref("template-sent")}
+inner join ${ref("allPhoneNumberWithPid")}
+on phone_number = number
+where template_name like "fln_content_template%"
+             and upper(template_meta_data) like "%MATH%"
+            and date(sent_at) between "2023-04-01" and "2024-03-31"
+
+)
+,content_clicked as (
+select distinct safe_cast(phone_number as int64)phone_number,content_id,time as clicked_time,date(time) as clicked_date,rosterParentId
+from `redirector.FLN_links`
+inner join ${ref("allPhoneNumberWithPid")}
+on safe_cast(phone_number as int64 )= number
+where upper(content_id) like "%MATH%" 
+    and upper(content_id) not like "%WORKSHEET%"
+    and date(time) between "2023-04-01" and "2024-03-31"
+
+)
+
+,content_sent_counts as (
+    select PID,
+    count(distinct if( sent_date >= round1_mathAssessDate and sent_date  < round2_mathAssessDate  ,message_content,null))round1_contentSent,
+    count(distinct if( sent_date >= round2_mathAssessDate and sent_date  < round3_mathAssessDate  ,message_content,null))round2_contentSent,
+    count(distinct if( 
+                    (round4_mathAssessDate is not null and sent_date >= round3_mathAssessDate and sent_date  < round4_mathAssessDate) 
+                    or
+                    (round4_mathAssessDate is null and sent_date >= round3_mathAssessDate)   ,message_content,null))round3_contentSent,
+    count(distinct if( 
+                    (round5_mathAssessDate is not null and sent_date >= round4_mathAssessDate and sent_date  < round5_mathAssessDate) 
+                    or
+                    (round5_mathAssessDate is null and sent_date >= round4_mathAssessDate)   ,message_content,null))round4_contentSent,
+    count(distinct if( 
+                    (round6_mathAssessDate is not null and sent_date >= round5_mathAssessDate and sent_date  < round6_mathAssessDate) 
+                    or
+                    (round6_mathAssessDate is null and sent_date >= round5_mathAssessDate)   ,message_content,null))round5_contentSent,
+    count(distinct if( 
+                    (round7_mathAssessDate is not null and sent_date >= round6_mathAssessDate and sent_date  < round7_mathAssessDate) 
+                    or
+                    (round7_mathAssessDate is null and sent_date >= round6_mathAssessDate)   ,message_content,null))round6_contentSent,
+    count(distinct if( 
+                    (round8_mathAssessDate is not null and sent_date >= round7_mathAssessDate and sent_date  < round8_mathAssessDate) 
+                    or
+                    (round8_mathAssessDate is null and sent_date >= round7_mathAssessDate)   ,message_content,null))round7_contentSent,
+     count(distinct if( 
+                    (round9_mathAssessDate is not null and sent_date >= round8_mathAssessDate and sent_date  < round9_mathAssessDate) 
+                    or
+                    (round9_mathAssessDate is null and sent_date >= round8_mathAssessDate)   ,message_content,null))round8_contentSent,
+    count(distinct if( 
+                    (round10_mathAssessDate is not null and sent_date >= round9_mathAssessDate and sent_date  < round10_mathAssessDate) 
+                    or
+                    (round10_mathAssessDate is null and sent_date >= round9_mathAssessDate)   ,message_content,null))round9_contentSent,
+    count(distinct if( 
+                    (round11_mathAssessDate is not null and sent_date >= round10_mathAssessDate and sent_date  < round11_mathAssessDate) 
+                    or
+                    (round11_mathAssessDate is null and sent_date >= round10_mathAssessDate)   ,message_content,null))round10_contentSent,
+    count(distinct if( 
+                    (round12_mathAssessDate is not null and sent_date >= round11_mathAssessDate and sent_date  < round12_mathAssessDate) 
+                    or
+                    (round12_mathAssessDate is null and sent_date >= round11_mathAssessDate)   ,message_content,null))round11_contentSent,
+    count(distinct if( sent_date >= round12_mathAssessDate  ,message_content,null))round12_contentSent,
+from content_template_sent
+inner join ${ref("mathImprovement_2023_2024")}
+on PID= rosterParentId
+group by all 
+
+)
+
+
+, content_clicked_counts as (
+    select pid,
+    count(distinct if( clicked_date >= round1_mathAssessDate and clicked_date  < round2_mathAssessDate  ,content_id,null))round1_contentClicked,
+    count(distinct if( clicked_date >= round2_mathAssessDate and clicked_date  < round3_mathAssessDate  ,content_id,null))round2_contentClicked,
+    count(distinct if( 
+                    (round4_mathAssessDate is not null and clicked_date >= round3_mathAssessDate and clicked_date  < round4_mathAssessDate) 
+                    or
+                    (round4_mathAssessDate is null and clicked_date >= round3_mathAssessDate)   ,content_id,null))round3_contentClicked,
+    count(distinct if( 
+                    (round5_mathAssessDate is not null and clicked_date >= round4_mathAssessDate and clicked_date  < round5_mathAssessDate) 
+                    or
+                    (round5_mathAssessDate is null and clicked_date >= round4_mathAssessDate)   ,content_id,null))round4_contentClicked,
+    count(distinct if( 
+                    (round6_mathAssessDate is not null and clicked_date >= round5_mathAssessDate and clicked_date  < round6_mathAssessDate) 
+                    or
+                    (round6_mathAssessDate is null and clicked_date >= round5_mathAssessDate)   ,content_id,null))round5_contentClicked,
+    count(distinct if( 
+                    (round7_mathAssessDate is not null and clicked_date >= round6_mathAssessDate and clicked_date  < round7_mathAssessDate) 
+                    or
+                    (round7_mathAssessDate is null and clicked_date >= round6_mathAssessDate)   ,content_id,null))round6_contentClicked,
+    count(distinct if( 
+                    (round8_mathAssessDate is not null and clicked_date >= round7_mathAssessDate and clicked_date  < round8_mathAssessDate) 
+                    or
+                    (round8_mathAssessDate is null and clicked_date >= round7_mathAssessDate)   ,content_id,null))round7_contentClicked,
+     count(distinct if( 
+                    (round9_mathAssessDate is not null and clicked_date >= round8_mathAssessDate and clicked_date  < round9_mathAssessDate) 
+                    or
+                    (round9_mathAssessDate is null and clicked_date >= round8_mathAssessDate)   ,content_id,null))round8_contentClicked,
+    count(distinct if( 
+                    (round10_mathAssessDate is not null and clicked_date >= round9_mathAssessDate and clicked_date  < round10_mathAssessDate) 
+                    or
+                    (round10_mathAssessDate is null and clicked_date >= round9_mathAssessDate)   ,content_id,null))round9_contentClicked,
+    count(distinct if( 
+                    (round11_mathAssessDate is not null and clicked_date >= round10_mathAssessDate and clicked_date  < round11_mathAssessDate) 
+                    or
+                    (round11_mathAssessDate is null and clicked_date >= round10_mathAssessDate)   ,content_id,null))round10_contentClicked,
+    count(distinct if( 
+                    (round12_mathAssessDate is not null and clicked_date >= round11_mathAssessDate and clicked_date  < round12_mathAssessDate) 
+                    or
+                    (round12_mathAssessDate is null and clicked_date >= round11_mathAssessDate)   ,content_id,null))round11_contentClicked,
+    count(distinct if( clicked_date >= round12_mathAssessDate  ,content_id,null))round12_contentClicked,
+    from content_clicked
+    inner join ${ref("mathImprovement_2023_2024")}
+    on PID= rosterParentId
+    group by all
+    -- having msgCount<=4
+)
+
+select *
+from content_sent_counts 
+left join content_clicked_counts
+using(PID)
+
+
+ 
+
+
+

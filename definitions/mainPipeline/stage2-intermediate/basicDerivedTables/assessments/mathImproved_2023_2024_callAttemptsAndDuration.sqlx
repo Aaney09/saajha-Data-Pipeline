@@ -1,0 +1,39 @@
+config {
+    type:"table"
+}
+
+with calling as (select distinct ma.*,childid,callstartDatetime,callenddatetime,recording
+from ${ref("mathImprovement_2023_2024")} ma
+inner join ${ref("called")} c
+on assesseeActorId=childId
+where date(callstartDatetime) between "2023-04-01" and "2024-03-31")
+
+
+    select PID,
+    count(distinct if(date(callstartDatetime) <= round1_mathAssessDate, callstartDatetime,null)) round1_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round1_mathAssessDate and date(callstartDatetime) <= round2_mathAssessDate, callstartDatetime,null)) round2_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round2_mathAssessDate and date(callstartDatetime) <= round3_mathAssessDate, callstartDatetime,null)) round3_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round3_mathAssessDate and date(callstartDatetime) <= round4_mathAssessDate, callstartDatetime,null)) round4_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round4_mathAssessDate and date(callstartDatetime) <= round5_mathAssessDate, callstartDatetime,null)) round5_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round5_mathAssessDate and date(callstartDatetime) <= round6_mathAssessDate, callstartDatetime,null)) round6_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round6_mathAssessDate and date(callstartDatetime) <= round7_mathAssessDate, callstartDatetime,null)) round7_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round7_mathAssessDate and date(callstartDatetime) <= round8_mathAssessDate, callstartDatetime,null)) round8_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round8_mathAssessDate and date(callstartDatetime) <= round9_mathAssessDate, callstartDatetime,null)) round9_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round9_mathAssessDate and date(callstartDatetime) <= round10_mathAssessDate, callstartDatetime,null)) round10_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round10_mathAssessDate and date(callstartDatetime) <= round11_mathAssessDate, callstartDatetime,null)) round11_totalAttempts,
+    count(distinct if(date(callstartDatetime) > round11_mathAssessDate and date(callstartDatetime) <= round12_mathAssessDate, callstartDatetime,null)) round12_totalAttempts,
+
+    sum(distinct if(date(callstartDatetime) <= round1_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round1_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round1_mathAssessDate and date(callstartDatetime) <= round2_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round2_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round2_mathAssessDate and date(callstartDatetime) <= round3_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round3_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round3_mathAssessDate and date(callstartDatetime) <= round4_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round4_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round4_mathAssessDate and date(callstartDatetime) <= round5_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round5_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round5_mathAssessDate and date(callstartDatetime) <= round6_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round6_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round6_mathAssessDate and date(callstartDatetime) <= round7_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round7_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round7_mathAssessDate and date(callstartDatetime) <= round8_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round8_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round8_mathAssessDate and date(callstartDatetime) <= round9_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round9_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round9_mathAssessDate and date(callstartDatetime) <= round10_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round10_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round10_mathAssessDate and date(callstartDatetime) <= round11_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round11_totalDurationInMinutes,
+    sum(distinct if(date(callstartDatetime) > round11_mathAssessDate and date(callstartDatetime) <= round12_mathAssessDate, datetime_diff(callenddatetime,callstartDatetime,second),null))/60 round12_totalDurationInMinutes,
+    from calling 
+    group by 1 

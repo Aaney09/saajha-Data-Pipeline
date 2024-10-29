@@ -1,0 +1,168 @@
+config {
+    type: "table"
+}
+with mathWorksheetSent as 
+(select distinct rosterParentId,sent_at,worksheetNumber
+from ${ref("mathWorksheetSent")} ms
+inner join ${ref("allPhoneNumberWithPid")}
+on phone_number= number
+where date(sent_at) between "2023-04-01" and "2024-03-31")
+
+, mathWorksheetClicked as (
+    select distinct rosterParentId,clicked_time,worksheetNumber
+    from ${ref("mathWorksheetClicked")}
+    inner join ${ref("allPhoneNumberWithPid")}
+    on phone_number= number
+    where date(clicked_time) between "2023-04-01" and "2024-03-31"
+)
+
+,MathWorksheetcompleted as (select distinct rosterParentId,submitted_time,worksheetNumber
+from ${ref("mathWorksheetCompleted")}
+inner join ${ref("allPhoneNumberWithPid")}
+on phone_number= number
+where date(submitted_time) between "2023-04-01" and "2024-03-31")
+
+
+, worksheetSentCount as (select pid,
+    count(distinct if( date(sent_at) >= round1_mathAssessDate and date(sent_at)  < round2_mathAssessDate  ,worksheetNumber,null))round1_worksheetSent,
+    count(distinct if( date(sent_at) >= round2_mathAssessDate and date(sent_at)  < round3_mathAssessDate  ,worksheetNumber,null))round2_worksheetSent,
+    count(distinct if( 
+                    (round4_mathAssessDate is not null and date(sent_at) >= round3_mathAssessDate and date(sent_at)  < round4_mathAssessDate) 
+                    or
+                    (round4_mathAssessDate is null and date(sent_at) >= round3_mathAssessDate)   ,worksheetNumber,null))round3_worksheetSent,
+    count(distinct if( 
+                    (round5_mathAssessDate is not null and date(sent_at) >= round4_mathAssessDate and date(sent_at)  < round5_mathAssessDate) 
+                    or
+                    (round5_mathAssessDate is null and date(sent_at) >= round4_mathAssessDate)   ,worksheetNumber,null))round4_worksheetSent,
+    count(distinct if( 
+                    (round6_mathAssessDate is not null and date(sent_at) >= round5_mathAssessDate and date(sent_at)  < round6_mathAssessDate) 
+                    or
+                    (round6_mathAssessDate is null and date(sent_at) >= round5_mathAssessDate)   ,worksheetNumber,null))round5_worksheetSent,
+    count(distinct if( 
+                    (round7_mathAssessDate is not null and date(sent_at) >= round6_mathAssessDate and date(sent_at)  < round7_mathAssessDate) 
+                    or
+                    (round7_mathAssessDate is null and date(sent_at) >= round6_mathAssessDate)   ,worksheetNumber,null))round6_worksheetSent,
+    count(distinct if( 
+                    (round8_mathAssessDate is not null and date(sent_at) >= round7_mathAssessDate and date(sent_at)  < round8_mathAssessDate) 
+                    or
+                    (round8_mathAssessDate is null and date(sent_at) >= round7_mathAssessDate)   ,worksheetNumber,null))round7_worksheetSent,
+     count(distinct if( 
+                    (round9_mathAssessDate is not null and date(sent_at) >= round8_mathAssessDate and date(sent_at)  < round9_mathAssessDate) 
+                    or
+                    (round9_mathAssessDate is null and date(sent_at) >= round8_mathAssessDate)   ,worksheetNumber,null))round8_worksheetSent,
+    count(distinct if( 
+                    (round10_mathAssessDate is not null and date(sent_at) >= round9_mathAssessDate and date(sent_at)  < round10_mathAssessDate) 
+                    or
+                    (round10_mathAssessDate is null and date(sent_at) >= round9_mathAssessDate)   ,worksheetNumber,null))round9_worksheetSent,
+    count(distinct if( 
+                    (round11_mathAssessDate is not null and date(sent_at) >= round10_mathAssessDate and date(sent_at)  < round11_mathAssessDate) 
+                    or
+                    (round11_mathAssessDate is null and date(sent_at) >= round10_mathAssessDate)   ,worksheetNumber,null))round10_worksheetSent,
+    count(distinct if( 
+                    (round12_mathAssessDate is not null and date(sent_at) >= round11_mathAssessDate and date(sent_at)  < round12_mathAssessDate) 
+                    or
+                    (round12_mathAssessDate is null and date(sent_at) >= round11_mathAssessDate)   ,worksheetNumber,null))round11_worksheetSent,
+    count(distinct if( date(sent_at) >= round12_mathAssessDate  ,worksheetNumber,null))round12_worksheetSent,
+from mathWorksheetSent
+  inner join ${ref("mathImprovement_2023_2024")}
+    on PID= rosterParentId
+    group by all)
+
+
+,worksheetClickedCount as (    select pid,
+    count(distinct if( date(clicked_time) >= round1_mathAssessDate and date(clicked_time)  < round2_mathAssessDate  ,worksheetNumber,null))round1_worksheetClicked,
+    count(distinct if( date(clicked_time) >= round2_mathAssessDate and date(clicked_time)  < round3_mathAssessDate  ,worksheetNumber,null))round2_worksheetClicked,
+    count(distinct if( 
+                    (round4_mathAssessDate is not null and date(clicked_time) >= round3_mathAssessDate and date(clicked_time)  < round4_mathAssessDate) 
+                    or
+                    (round4_mathAssessDate is null and date(clicked_time) >= round3_mathAssessDate)   ,worksheetNumber,null))round3_worksheetClicked,
+    count(distinct if( 
+                    (round5_mathAssessDate is not null and date(clicked_time) >= round4_mathAssessDate and date(clicked_time)  < round5_mathAssessDate) 
+                    or
+                    (round5_mathAssessDate is null and date(clicked_time) >= round4_mathAssessDate)   ,worksheetNumber,null))round4_worksheetClicked,
+    count(distinct if( 
+                    (round6_mathAssessDate is not null and date(clicked_time) >= round5_mathAssessDate and date(clicked_time)  < round6_mathAssessDate) 
+                    or
+                    (round6_mathAssessDate is null and date(clicked_time) >= round5_mathAssessDate)   ,worksheetNumber,null))round5_worksheetClicked,
+    count(distinct if( 
+                    (round7_mathAssessDate is not null and date(clicked_time) >= round6_mathAssessDate and date(clicked_time)  < round7_mathAssessDate) 
+                    or
+                    (round7_mathAssessDate is null and date(clicked_time) >= round6_mathAssessDate)   ,worksheetNumber,null))round6_worksheetClicked,
+    count(distinct if( 
+                    (round8_mathAssessDate is not null and date(clicked_time) >= round7_mathAssessDate and date(clicked_time)  < round8_mathAssessDate) 
+                    or
+                    (round8_mathAssessDate is null and date(clicked_time) >= round7_mathAssessDate)   ,worksheetNumber,null))round7_worksheetClicked,
+     count(distinct if( 
+                    (round9_mathAssessDate is not null and date(clicked_time) >= round8_mathAssessDate and date(clicked_time)  < round9_mathAssessDate) 
+                    or
+                    (round9_mathAssessDate is null and date(clicked_time) >= round8_mathAssessDate)   ,worksheetNumber,null))round8_worksheetClicked,
+    count(distinct if( 
+                    (round10_mathAssessDate is not null and date(clicked_time) >= round9_mathAssessDate and date(clicked_time)  < round10_mathAssessDate) 
+                    or
+                    (round10_mathAssessDate is null and date(clicked_time) >= round9_mathAssessDate)   ,worksheetNumber,null))round9_worksheetClicked,
+    count(distinct if( 
+                    (round11_mathAssessDate is not null and date(clicked_time) >= round10_mathAssessDate and date(clicked_time)  < round11_mathAssessDate) 
+                    or
+                    (round11_mathAssessDate is null and date(clicked_time) >= round10_mathAssessDate)   ,worksheetNumber,null))round10_worksheetClicked,
+    count(distinct if( 
+                    (round12_mathAssessDate is not null and date(clicked_time) >= round11_mathAssessDate and date(clicked_time)  < round12_mathAssessDate) 
+                    or
+                    (round12_mathAssessDate is null and date(clicked_time) >= round11_mathAssessDate)   ,worksheetNumber,null))round11_worksheetClicked,
+    count(distinct if( date(clicked_time) >= round12_mathAssessDate  ,worksheetNumber,null))round12_worksheetClicked,
+    from mathWorksheetClicked
+  inner join ${ref("mathImprovement_2023_2024")}
+    on PID= rosterParentId
+    group by all)
+
+
+, worksheetCompletedCount as (select pid,
+    count(distinct if( date(submitted_time) >= round1_mathAssessDate and date(submitted_time)  < round2_mathAssessDate  ,worksheetNumber,null))round1_worksheetCompleted,
+    count(distinct if( date(submitted_time) >= round2_mathAssessDate and date(submitted_time)  < round3_mathAssessDate  ,worksheetNumber,null))round2_worksheetCompleted,
+    count(distinct if( 
+                    (round4_mathAssessDate is not null and date(submitted_time) >= round3_mathAssessDate and date(submitted_time)  < round4_mathAssessDate) 
+                    or
+                    (round4_mathAssessDate is null and date(submitted_time) >= round3_mathAssessDate)   ,worksheetNumber,null))round3_worksheetCompleted,
+    count(distinct if( 
+                    (round5_mathAssessDate is not null and date(submitted_time) >= round4_mathAssessDate and date(submitted_time)  < round5_mathAssessDate) 
+                    or
+                    (round5_mathAssessDate is null and date(submitted_time) >= round4_mathAssessDate)   ,worksheetNumber,null))round4_worksheetCompleted,
+    count(distinct if( 
+                    (round6_mathAssessDate is not null and date(submitted_time) >= round5_mathAssessDate and date(submitted_time)  < round6_mathAssessDate) 
+                    or
+                    (round6_mathAssessDate is null and date(submitted_time) >= round5_mathAssessDate)   ,worksheetNumber,null))round5_worksheetCompleted,
+    count(distinct if( 
+                    (round7_mathAssessDate is not null and date(submitted_time) >= round6_mathAssessDate and date(submitted_time)  < round7_mathAssessDate) 
+                    or
+                    (round7_mathAssessDate is null and date(submitted_time) >= round6_mathAssessDate)   ,worksheetNumber,null))round6_worksheetCompleted,
+    count(distinct if( 
+                    (round8_mathAssessDate is not null and date(submitted_time) >= round7_mathAssessDate and date(submitted_time)  < round8_mathAssessDate) 
+                    or
+                    (round8_mathAssessDate is null and date(submitted_time) >= round7_mathAssessDate)   ,worksheetNumber,null))round7_worksheetCompleted,
+     count(distinct if( 
+                    (round9_mathAssessDate is not null and date(submitted_time) >= round8_mathAssessDate and date(submitted_time)  < round9_mathAssessDate) 
+                    or
+                    (round9_mathAssessDate is null and date(submitted_time) >= round8_mathAssessDate)   ,worksheetNumber,null))round8_worksheetCompleted,
+    count(distinct if( 
+                    (round10_mathAssessDate is not null and date(submitted_time) >= round9_mathAssessDate and date(submitted_time)  < round10_mathAssessDate) 
+                    or
+                    (round10_mathAssessDate is null and date(submitted_time) >= round9_mathAssessDate)   ,worksheetNumber,null))round9_worksheetCompleted,
+    count(distinct if( 
+                    (round11_mathAssessDate is not null and date(submitted_time) >= round10_mathAssessDate and date(submitted_time)  < round11_mathAssessDate) 
+                    or
+                    (round11_mathAssessDate is null and date(submitted_time) >= round10_mathAssessDate)   ,worksheetNumber,null))round10_worksheetCompleted,
+    count(distinct if( 
+                    (round12_mathAssessDate is not null and date(submitted_time) >= round11_mathAssessDate and date(submitted_time)  < round12_mathAssessDate) 
+                    or
+                    (round12_mathAssessDate is null and date(submitted_time) >= round11_mathAssessDate)   ,worksheetNumber,null))round11_worksheetCompleted,
+    count(distinct if( date(submitted_time) >= round12_mathAssessDate  ,worksheetNumber,null))round12_worksheetCompleted,
+from mathWorksheetCompleted
+inner join ${ref("mathImprovement_2023_2024")}
+on PID= rosterParentId
+group by all)
+
+select *
+from worksheetSentCount
+left join worksheetClickedCount
+using(PID)
+left join worksheetCompletedCount
+using(PID)

@@ -2,7 +2,7 @@ config {
     type:"table",
     tags: "wa_daily"
 }
-select distinct
+with _911171279787 as (select distinct
     safe_cast(trim(from_addr,"+") as int64) phone_number,
     id,
     uuid,
@@ -12,7 +12,70 @@ select distinct
     template_button_payload,
     template_button_template_name,
     template_button_template_language,
-    datetime_add(inserted_at, Interval 330 minute)responded_at 
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    911171279787 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose
 
-from ${ref("messages")}
+from ${ref("911171279787","messages")}
 where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _912250555658 as (select distinct
+    safe_cast(trim(from_addr,"+") as int64) phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    912250555658 saajha_whatsapp_number,
+    "only fln" wa_number_purpose
+
+from ${ref("912250555658","messages")}
+where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+, _911171817073 as (select distinct
+    safe_cast(trim(from_addr,"+") as int64) phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    911171817073 saajha_whatsapp_number,
+    "Noida" wa_number_purpose
+
+from ${ref("911171817073","messages")}
+where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+
+, _912250323343 as (select distinct
+    safe_cast(trim(from_addr,"+") as int64) phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose
+from ${ref("912250323343","messages")}
+where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+)
+select *
+from _911171279787
+union distinct 
+select *
+from _912250555658
+union distinct 
+select *
+from _911171817073
