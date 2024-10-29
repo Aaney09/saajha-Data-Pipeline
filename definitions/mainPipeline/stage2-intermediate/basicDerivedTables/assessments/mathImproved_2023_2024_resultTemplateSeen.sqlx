@@ -1,0 +1,135 @@
+config {
+    type:"table"
+}
+with 
+main_data as (   select distinct sent_at, ma.*
+    from ${ref("template-sent")}
+    inner join ${ref("allPhoneNumberWithPid")}
+    on phone_number=number
+    inner join ${ref("mathImprovement_2023_2024")} ma
+    on PID=rosterParentId
+    where template_name like "%image_template1%"  and date(sent_at) between "2023-04-01" and "2024-03-31"
+    and last_message_status = "read")
+,
+r1 as (select distinct pid, "Yes" as round1_result_message_seen,
+from main_data
+where  date(sent_at) >= round1_mathAssessDate and date(sent_at)  < round2_mathAssessDate)
+
+,r2 as (select distinct pid, "Yes" as round2_result_message_seen,
+from main_data
+where  date(sent_at) >= round2_mathAssessDate and date(sent_at)  < round3_mathAssessDate)
+
+,r3 as (select distinct pid, "Yes" as round3_result_message_seen,
+from main_data
+where   
+    (round4_mathAssessDate is not null and date(sent_at) >= round3_mathAssessDate and date(sent_at)  < round4_mathAssessDate) 
+    or
+    (round4_mathAssessDate is null and date(sent_at) >= round3_mathAssessDate) 
+    )
+
+,r4 as (select distinct pid, "Yes" as round4_result_message_seen,
+from main_data
+where   
+    (round5_mathAssessDate is not null and date(sent_at) >= round4_mathAssessDate and date(sent_at)  < round5_mathAssessDate) 
+    or
+    (round5_mathAssessDate is null and date(sent_at) >= round4_mathAssessDate)
+    )
+
+,r5 as (select distinct pid, "Yes" as round5_result_message_seen,
+from main_data
+where   
+    (round6_mathAssessDate is not null and date(sent_at) >= round5_mathAssessDate and date(sent_at)  < round6_mathAssessDate) 
+    or
+    (round6_mathAssessDate is null and date(sent_at) >= round5_mathAssessDate)
+    )
+
+,r6 as (select distinct pid, "Yes" as round6_result_message_seen,
+from main_data
+where   
+    (round7_mathAssessDate is not null and date(sent_at) >= round6_mathAssessDate and date(sent_at)  < round7_mathAssessDate) 
+    or
+    (round7_mathAssessDate is null and date(sent_at) >= round6_mathAssessDate) 
+    )
+
+,r7 as (select distinct pid, "Yes" as round7_result_message_seen,
+from main_data
+where   
+    (round8_mathAssessDate is not null and date(sent_at) >= round7_mathAssessDate and date(sent_at)  < round8_mathAssessDate) 
+    or
+    (round8_mathAssessDate is null and date(sent_at) >= round7_mathAssessDate) 
+    )
+
+,r8 as (select distinct pid, "Yes" as round8_result_message_seen,
+from main_data
+where   
+    (round9_mathAssessDate is not null and date(sent_at) >= round8_mathAssessDate and date(sent_at)  < round9_mathAssessDate) 
+    or
+    (round9_mathAssessDate is null and date(sent_at) >= round8_mathAssessDate) 
+    )
+
+,r9 as (select distinct pid, "Yes" as round9_result_message_seen,
+from main_data
+where   
+    (round10_mathAssessDate is not null and date(sent_at) >= round9_mathAssessDate and date(sent_at)  < round10_mathAssessDate) 
+    or
+    (round10_mathAssessDate is null and date(sent_at) >= round9_mathAssessDate) 
+    )
+
+,r10 as (select distinct pid, "Yes" as round10_result_message_seen,
+from main_data
+where   
+    (round11_mathAssessDate is not null and date(sent_at) >= round10_mathAssessDate and date(sent_at)  < round11_mathAssessDate) 
+    or
+    (round11_mathAssessDate is null and date(sent_at) >= round10_mathAssessDate) 
+    )
+
+,r11 as (select distinct pid, "Yes" as round11_result_message_seen,
+from main_data
+where   
+    (round12_mathAssessDate is not null and date(sent_at) >= round11_mathAssessDate and date(sent_at)  < round12_mathAssessDate) 
+    or
+    (round12_mathAssessDate is null and date(sent_at) >= round11_mathAssessDate)
+    )
+
+,r12 as (select distinct pid, "Yes" as round12_result_message_seen,
+from main_data
+where date(sent_at) >= round12_mathAssessDate
+)
+
+select distinct m.pid,round1_result_message_seen,
+    round2_result_message_seen,
+    round3_result_message_seen,
+    round4_result_message_seen,
+    round5_result_message_seen,
+    round6_result_message_seen,
+    round7_result_message_seen,
+    round8_result_message_seen,
+    round9_result_message_seen,
+    round10_result_message_seen,
+    round11_result_message_seen,
+    round12_result_message_seen
+from main_data m
+left join r1
+using(pid) 
+left join r2
+using(pid) 
+left join r3
+using(pid) 
+left join r4
+using(pid)
+left join r5
+using(pid) 
+left join r6
+using(pid) 
+left join r7
+using(pid)
+left join r8
+using(pid)
+left join r9
+using(pid) 
+left join r10
+using(pid) 
+left join r11
+using(pid) 
+left join r12
+using(pid)    
