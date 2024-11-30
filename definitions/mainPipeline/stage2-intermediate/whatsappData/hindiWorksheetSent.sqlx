@@ -25,6 +25,7 @@ FROM
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
+and last_message_status <> "failed"
 
 )
 
@@ -52,6 +53,7 @@ FROM
   where 
   ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
   and template_name  = "hfln_comic_2_with_button"
+  and last_message_status <> "failed"
 
 )
 ,array_5_assessment_and_month_media as (
@@ -80,6 +82,7 @@ datetime(null) as math_assessment_date,
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
     and template_name  = "hfln_comic_2_with_button"
+    and last_message_status <> "failed"
 
 )
 ,newHindiWorksheetFLowWithVideo as (
@@ -106,6 +109,7 @@ datetime(null) as math_assessment_date,
   FROM
     ${ref("template-sent")}
    where template_name = "hfln_worksheet_with_video"
+   and last_message_status <> "failed"
 
 )
 
@@ -170,6 +174,7 @@ datetime(null) as math_assessment_date,
   FROM ${ref("template-sent")}
   where template_name = "hfln_comic_2_with_link_and_button_level0" 
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
+  and last_message_status <> "failed"
 )
 , level0component2_array_len_3 as (
   select 
@@ -192,6 +197,7 @@ datetime(null) as math_assessment_date,
   FROM ${ref("template-sent")}
   where template_name = "hfln_comic_2_with_link_and_button_level0" 
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
+  and last_message_status <> "failed"
 )
 , level0 as (
     select *
@@ -230,6 +236,7 @@ FROM
   where 
   template_name  = "hfln_worksheet_v3"
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=5
+  and last_message_status <> "failed"
 )
 
 ,v4HindiRedirector_with_dateTime as (
@@ -259,10 +266,12 @@ template_name in ("hfln_comic_2_with_button"
  ,"hfln_worksheet_with_video"
 , "hfln_worksheet_v3")
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=7
-and   replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+  and last_message_status <> "failed"
+  and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[5],"=")[1],"%20"," "),",","")  != ""
-and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+  and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[4],"=")[1],"%20"," "),",","")  != ""
+  and last_message_status <> "failed"
 
 )
 ,aug_2024_version as (

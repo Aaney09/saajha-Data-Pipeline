@@ -39,3 +39,4 @@ and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].p
     "&")[5],"=")[1],"%20"," "),",","")!="3/14/2024 14:27:30"
 and template_meta_data not like "%@maths%"
 and template_meta_data not like "%@hindi%"
+and last_message_status <> "failed"

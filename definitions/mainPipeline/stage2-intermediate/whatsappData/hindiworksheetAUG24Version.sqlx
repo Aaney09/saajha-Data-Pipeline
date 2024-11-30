@@ -39,7 +39,7 @@ template_name in("hfln_worksheet_","hfln_worksheet_v4") and phone_number not in(
 
 -- template_name =  "hfln_worksheet_v4" and phone_number not in(918888727876
 -- ,919971478794,918527647594)
- 
+and last_message_status <> "failed"
 and ARRAY_LENGTH(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")) = 7
 order by lengthOfSplitedArray asc
 
@@ -56,5 +56,6 @@ math_assessment_date
 from hindi_worksheet_extract
 where 
 mathAssessedDate_raw != "" and  hindiAssessedDate_raw !=""
+
 order by sent_at desc
 
