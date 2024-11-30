@@ -142,7 +142,10 @@ datetime(null) as math_assessment_date,
 
 FROM ${ref("template-sent")}
 where template_name = "hfln_comic_2_with_link_and_button_level0" 
-and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3)
+and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
+and last_message_status <> "failed"
+)
+
 
 , level0compontent2_array_len_5 as (
   -- hfln_comic_2_with_link_and_button_level0
