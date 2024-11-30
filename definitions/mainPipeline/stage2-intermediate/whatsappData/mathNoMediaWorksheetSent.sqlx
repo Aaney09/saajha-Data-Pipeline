@@ -24,6 +24,7 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'),"&"))) = 3
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
+    and last_message_status <> "failed"
   order by sent_at desc
 )
 
@@ -57,6 +58,7 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =5
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
+    and last_message_status <> "failed"
   order by sent_at desc
 )
 
@@ -81,6 +83,7 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) = 3
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
+    and last_message_status <> "failed"
   order by sent_at desc
 )
 
