@@ -30,6 +30,7 @@ FROM
 where 
 template_name in("mfln_worksheet_v2") and phone_number not in(918888727876
 ,919971478794,918527647594,919915539829)
+and last_message_status <> "failed"
   and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))>=7
 and   replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[5],"=")[1],"%20"," "),",","")  != ""
