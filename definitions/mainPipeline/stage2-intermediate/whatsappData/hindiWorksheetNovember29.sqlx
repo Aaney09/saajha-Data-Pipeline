@@ -52,8 +52,8 @@ hindi_assessment_date,
 math_assessment_date
 
 from hindi_worksheet_extract
--- where 
--- mathAssessedDate_raw != "" and  hindiAssessedDate_raw !=""
+where 
+mathAssessedDate_raw != "" and  hindiAssessedDate_raw !=""
 
 order by sent_at desc
 
