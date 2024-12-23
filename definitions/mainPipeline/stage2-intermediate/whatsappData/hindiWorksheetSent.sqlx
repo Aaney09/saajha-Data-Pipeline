@@ -281,6 +281,11 @@ template_name in ("hfln_comic_2_with_button"
     select *
     from ${ref("hindiworksheetAUG24Version")}
 )
+,nov_2024_version as (
+    select *
+    from ${ref("hindiWorksheetNovember29")}
+)
+
 select *
 from v4HindiRedirector_with_dateTime
 where phone_number not in (918527647594,919915539829)
@@ -303,4 +308,7 @@ where phone_number not in (918527647594,919915539829)
 UNION distinct 
 select *
 from aug_2024_version
+UNION distinct 
+select *
+from nov_2024_version
 
