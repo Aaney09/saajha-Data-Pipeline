@@ -21,6 +21,7 @@ with _911171279787 as (SELECT distinct
     "onboarding" as wa_number_purpose,
 from ${ref("911171279787","messages")}
 where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 , _912250555658 as (SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
@@ -40,6 +41,7 @@ where message_type = "interactive" and direction="outbound" and datetime_add(ins
     "only fln" wa_number_purpose
 from ${ref("912250555658","messages")}
 where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 
 , _911171817073 as (SELECT distinct 
@@ -60,6 +62,7 @@ where message_type = "interactive" and direction="outbound" and datetime_add(ins
     "Noida" wa_number_purpose
 from ${ref("911171817073","messages")}
 where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 
 , _912250323343 as (SELECT distinct 
@@ -80,6 +83,7 @@ where message_type = "interactive" and direction="outbound" and datetime_add(ins
     "agents" wa_number_purpose
 from ${ref("912250323343","messages")}
 where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 
 select *
