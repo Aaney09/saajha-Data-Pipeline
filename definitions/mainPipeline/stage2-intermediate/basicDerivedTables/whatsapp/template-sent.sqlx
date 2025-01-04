@@ -23,6 +23,7 @@ with _87 as  (SELECT distinct
     "onboarding" wa_number_purpose
 from ${ref("911171279787","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 , fln_number as (
     SELECT distinct 
@@ -45,6 +46,7 @@ where message_type = "template" and datetime_add(inserted_at, Interval 330 minut
     "only fln" wa_number_purpose
 from ${ref("912250555658","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 ,
 _911171817073_noida as (
@@ -68,6 +70,7 @@ _911171817073_noida as (
     "Noida" wa_number_purpose
 from ${ref("911171817073","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
     )
 ,
 agents as (
@@ -91,6 +94,7 @@ agents as (
     "agents" wa_number_purpose
 from ${ref("912250323343","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+qualify row_number()over(partition by uuid order by updated_at desc)=1
     )
 
 
