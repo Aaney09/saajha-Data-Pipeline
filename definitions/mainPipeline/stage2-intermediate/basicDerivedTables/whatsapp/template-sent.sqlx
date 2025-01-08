@@ -20,7 +20,8 @@ with _87 as  (SELECT distinct
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
     911171279787 saajha_whatsapp_number,
-    "onboarding" wa_number_purpose
+    "onboarding" wa_number_purpose,
+    external_id,
 from ${ref("911171279787","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
 qualify row_number()over(partition by uuid order by updated_at desc)=1
@@ -43,7 +44,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
     912250555658 saajha_whatsapp_number,
-    "only fln" wa_number_purpose
+    "only fln" wa_number_purpose,
+    external_id,
 from ${ref("912250555658","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
 qualify row_number()over(partition by uuid order by updated_at desc)=1
@@ -67,7 +69,8 @@ _911171817073_noida as (
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
     911171817073 saajha_whatsapp_number,
-    "Noida" wa_number_purpose
+    "Noida" wa_number_purpose,
+    external_id,
 from ${ref("911171817073","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
 qualify row_number()over(partition by uuid order by updated_at desc)=1
@@ -91,7 +94,8 @@ agents as (
     last_value(datetime_add(updated_at, Interval 330 minute)) over(partition by uuid order by updated_at asc 
     ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )updated_status_at, 
     912250323343 saajha_whatsapp_number,
-    "agents" wa_number_purpose
+    "agents" wa_number_purpose,
+    external_id
 from ${ref("912250323343","messages")}
 where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)<current_date()
 qualify row_number()over(partition by uuid order by updated_at desc)=1
