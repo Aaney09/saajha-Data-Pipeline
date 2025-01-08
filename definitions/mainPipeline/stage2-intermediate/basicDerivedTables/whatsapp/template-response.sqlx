@@ -14,7 +14,8 @@ with _911171279787 as (select distinct
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     911171279787 as saajha_whatsapp_number, 
-    "onboarding" as wa_number_purpose
+    "onboarding" as wa_number_purpose,
+    context_id,
 
 from ${ref("911171279787","messages")}
 where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
@@ -32,7 +33,8 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     912250555658 saajha_whatsapp_number,
-    "only fln" wa_number_purpose
+    "only fln" wa_number_purpose,
+    context_id,
 
 from ${ref("912250555658","messages")}
 where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
@@ -49,7 +51,8 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     911171817073 saajha_whatsapp_number,
-    "Noida" wa_number_purpose
+    "Noida" wa_number_purpose,
+    context_id,
 
 from ${ref("911171817073","messages")}
 where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
@@ -67,7 +70,8 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
     912250323343 saajha_whatsapp_number,
-    "agents" wa_number_purpose
+    "agents" wa_number_purpose,
+    context_id,
 from ${ref("912250323343","messages")}
 where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
 )
