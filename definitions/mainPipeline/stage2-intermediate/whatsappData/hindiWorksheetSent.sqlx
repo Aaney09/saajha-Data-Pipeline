@@ -311,4 +311,7 @@ from aug_2024_version
 UNION distinct 
 select *
 from nov_2024_version
+UNION distinct 
+select *
+from ${ref("mtp_v2_hindi")}
 
