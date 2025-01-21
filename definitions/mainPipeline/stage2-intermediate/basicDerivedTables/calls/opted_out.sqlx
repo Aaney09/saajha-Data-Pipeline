@@ -2,29 +2,47 @@ config {
     type: "table",
     tags : "call_daily"
 }
-with lastCalled as (
-    select parentId,childId,max(datetime(CallstartDatetime))lastCalled
+with lastCalledout as (
+    select parentId,childId,callFlowType,datetime(CallstartDatetime) as lastCalledOutDT,
+    Feedbacktype as LastOutFeedback,Feedbackreason as lastOutFeebackReason
     from ${ref("called")}
     where callFlowType="outgoing-outgoing"
-    group by parentId,childId
+    qualify row_number()over(partition by parentid order by CallstartDatetime desc)=1
 )
-, lastOptedOut as (
-    select parentId,max(datetime(CallstartDatetime))last_opted_out
+,  lastCalledIn as (
+    select parentId,childId,callFlowType,datetime(CallstartDatetime) as lastCalledInDT,Feedbacktype as lastInFeedback,Feedbackreason as lastInFeebackReason
     from ${ref("called")}
-    where Feedbacktype like "%OPTED_OUT%" and callFlowType="outgoing-outgoing"
-    group by parentId,childId
+    where callFlowType="incoming-outgoing" 
+    qualify row_number()over(partition by parentid order by CallstartDatetime desc)=1 
 )
 , opted_out_reasons as (
-    select distinct parentId, childId ,datetime(CallstartDatetime)opted_out_Date,Feedbackreason as opt_out_reason
-    from ${ref("called")}
-    where Feedbacktype like "%OPTED_OUT%"
+    select distinct parentId, childId ,lastCalledOutDT, lastOutFeebackReason as opt_out_reason
+    from lastCalledout
+    where LastOutFeedback like "%OPTED_OUT%" 
+    -- and callFlowType="outgoing-outgoing"
 )
+-- select  *
+-- from opted_out_reasons
 
-select o.parentId,c.childId, True opt_out_status,lastCalled,last_opted_out,opt_out_reason
-from lastOptedOut o
-inner join lastCalled c
-on o.parentId = c.parentId 
-inner join opted_out_reasons r
-on o.parentId = r.parentId 
-and o.last_opted_out=r.opted_out_Date
-where o.last_opted_out>=c.lastCalled
+,opted_out as (
+select 
+    o.*,lastInFeedback,lastInFeebackReason,
+    case
+    when lastInFeedback like "%OPTED_OUT%" and (lastCalledInDT>lastCalledOutDT) THEN true
+    when lastOutFeedback like "%OPTED_OUT%" and (lastCalledInDT<lastCalledOutDt  or lastCalledInDT is null )then true
+    when LastOutFeedback like "%OPTED_OUT%" and lastCalledInDT>lastCalledOutDT and (lastInFeedback like "%RESCHEDULED%"  or lastInFeedback like "%OPTED_OUT%")then true
+        --  when lastOutFeedback like "%OPTED_OUT%" and lastCalledInDT>lastCalledOutDT and lastInFeedback like "%RESOLVED%" then false
+        --  when lastInFeedback like "%OPTED_OUT%" and lastCalledInDT<lastCalledOutDT and lastOutFeedback like "%RESCHEDULED%" then false
+        --  when lastInFeedback like "%OPTED_OUT%" and lastCalledInDT<lastCalledOutDT and lastOutFeedback like "%RESOLVED%" then false
+       
+    else false
+    end opted_out_status
+from lastCalledout o
+left join lastCalledIn
+using(parentid)
+) 
+select distinct *,
+-- lastInFeedback,lastoutFeedback,lastInFeebackReason,lastOutFeebackReason,
+if(lastInFeedback like "%OPTED_OUT%", lastInFeebackReason,lastOutFeebackReason)opt_out_reasons
+from opted_out where opted_out_status is true 
+-- and (lastOutFeebackReason ="Assessment Taken" or opted_out.lastOutFeebackReason ="The Parent raised valid questions,The Parent were really involved,The Parent understood the topics well")
