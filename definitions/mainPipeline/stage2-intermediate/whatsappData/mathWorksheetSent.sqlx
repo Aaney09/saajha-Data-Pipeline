@@ -18,4 +18,8 @@ union distinct
 select *
 from ${ref("mathWorksheet29thNov")}
 where phone_number not in (918527647594,919915539829)
+union distinct
+select *
+from ${ref("mtp_v2_math")}
+where phone_number not in (918527647594,919915539829)
 
