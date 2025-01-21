@@ -5,18 +5,19 @@ config {
 with lastCalled as (
     select parentId,childId,max(datetime(CallstartDatetime))lastCalled
     from ${ref("called")}
+    where callFlowType="outgoing-outgoing"
     group by parentId,childId
 )
 , lastOptedOut as (
     select parentId,max(datetime(CallstartDatetime))last_opted_out
     from ${ref("called")}
-    where Feedbacktype like "%OPTED_OUT%"
+    where Feedbacktype like "%OPTED_OUT%" and callFlowType="outgoing-outgoing"
     group by parentId,childId
 )
 , opted_out_reasons as (
     select distinct parentId, childId ,datetime(CallstartDatetime)opted_out_Date,Feedbackreason as opt_out_reason
     from ${ref("called")}
-    where Feedbacktype like "%OPTED_OUT%"
+    where Feedbacktype like "%OPTED_OUT%" and callFlowType="outgoing-outgoing"
 )
 
 select o.parentId,c.childId, True opt_out_status,lastCalled,last_opted_out,opt_out_reason
