@@ -4,7 +4,7 @@ config {
 }
 with lastCalledout as (
     select parentId,childId,callFlowType,datetime(CallstartDatetime) as lastCalledOutDT,
-    Feedbacktype as LastOutFeedback,Feedbackreason as lastOutFeebackReason
+    Feedbacktype as LastOutFeedback,Feedbackreason as lastOutFeebackReason,rosterCallStatus
     from ${ref("called")}
     where callFlowType="outgoing-outgoing"
     qualify row_number()over(partition by parentid order by CallstartDatetime desc)=1
@@ -26,23 +26,26 @@ with lastCalledout as (
 
 ,opted_out as (
 select 
-    o.*,lastInFeedback,lastInFeebackReason,
+    o.*,lastInFeedback,lastInFeebackReason,lastCalledInDT,
     case
+    when LastOutFeedback like "%OPTED_OUT%" and lastCalledInDT>lastCalledOutDT and (lastInFeedback like "%RESCHEDULED%"  or lastInFeedback like "%OPTED_OUT%")then true
     when lastInFeedback like "%OPTED_OUT%" and (lastCalledInDT>lastCalledOutDT) THEN true
     when lastOutFeedback like "%OPTED_OUT%" and (lastCalledInDT<lastCalledOutDt  or lastCalledInDT is null )then true
-    when LastOutFeedback like "%OPTED_OUT%" and lastCalledInDT>lastCalledOutDT and (lastInFeedback like "%RESCHEDULED%"  or lastInFeedback like "%OPTED_OUT%")then true
+    when rosterCallStatus like "%OPTED_OUT%" then true
+    
         --  when lastOutFeedback like "%OPTED_OUT%" and lastCalledInDT>lastCalledOutDT and lastInFeedback like "%RESOLVED%" then false
         --  when lastInFeedback like "%OPTED_OUT%" and lastCalledInDT<lastCalledOutDT and lastOutFeedback like "%RESCHEDULED%" then false
         --  when lastInFeedback like "%OPTED_OUT%" and lastCalledInDT<lastCalledOutDT and lastOutFeedback like "%RESOLVED%" then false
        
     else false
-    end opted_out_status
+    end opted_out_status 
 from lastCalledout o
 left join lastCalledIn
 using(parentid)
 ) 
-select distinct *,
+select distinct parentId,childId,
+if(lastInFeedback like "%OPTED_OUT%", lastCalledInDT,lastCalledOutDT)last_opted_out,
 -- lastInFeedback,lastoutFeedback,lastInFeebackReason,lastOutFeebackReason,
-if(lastInFeedback like "%OPTED_OUT%", lastInFeebackReason,lastOutFeebackReason)opt_out_reasons
+if(lastInFeedback like "%OPTED_OUT%", lastInFeebackReason,lastOutFeebackReason)opt_out_reason
 from opted_out where opted_out_status is true 
 -- and (lastOutFeebackReason ="Assessment Taken" or opted_out.lastOutFeebackReason ="The Parent raised valid questions,The Parent were really involved,The Parent understood the topics well")
