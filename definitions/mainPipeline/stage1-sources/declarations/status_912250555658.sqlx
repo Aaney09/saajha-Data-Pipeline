@@ -1,0 +1,6 @@
+config {
+    type:"declaration",
+    database:"saajhadata",
+    schema:"912250555658",
+    name:"statuses"
+}
