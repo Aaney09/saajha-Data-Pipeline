@@ -3,7 +3,6 @@ config {
     tags: "wa_daily"
 }
 
-
 with hindi_worksheet_extract as (select distinct
 phone_number,id,chat_id,template_name,sent_at,
 -- SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")splits,

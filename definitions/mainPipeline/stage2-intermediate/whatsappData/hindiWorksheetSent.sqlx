@@ -314,4 +314,8 @@ from nov_2024_version
 UNION distinct 
 select *
 from ${ref("mtp_v2_hindi")}
+union distinct
+select *
+from ${ref("hindi_mtp_utility_20Feb2025")} 
+where phone_number not in (918527647594,919915539829)
 
