@@ -25,7 +25,7 @@ datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(SPLIT(split(JSON_VAL
 datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[5],"=")[1],"%20"," "),","," "),"/"," ")))hindi_assessment_date ,
 
-FROM
+FROM 
    ${ref("template-sent")}
 where 
 template_name ="mfln_worksheet_mtp_utility" and phone_number not in(918888727876
