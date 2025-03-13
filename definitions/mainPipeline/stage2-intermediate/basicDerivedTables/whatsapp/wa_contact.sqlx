@@ -1,6 +1,6 @@
 config {
-    type: "table",
-    tags: "wa_daily"
+    type: "view",
+    tags: "rfa"
 }
 
 SELECT
@@ -25,10 +25,12 @@ SAFE_CAST(urn AS int64) phone_number,
   id,
   
 FROM
-  ${ref("contacts")}
+  ${ref("911171279787","contacts")}  
 
 WHERE
   SAFE_CAST(urn AS int64) IS NOT NULL
   AND CHAR_LENGTH(RIGHT(urn,12)) = 12
   AND STARTS_WITH(RIGHT(urn, 12),"91")
   and datetime_add(inserted_at, Interval 330 minute)<current_date()
+
+qualify (row_number() over(partition by urn order by updated_at desc))=1

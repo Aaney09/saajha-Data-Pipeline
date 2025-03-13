@@ -1,0 +1,208 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+
+with 
+hindi as (select distinct AssessmentId hindiAssessmentId,AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,datetime(AssessmentTakenOn)assessedOn
+from `platform_commons.assessment`
+where QuestionText like "%Ask%" and AssessmentId<>6)
+, math as (select distinct AssessmentId mathAssessmentId,AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,datetime(AssessmentTakenOn)assessedOn
+from `platform_commons.assessment`
+where QuestionText not like  "%Ask%" and AssessmentId <> 6)
+
+, childDetails as (select distinct IEId as childId, OnBoardedUserId as PaId,ProjectId as ProjectId,FLNAchievedDate
+from `platform_commons.IE`)
+
+, assessments as (
+  select *
+from hindi
+inner join math 
+using(assesseeActorID,dateOfAssessment)
+inner join childDetails
+on assesseeActorID=childId
+where math.dateOfAssessment >= "2024-04-01"
+)
+
+, allNumbersAssessed as (
+  select distinct AssesseeActorId,paID as ParentId,number,dateOfAssessment,childid,FLNAchievedDate
+  from `dataform.allPhoneNumberWithPid`
+  inner join assessments 
+  on rosterparentId=paId
+  where number is not null
+)
+, math_result_sent as (
+  select distinct phone_number,sent_at
+  from ${ref("template-sent")}
+  where 
+    ((template_name like "%fln_result_template1%" 
+    and message_content like "%गणित%")
+    or template_name ="fln_math_result_v1"
+    or template_name = "fln_math_result")
+    and last_message_status <> "failed"
+    -- and date(sent_at)>="2024-12-01"
+)
+,hindi_result_sent as (
+  select distinct phone_number,sent_at
+  from ${ref("template-sent")}
+  where 
+    ((template_name like "%fln_result_template1%" 
+    and message_content like "%हिंदी%")
+    or template_name = "fln_hindi_resultv1"
+    or template_name = "fln_hindi_result")
+    and date(sent_at)>="2024-04-01"
+    and last_message_status <> "failed"
+)
+, BothSubjectFLNAchievedTemplateSent as (
+  select distinct phone_number,sent_at
+  from ${ref("template-sent")}
+  where template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2") and date(sent_at)>="2024-04-01"
+  and last_message_status <> "failed"
+)
+, fln_achieved_maths_template_sent as (
+  select distinct phone_number,sent_at,
+  from ${ref("template-sent")}
+  where (template_name ="fln_level_achieved_maths" or template_name = "mfln_single_level_achieved" or (template_name ="fln_single_level_achieved" and message_content like "%गणित%")) and date(sent_at)>="2024-04-01"
+  and last_message_status <> "failed"
+  
+)
+,fln_achieved_hindi_template_sent as (
+  select distinct phone_number, sent_at
+  from ${ref("template-sent")}
+  where (template_name = "fln_level_achieved_hindi" or template_name = "hfln_single_level_achieved_v1" or (template_name ="fln_single_level_achieved" and message_content like "%हिंदी%"))and date(sent_at)>="2024-04-01"
+  and last_message_status <> "failed"
+)
+
+,hindi_video as (
+  select distinct phone_number, sent_at
+  from ${ref("template-sent")}
+  where ((template_name = "hfln_content_template" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%") or (template_name = "hfln_content_template_v2" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%") or (template_name = "hfln_video_template_v2" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%"))
+  and last_message_status <> "failed"
+)
+
+, math_first_worksheet_sent as (
+  select distinct phone_number,sent_at as math_worksheet1_sent_on
+  from ${ref("mathWorksheetSent")}
+  where worksheetNumber =1 
+)
+
+, hindi_first_worksheet_sent as (
+  select distinct phone_number,sent_at as hindi_worksheet1_sent_on
+  from ${ref("hindiWorksheetSent")}
+  where worksheetNumber =1 
+)
+
+,mathResultSent as (
+  select distinct *
+from allNumbersAssessed a
+left join math_result_sent m
+on number = m.phone_number and dateOfAssessment=date(sent_at)
+)
+,hindiResultSent as (
+  select distinct *
+from allNumbersAssessed a
+left join hindi_result_sent h
+on number = h.phone_number and dateOfAssessment=date(sent_at)
+)
+
+, sent_math_first_content_within_same_or_next_Day as (
+  select distinct *
+  from math_result_sent r
+  inner join math_first_worksheet_Sent m
+  using(phone_number)
+  where datetime_diff(m.math_worksheet1_sent_on,sent_at,day)between 1 and 2
+)
+, sent_hindi_first_worksheet_within_same_or_next_Day as (
+  select distinct *
+  from hindi_result_sent r
+  inner join hindi_first_worksheet_Sent h
+  using(phone_number)
+  where datetime_diff(h.hindi_worksheet1_sent_on,sent_at,day)between 1 and 2
+)
+,hindi_first_video_sent_same_or_next_Day as (
+  select distinct r.phone_number, r.sent_at, v.sent_At as video_sent_on
+  from hindi_result_sent r
+  inner join hindi_video v
+  using(phone_number)
+  where datetime_diff(v.sent_at,r.sent_at,day) between 1 and 2
+)
+,hindi_first_content as (
+  select distinct *
+  from hindi_result_sent r
+  left join sent_hindi_first_worksheet_within_same_or_next_Day
+  using(phone_number,sent_at)
+  left join hindi_first_video_sent_same_or_next_Day
+ using(phone_number,sent_at)
+)
+, assessed_result_content_hindi as (select distinct *
+from hindiResultSent a
+left join hindi_first_content h
+using(phone_number,sent_at)
+)
+, assessed_result_content_math as (select distinct *
+from mathResultSent a
+left join sent_math_first_content_within_same_or_next_Day h
+using(phone_number,sent_at)
+)
+
+,assessment as (select dateOfAssessment,count(distinct parentid) pidAssessed, 
+count(distinct childId)totalChildren, 
+count(distinct if(FLNAchievedDate is not null,ParentId,Null))BothSubjectFLNAchievedParentid,
+count(distinct if(b.phone_number is not null,parentid,null))bothFLNTemplateSentToPiD,
+count(distinct if(b.phone_number is not null and b.phone_number is not null,ParentId,Null))bothFLNTemplatePlusResultSentToPiD,
+count(distinct if(m.phone_number is not null,parentid,null))mathFLNAchiecedTemplateSentToPiD,
+count(distinct if(h.phone_number is not null,parentid,null))hindiFLNTAchievedTemplateSentToPiD,
+from allNumbersAssessed
+left join BothSubjectFLNAchievedTemplateSent b
+on number=b.phone_number and dateOfassessment = date(b.sent_at)
+left join fln_achieved_hindi_template_sent h
+on number = h.phone_number and dateOfassessment = date(h.sent_at)
+left join fln_achieved_maths_template_sent m
+on number = m.phone_number and dateOfassessment = date(m.sent_at)
+group by 1
+order by 1 desc)
+
+
+, hindi_data as (select 
+dateOfAssessment,
+count(distinct if(sent_at is not null,parentid,null)) hindiResultSentToPid,
+count(distinct if(video_sent_on is not null,parentId,null))firstVideoSentTo,
+count(distinct if(hindi_worksheet1_sent_on is not null,Parentid,null))first_hindi_worksheet_Pid,
+from assessed_result_content_hindi
+group by 1
+order by 1 desc)
+
+, math_data as (select
+dateOfAssessment,
+count(distinct if(sent_at is not null,parentid,null)) mathResultSentToPiD,
+count(distinct if(math_worksheet1_sent_on is not null,Parentid,null))first_math_worksheet_Pid,
+from assessed_result_content_math
+group by 1
+order by 1 desc
+)
+
+select *
+from assessment
+left join hindi_data
+using(dateOfassessment)
+left join math_data
+using(dateOfAssessment)
+order by assessment.dateOfAssessment desc
+
+
+-- select *
+-- from assessed_result_content_hindi
+
+
+-- -- verification for counts of worksheet sent and fln template sent within 24 hours
+-- select distinct m.*,f.sent_at as mathFLNTempSentON
+-- from assessed_result_content_math m
+-- Inner join fln_achieved_maths_template_sent f
+-- on m.phone_number = f.phone_number 
+-- where datetime_diff(math_worksheet1_sent_on,f.sent_at,day) between 0 and 24
+
+-- -- verification for 
+-- select *
+-- from math_data
+-- where first_math_worksheet_Pid <mathResultSentToPiD

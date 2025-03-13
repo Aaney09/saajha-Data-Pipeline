@@ -1,0 +1,50 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+with failedFLNTemplates as(
+  select distinct 
+  uuid,template_name, 
+  from `dataform.template-sent`
+  where template_name in(
+    "hfln_worksheet_v6","hfln_worksheet_v4","hfln_video_template_v2",
+    "mfln_worksheet_v2","hfln_worksheet_mtp_utility","mfln_worksheet_mtp_utility","hfln_worksheet_v2_mtp_v2","hfln_worksheet_v6_mtp_v2")
+    
+    or  (((template_name like "%fln_result_template1%" 
+    and message_content like "%हिंदी%")
+    or template_name = "fln_hindi_resultv1"
+    or template_name = "fln_hindi_result"))
+OR ((template_name = "fln_level_achieved_hindi" or template_name = "hfln_single_level_achieved_v1" or (template_name ="fln_single_level_achieved" and message_content like "%हिंदी%")))
+    
+    or     (((template_name like "%fln_result_template1%" 
+    and message_content like "%गणित%")
+    or template_name ="fln_math_result_v1"
+    or template_name = "fln_math_result")) OR (
+      (template_name ="fln_level_achieved_maths" or template_name = "mfln_single_level_achieved" or (template_name ="fln_single_level_achieved" and message_content like "%गणित%"))
+    )
+
+    or template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2")
+  
+   
+  )
+
+,status as (SELECT
+  DISTINCT message_uuid,updated_date,title,
+FROM
+  `dataform.912250555658_statuses`
+  where status = "failed")
+
+select distinct date(updated_date)updated_date,template_name,ifNull(title,"reason not given by turn") failed_reason, count(distinct f.uuid)error_counts
+from status s
+inner join failedFLNTemplates f
+on f.uuid= message_uuid
+
+where date(updated_date)<current_date() and date(updated_date)>"2024-12-01"
+GROUP BY
+  all
+order by updated_date desc,error_counts desc
+
+
+  -- DATE(inserted_at)

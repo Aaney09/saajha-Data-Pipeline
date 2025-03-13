@@ -1,0 +1,80 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+
+with 
+failsCounts as (select
+date(sent_at)dates, 
+-- template_name,
+-- mathWorkSheet
+count(distinct if(template_name ="mfln_worksheet_v2", uuid,null))totalMathWorsheetStarted,
+count(distinct if(template_name ="mfln_worksheet_v2" and last_message_status is null,uuid,null))last_status_mathWorksheet_emptyStatus,
+count(distinct if(template_name ="mfln_worksheet_v2" and last_message_status="failed",uuid,null))last_status_mathWorksheet_failed,
+
+ 
+-- hindi worksheet/video
+count(distinct if(template_name in("hfln_worksheet_v6","hfln_worksheet_v4","hfln_video_template_v2"), uuid,null))totalhindiWorsheetORVideoStarted,
+count(distinct if(template_name in("hfln_worksheet_v6","hfln_worksheet_v4","hfln_video_template_v2") and last_message_status is null,uuid,null))last_status_hindiWorksheetORVideo_empty_status,
+count(distinct if(template_name in("hfln_worksheet_v6","hfln_worksheet_v4","hfln_video_template_v2") and last_message_status="failed",uuid,null))last_status_hindiWorksheetORVideo_failed,
+
+
+from `dataform.template-sent`
+
+
+where date(sent_at)>="2024-04-01"
+and template_name in("hfln_worksheet_v6","hfln_worksheet_v4","hfln_video_template_v2","mfln_worksheet_v2")
+-- and wa_number_purpose like "%fln%"
+group by all
+order by dates desc
+)
+,math_result_flnAchieved as (
+  select distinct date(sent_at)dates,count(distinct uuid)mathResultOFLNAchievedTemplate_sentCounts,count(distinct if(last_message_status = "failed", uuid,null))mathResultOFLNAchievedTemplatefailedCounts
+  from `dataform.template-sent`
+  
+  where 
+    (((template_name like "%fln_result_template1%" 
+    and message_content like "%गणित%")
+    or template_name ="fln_math_result_v1"
+    or template_name = "fln_math_result")) OR (
+      (template_name ="fln_level_achieved_maths" or template_name = "mfln_single_level_achieved" or (template_name ="fln_single_level_achieved" and message_content like "%गणित%"))
+    )
+    group by all
+    -- and date(sent_at)>="2024-12-01"
+)
+,hindi_result_flnAchieved as (
+  select distinct date(sent_at)dates,count(distinct uuid)hindiResultOFLNAchievedTemplate_sentCounts,count(distinct if(last_message_status = "failed", uuid,null))hindiResultOFLNAchievedTemplatefailedCounts
+  from `dataform.template-sent`
+  
+  where 
+    (((template_name like "%fln_result_template1%" 
+    and message_content like "%हिंदी%")
+    or template_name = "fln_hindi_resultv1"
+    or template_name = "fln_hindi_result"))
+OR ((template_name = "fln_level_achieved_hindi" or template_name = "hfln_single_level_achieved_v1" or (template_name ="fln_single_level_achieved" and message_content like "%हिंदी%")))
+    and date(sent_at)>="2024-04-01"
+    group by all
+)
+, BothSubjectFLNAchievedTemplateSent as (
+  select distinct date(sent_at)dates,count(distinct uuid)BothSubjectFLNAchievedTemplated_sentCounts,count(distinct if(last_message_status = "failed",uuid,null))BothSubjectFLNAchievedTemplatedfailedCounts
+  from `dataform.template-sent`
+  
+  where template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2") and date(sent_at)>="2024-04-01"
+  group by all
+)
+
+
+
+
+select *,if(last_status_mathWorksheet_failed <>0,last_status_mathWorksheet_failed/totalMathWorsheetStarted,null)mathWorksheetFailureRate
+from failsCounts
+left join math_result_flnAchieved
+using(dates)
+left join hindi_result_flnAchieved
+using(dates)
+left join BothSubjectFLNAchievedTemplateSent
+using(dates)
+
+

@@ -1,0 +1,15 @@
+config {
+    type: "table",
+    tags: "wa_daily"
+}
+
+
+select
+      safe_cast(regexp_extract(urn,'[0-9]+') as int64) as phone_number, 
+      safe_cast(json_value(details, "$.parentid") as int64)  as parent_id,
+      json_value(details,"$.opted_in_at") opted_in_at,
+      json_value(details,"$.schoolid") as schoolid,
+      safe_Cast(json_value(details,"$.opted_in") as Bool )opt_in_status
+from  ${ref("911171817073","contacts")} 
+   where safe_Cast(json_value(details,"$.opted_in") as Bool )=True
+   qualify (row_number() over(partition by urn order by updated_at desc))=1
