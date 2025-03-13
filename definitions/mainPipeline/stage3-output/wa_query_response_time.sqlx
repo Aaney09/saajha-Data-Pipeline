@@ -1,0 +1,26 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+with queryRaisedByParent as (select distinct safe_Cast(right(msg.from_addr,10) as int64)phone_number,datetime_add(msgTag.inserted_at,interval 330 minute)queryMarkedAt,
+datetime_add(msg.inserted_at,interval 330 minute)queryRaisedAt
+
+from `911171279787.number_tags` tag_values
+INNER JOIN 
+`911171279787.message_tags` msgTag
+on msgTag.number_tag_id=tag_values.id
+INNER JOIN `911171279787.messages`msg
+on msg.id = msgTag.message_id
+
+where 
+value in ("admission","School information (1 to 5th class)","FLN Activity","parental engagement","About Saajha ","out of scope","Saajha call","academy") 
+
+
+)
+select queryRaisedByparent.phone_number,queryRaisedByparent.queryMarkedAt,queryRaisedByparent.queryRaisedAt, datetime_diff(queryRaisedByparent.queryMarkedAt,queryRaisedByparent.queryRaisedAt,second)/60 responseTimeInMins
+from queryRaisedByparent 
+where date(queryRaisedByparent.queryRaisedAt) between DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 6 DAY)
+  AND DATE_SUB(CURRENT_DATE("Asia/Kolkata"),INTERVAL 1 DAY)
+
+ORDER BY responseTimeInMins desc

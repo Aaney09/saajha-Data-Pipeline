@@ -1,0 +1,65 @@
+
+
+config {
+    type: "table",
+    tags: "call_daily"
+}
+
+
+with rosters as (select distinct ParentId,childId,Round roundoFCall, min(date(CallStartDateTime))callDate
+from `platform_commons.roster`
+where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2024-04-01" and "2025-03-31"
+group by all )
+
+,year_2024_25 as (
+  select distinct *, row_number()over(partition by parentid,childid order by roundOfCall Asc) as callrounds
+  from rosters
+)
+,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
+from `platform_commons.roster`)
+
+,resolved as (select distinct * except(roundoFCall)
+from year_2024_25
+inner join agents 
+using(parentid,childid,calldate,roundoFCall))
+
+,resolved_counts as (select distinct AgentMobile,callDate,
+  count(distinct parentid)ParentsResolved,
+  count(distinct childid) ChildrenResolved,
+  count(distinct if(callrounds= 1,parentid,null)) R1_ParentsResolved,
+  count(distinct if(callrounds= 2,parentid,null)) R2_ParentsResolved,
+  count(distinct if(callrounds= 3,parentid,null)) R3_ParentsResolved,
+  count(distinct if(callrounds= 4,parentid,null)) R4_ParentsResolved,
+  count(distinct if(callrounds= 5,parentid,null)) R5_ParentsResolved,
+  count(distinct if(callrounds= 6,parentid,null)) R6_ParentsResolved,
+  count(distinct if(callrounds= 7,parentid,null)) R7_ParentsResolved,
+  count(distinct if(callrounds= 8,parentid,null)) R8_ParentsResolved,
+  count(distinct if(callrounds= 9,parentid,null)) R9_ParentsResolved,
+  count(distinct if(callrounds= 10,parentid,null)) R10_ParentsResolved,
+  count(distinct if(callrounds= 11,parentid,null)) R11_ParentsResolved,
+  count(distinct if(callrounds= 12,parentid,null)) R12_ParentsResolved,
+  count(distinct if(callrounds= 13,parentid,null)) R13_ParentsResolved,
+  count(distinct if(callrounds= 14,parentid,null)) R14_ParentsResolved,
+from resolved
+group by all)
+
+,dials as (select AgentMobile,CallDate,count(distinct ParentId)unique_scheduledParents,
+  count(distinct if(CallStartDateTime is not null,parentid,null))uniqueParentsDialed,
+  count(distinct CallStartDateTime)totalDials,
+from `platform_commons.roster`
+where CallDate  between "2024-04-01" and "2025-03-31" and ProjectId<>1102996
+group by all)
+
+, agent_names as (
+  select AgentMobile,max(AgentName)agent_name
+  from `platform_commons.roster`
+  group by 1
+)
+
+select *
+from dials
+left join resolved_counts
+using(calldate,agentMobile)
+left join agent_names
+using(agentMobile)
+where agent_name <>"Aashish" 

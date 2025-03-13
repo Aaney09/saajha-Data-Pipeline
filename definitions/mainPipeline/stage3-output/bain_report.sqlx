@@ -1,0 +1,62 @@
+config {
+    type: "table",
+    tags: "call_daily"
+}
+
+
+
+-- CREATE or REPLACE TABLE `dataform.bain_2` as (
+  with assessedDec as (select distinct AssesseeActorID,
+-- date
+from `platform_commons.assessment`
+where date(AssessmentTakenOn) between "2024-12-01" and "2024-12-31"
+)
+-- ORDER BY RAND()
+-- LIMIT 10
+
+,r1CallDec as (select distinct childId
+from `dataform.called`
+where date(CallstartDatetime) between "2024-12-01" and "2024-12-31" and callingRound = 1)
+
+,approx1000 as (select distinct assesseeActorId,ABS(FARM_FINGERPRINT(CAST(assesseeActorId AS STRING))) / 9223372036854775807 AS hash_value
+from assessedDec
+inner join  r1CallDec
+on assesseeActorId = childid
+-- TABLESAMPLE SYSTEM (10 PERCENT)
+-- WHERE RAND() < 0.4
+-- ORDER BY RAND()
+-- LIMIT 1200
+-- WHERE MOD(ABS(FARM_FINGERPRINT(safe_cast(assesseeActorId as string))), 100) < 40
+
+)
+,assignedGroup as (
+  select distinct assesseeActorId,hash_value
+  ,
+           CASE
+           WHEN hash_value < 0.39 THEN "bain" -- Group 1: 40%
+           WHEN hash_value < 0.60 THEN "Donor 2" -- Group 2: 21%
+           WHEN hash_value < 0.67 THEN "Donor 3" -- Group 3: 7%
+           WHEN hash_value < 0.80 THEN "Donor 4" -- Group 4: 13%
+           ELSE "Donor 5"                     -- Group 5: 20%
+         END AS sample_group
+
+      from approx1000
+)
+
+,pj_2024_25 as (
+  SELECT * except(agentNumber,parentNumber,firstopted_in_on),min(firstopted_in_on)firstopted_in_on FROM `saajhadata.dataform.parent_journey_2024_2025` 
+  group by all
+)
+,PE_assigned as 
+(
+select distinct *
+from assignedGroup
+inner join pj_2024_25
+using(assesseeActorId)
+)
+
+select distinct *
+from PE_assigned
+where sample_group="bain"
+
+-- )

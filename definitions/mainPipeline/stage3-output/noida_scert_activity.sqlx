@@ -1,0 +1,63 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+with 
+
+actvities_sent as (
+  select  distinct template_name activityTemplate_name,phone_number,sent_at activitysentAt,
+  from `dataform.template-sent`
+  where (template_name like "%pe_theme%" and template_name like "%act%") 
+  and lower(wa_number_purpose) like "%noida%"
+)
+
+, activitiesResponded as(
+ select  distinct template_button_template_name activityTemplate_name,phone_number,responded_at activityClickeON,"yes"completed
+ from `dataform.template-response`
+  where (template_button_template_name like "%pe_theme%" and template_button_template_name like "%act%")
+  and lower(wa_number_purpose) like "%noida%" 
+)
+
+, scertActivity as (select distinct activityTemplate_name,phone_number,activitysentAt,activityClickeON,completed,
+from actvities_sent
+left join activitiesResponded
+using(phone_number,activityTemplate_name)
+)
+
+,activitySent as (
+  select date(activitysentAt)date,phone_number,count(distinct activityTemplate_name)tNameCount, count(distinct activitysentAt)sent_counts, array_agg(distinct scertActivity.activitysentAt order by activitysentAt asc )senDateTimes
+from scertActivity
+group by all
+)
+
+,activityClicked as (select date(activitysentAt)date,phone_number,count(distinct activityTemplate_name)clicked_temp_unique, count(distinct activityClickeON)clicked_counts, array_agg(distinct scertActivity.activityClickeON ignore nulls)clickedDateTimes
+from scertActivity
+where activityClickeON is not null
+group by all
+)
+
+, scert as (select *
+from activitySent
+left join activityClicked
+using(date,phone_number))
+,all_nums as (
+select safe_cast(regexp_extract(urn,'[0-9]+') as int64) as number, 
+       json_value(details, "$.opted_in") as opt_in_status,
+       date(json_value(details, "$.opted_in_at")) as opt_in_date,
+       json_value(details, "$.childclass") as child_class,
+       json_value(details, "$.schoolid") as school_id,
+   from `911171817073.contacts`
+)
+
+select distinct *
+-- sum(scert.clicked_counts)
+-- number,scert.clicked_counts,scert.clicked_temp_unique,scert.clickedDateTimes 
+from all_nums
+inner join scert
+on phone_number = number
+where all_nums.opt_in_status = 'true' and phone_number not in(919873873646,918527647594,918178882782,918979512345,918888727876,917379473461) 
+-- and clickedDateTimes is not null
+
+-- and template_name like '%scert%'

@@ -1,0 +1,48 @@
+
+config {
+    type: "table",
+    tags: "call_daily"
+}
+
+
+with incom as (  SELECT
+    DATE(LastRequestDateTime) AS lastCallReceivedDate,
+    AgentMobile,
+    COUNT(DISTINCT parentid)uniqueIncomingCalls,
+  FROM
+    `platform_commons.incoming`
+  GROUP BY
+    lastCallReceivedDate,
+    AgentMobile
+    
+  ORDER BY
+    lastCallReceivedDate DESC)
+
+, incom_out as (
+  SELECT
+    DATE(CallStartDateTime)CallDate,
+    AgentMobile,
+    COUNT(parentid)totalDials,
+    COUNT(DISTINCT parentid)uniqueDial,
+    count(distinct if(FeedbackType like "%RESOLVED%",parentid,NULL)) totalResolvedCalls
+  FROM
+    `platform_commons.incoming`
+    where CallStartDateTime is not null
+    group by CallDate,AgentMobile
+)
+
+, agent_names as (
+  select AgentMobile,max(AgentName)agent_name
+  from `platform_commons.incoming`
+  group by 1
+)
+
+
+select incom.*,Incom_out.totalDials,Incom_out.uniqueDial,incom_out.totalResolvedCalls,agent_name
+from incom
+left join agent_names n
+using(agentMobile)
+left join incom_out
+on incom.agentMobile = Incom_out.agentMobile and incom.lastCallReceivedDate = Incom_out.CallDate
+where incom.lastCallReceivedDate between "2024-04-01" and "2025-03-31"
+order by incom.lastCallReceivedDate desc
