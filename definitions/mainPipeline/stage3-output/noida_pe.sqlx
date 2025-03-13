@@ -1,0 +1,225 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+-- sharing Noida theme template
+-- parent teacher interaction 
+-- pe_theme1_act_1
+-- pe_theme1_act2
+-- pe_theme1_act3
+-- pe_theme1_act4
+
+-- Time table 
+-- pe_theme2_act1
+-- pe_theme2_act2
+-- pe_theme2_act3
+-- pe_theme2_act4
+
+
+with 
+
+/** theme1 baseline **/
+theme1_baseline_template_sent as (select  distinct template_name,phone_number,sent_at theme1_baselineTemplateSentAt
+from `dataform.template-sent`
+where 
+( template_name like "%pe_baseline_t1%" 
+ or template_name like "%pe_baseline_reminder_t1%" )  and wa_number_purpose like "%Noida%"
+  
+
+)
+, theme1_baseline_templ_responded as (
+  select  distinct template_button_template_name as template_name,phone_number,responded_at theme1_baselineTemplateClickedAt,
+from `dataform.template-response`
+where 
+( template_button_template_name like "%pe_baseline_t1%" 
+ or template_button_template_name like "%pe_baseline_reminder_t1%" ) and wa_number_purpose like "%Noida%"
+)
+
+,theme1_baseline_completed as (
+  select  distinct flow_name,phone_number,sent_at , "yes" theme1_baselineCompleted
+from `dataform.otherMessagesSent`
+ where 
+ flow_name like "%PE Baseline Theme1%" 
+ and 
+ regexp_contains(message_content,r"(बहुत बढ़िया)")
+ and wa_number_purpose like "%Noida%"
+)
+
+,theme1_baseline as (select distinct
+s.template_name,s.phone_number,date(theme1_baselineTemplateSentAt)DateSentOn,theme1_baselineTemplateClickedAt,theme1_baselineCompleted,
+from theme1_baseline_template_sent s
+left join theme1_baseline_templ_responded r
+using(phone_number)
+left join theme1_baseline_completed c
+using(phone_number)
+)
+,
+/** theme1 endline **/
+theme1_endline_template_sent as (select  distinct template_name,phone_number,sent_at theme1_endlineTemplateSentAt
+from `dataform.template-sent`
+where 
+( template_name like "%pe_endline_t1%" or  template_name like  "%pe_endline_reminder_t1%") and wa_number_purpose like "%Noida%" 
+)
+
+, theme1_endline_templ_responded as (
+  select  distinct template_button_template_name as template_name,phone_number,responded_at theme1_endlineTemplateClickedAt,
+from `dataform.template-response`
+where 
+ (template_button_template_name like "%pe_endline_t1%" or template_button_template_name like"%pe_endline_reminder_t1%") and wa_number_purpose like "%Noida%"
+
+)
+
+,theme1_endline_completed as (
+  select  distinct flow_name,phone_number,sent_at theme1_endlineflowCompetedAt, "yes" theme1_EndlineCompleted,
+from `dataform.otherMessagesSent`
+ where 
+ flow_name like "%PE Endline Theme1%" 
+ and 
+ regexp_contains(message_content,r"(बहुत बढ़िया)")
+ and wa_number_purpose like "%Noida%"
+
+)
+
+,theme1_endline as (select distinct
+s.template_name,s.phone_number,date(theme1_endlineTemplateSentAt)DateSentOn,theme1_endlineTemplateClickedAt,theme1_EndlineCompleted,
+from theme1_endline_template_sent s
+left join theme1_endline_templ_responded r
+using(phone_number)
+left join theme1_endline_completed c
+using(phone_number)
+)
+
+
+,
+/** theme2 baseline **/
+theme2_baseline_template_sent as (select  distinct template_name,phone_number,sent_at theme2_baselineTemplateSentAt
+from `dataform.template-sent`
+where 
+( template_name like "%pe_baseline_t2%" 
+ or template_name like "%pe_baseline_reminder_t2%" )and wa_number_purpose like "%Noida%" 
+--  and date(sent_at)>="2025-01-13"
+
+)
+, theme2_baseline_templ_responded as (
+  select  distinct template_button_template_name as template_name,phone_number,responded_at theme2_baselineTemplateClickedAt,
+from `dataform.template-response`
+where 
+( template_button_template_name like "%pe_baseline_t2%" 
+ or template_button_template_name like "%pe_baseline_reminder_t2%" )and wa_number_purpose like "%Noida%"
+)
+
+,theme2_baseline_completed as (
+  select  distinct flow_name,phone_number,sent_at theme2_baselineflowCompetedAt, "yes" theme2_baselineCompleted
+from `dataform.otherMessagesSent`
+ where 
+ flow_name like "%PE Baseline Theme2%" 
+ and 
+ regexp_contains(message_content,r"(बहुत बढ़िया)")
+ and wa_number_purpose like "%Noida%"
+ 
+)
+,theme2_baseline as (select distinct
+s.template_name,s.phone_number,date(theme2_baselineTemplateSentAt)DateSentOn,theme2_baselineTemplateClickedAt,theme2_baselineCompleted,
+from theme2_baseline_template_sent s
+left join theme2_baseline_templ_responded r
+using(phone_number)
+left join theme2_baseline_completed c
+using(phone_number)
+
+)
+
+/** theme 2 endline**/
+,theme2_endline_template_sent as (select  distinct template_name,phone_number,sent_at theme2_endlineTemplateSentAt
+from `dataform.template-sent`
+where 
+( template_name like "%pe_endline_t2%" or  template_name like  "%pe_endline_reminder_t2%") and wa_number_purpose like "%Noida%" 
+
+)
+
+, theme2_endline_templ_responded as (
+  select  distinct template_button_template_name as template_name,phone_number,responded_at theme2_endlineTemplateClickedAt,
+from `dataform.template-response`
+where 
+ (template_button_template_name like "%pe_endline_t2%" or template_button_template_name like"%pe_endline_reminder_t2%") and wa_number_purpose like "%Noida%"
+
+)
+
+,theme2_endline_completed as (
+  select  distinct flow_name,phone_number,sent_at theme2_endlineflowCompetedAt, "yes" theme2_EndlineCompleted,
+from `dataform.otherMessagesSent`
+ where 
+ flow_name like "%PE Endline Theme2%" 
+ and 
+ regexp_contains(message_content,r"(बहुत बढ़िया)")
+ and wa_number_purpose like "%Noida%"
+)
+,theme2_endline as (select distinct
+s.template_name,s.phone_number,date(theme2_endlineTemplateSentAt)DateSentOn,theme2_endlineTemplateClickedAt,theme2_endlineCompleted,
+from theme2_endline_template_sent s
+left join theme2_endline_templ_responded r
+using(phone_number)
+left join theme2_endline_completed c
+using(phone_number)
+)
+/** ACTIVITIES **/
+,actvities_sent as (
+  select  distinct template_name activityTemplate_name,phone_number,date(sent_at) activitysentAt,
+  from `dataform.template-sent`
+  where (template_name like "pe_theme%" and template_name like "%act%") and wa_number_purpose like "%Noida%"
+)
+
+, activitiesResponded as(
+ select  distinct template_button_template_name activityTemplate_name,phone_number,date(responded_at)clickeON,"yes"completed
+ from `dataform.template-response`
+  where (template_button_template_name like "pe_theme%" and template_button_template_name like "%act%") and wa_number_purpose like "%Noida%"
+)
+, peActivity as (select distinct activityTemplate_name,phone_number,activitysentAt,clickeON,completed
+from actvities_sent
+left join activitiesResponded
+using(phone_number,activityTemplate_name)
+where phone_number not in(919873873646,918527647594,918178882782))
+-- pe_theme1_act
+,main_ as (
+select *
+from  theme1_baseline
+where phone_number not in(919873873646,918527647594,918178882782,918979512345)
+union distinct
+select *
+from theme1_endline
+where phone_number not in(919873873646,918527647594,918178882782,918979512345)
+UNION DISTINCT
+select *
+from theme2_baseline
+where phone_number not in(919873873646,918527647594,918178882782,918979512345)
+union distinct
+-- select *
+-- from theme2_endline
+-- where phone_number not in(919873873646,918527647594,918178882782,918979512345)
+-- UNION DISTINCT
+-- select *
+-- from theme3_baseline
+-- where phone_number not in(919873873646,918527647594,918178882782,918979512345)
+-- UNION DISTINCT 
+SELECT *
+FROM peActivity
+where phone_number not in(919873873646,918527647594,918178882782,918979512345))
+
+,all_nums as (
+select safe_cast(regexp_extract(urn,'[0-9]+') as int64) as number, 
+       json_value(details, "$.opted_in") as opt_in_status,
+       date(datetime_add(timestamp(json_value(details, "$.opted_in_at")),interval 330 minute)) as opt_in_date,
+       json_value(details, "$.childclass") as child_class,
+       json_value(details, "$.schoolid") as school_id,
+   from `911171817073.contacts`
+)
+,opt as (
+select distinct * from all_nums
+where all_nums.opt_in_status = 'true'
+)
+select distinct *
+from opt
+left join main_
+on number = phone_number
+where DateSentOn>="2025-01-13"

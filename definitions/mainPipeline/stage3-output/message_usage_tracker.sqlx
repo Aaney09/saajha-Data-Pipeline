@@ -1,0 +1,18 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+select 
+count(distinct id ) totalMessages,
+count(distinct if(direction = "outbound",id, null) ) totalOutMessages
+,count (distinct if(template = "null" and direction = "outbound",id, null))totalNonTemMessages
+,count (distinct if(message_type = "template" and direction = "outbound",id, null))totalTempWithmsgType
+,count(distinct if(template != "null",id, null))totaltemplatesMessages
+from ${ref("911171279787","messages")}
+where last_status <> "failed" and date(datetime_Add(inserted_at, interval 330 minute))
+  between 
+  date_trunc(current_date("Asia/Kolkata"), month)
+  and 
+  last_day(current_date("Asia/Kolkata"),month)

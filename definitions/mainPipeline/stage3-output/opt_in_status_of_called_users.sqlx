@@ -1,0 +1,52 @@
+
+config {
+    type: "table",
+    tags: "call_daily"
+}
+
+select 
+
+count(distinct firstDateOfAssessment.parentMobile)totalFirstRoundAssessed,
+count(distinct if(firstDateOfAssessment.lastAssessmentDate>opt.dateOfoptIn,firstDateOfAssessment.parentMobile,null )) optedInBeforeAssessment,
+count(distinct if(firstDateOfAssessment.lastAssessmentDate < opt.dateOfoptIn,firstDateOfAssessment.parentMobile,null )) optedInAfterAssessment,
+count(distinct if(firstDateOfAssessment.lastAssessmentDate = opt.dateOfoptIn,firstDateOfAssessment.parentMobile,null )) sameDayOptInAndAssessment,
+count(distinct if(opt.dateOfoptIn is null,firstDateOfAssessment.parentMobile,null ))notOptedIn,
+avg(if(firstDateOfAssessment.lastAssessmentDate>opt.dateOfoptIn,date_diff(firstDateOfAssessment.lastAssessmentDate,opt.dateOfoptIn,DAY),null))daysBetweenFirstAssessmentAndOptINIfoptedInEarlier,
+from(select
+
+
+
+safe_Cast(concat("91",cast(parentmobile as string)) as int64)parentMobile,
+
+max(date(d)) lastAssessmentDate
+-- d
+from(select *
+from (select *
+from(select AssesseeActorId,min(AssessmentTakenOn)d
+from `platform_commons.assessment`
+-- where AssessmentId in(7,8)
+group by AssesseeActorId)
+where date(d) BETWEEN DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 29 DAY)
+    AND DATE_SUB(CURRENT_DATE("Asia/Kolkata"),INTERVAL 1 DAY)
+order by d asc )assess
+INNER JOIN
+(select IEID,OnBoardedUserId from `platform_commons.IE` where projectid <> 1103233)child
+on assess.AssesseeActorId = child.IEID
+)firstAssessment
+inner join 
+(select distinct parentid,ParentMobile from `platform_commons.roster`
+where DATE(callstartDatetime) BETWEEN DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 29 DAY)
+    AND DATE_SUB(CURRENT_DATE("Asia/Kolkata"),INTERVAL 1 DAY)
+ 
+    -- and projectid <> 1103233
+    and Round = 1
+)calls
+ON firstAssessment.onboardeduserId = calls.parentid
+
+group by parentMobile
+order by lastAssessmentDate asc)firstDateOfAssessment
+LEFT JOIN
+(select distinct phone_number,max(date(timestamp))dateOfoptIn from `opt_in_records.opt_in_users`
+group by phone_number)opt
+ON firstDateOfAssessment.parentMobile = opt.phone_number
+
