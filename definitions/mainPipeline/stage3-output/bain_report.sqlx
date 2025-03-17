@@ -44,7 +44,8 @@ on assesseeActorId = childid
 )
 
 ,pj_2024_25 as (
-  SELECT * except(agentNumber,parentNumber,firstopted_in_on),min(firstopted_in_on)firstopted_in_on FROM `saajhadata.dataform.parent_journey_2024_2025` 
+  SELECT * except(agentNumber,parentNumber,opted_in_on),min(opted_in_on
+)firstopted_in_on FROM `saajhadata.dataform.parent_journey_2024_2025` 
   group by all
 )
 ,PE_assigned as 
