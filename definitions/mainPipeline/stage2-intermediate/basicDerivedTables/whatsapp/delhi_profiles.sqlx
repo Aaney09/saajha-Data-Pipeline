@@ -7,10 +7,10 @@ config {
 select distinct 
     safe_cast(regexp_extract(urn,'[0-9]+') as int64) as phone_number, 
     safe_cast(json_value(details, "$.parentid") as int64)  as parent_id,
-    safe_cast(json_value(details, "$.name") as int64) as parent_name,
+    json_value(details, "$.name")  as parent_name,
     json_value(details,"$.opted_in_at") opted_in_at,
     safe_cast(json_value(details, "$.childclass") as int64) as child_class,
-    safe_cast(json_value(details, "$.childname") as int64) as child_name,
+    json_value(details, "$.childname")  as child_name,
     safe_cast(json_value(details,"$.schoolid") as int64) as schoolid,
     safe_Cast(json_value(details,"$.opted_in") as Bool )opt_in_status,
     safe_cast(json_value(details, "$.childid") as int64)  as child_id,
