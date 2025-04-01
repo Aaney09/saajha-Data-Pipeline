@@ -1,0 +1,8 @@
+config {
+    type: "table",
+    tags: "call_daily"
+}
+
+select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
+from ${ref("IE")}
+where FLNStatus  like "%FLN_ACHIEVED%" and date(FLNAchievedDate)<="2025-03-31"
