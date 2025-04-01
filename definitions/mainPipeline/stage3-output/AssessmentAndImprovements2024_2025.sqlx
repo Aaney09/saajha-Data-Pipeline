@@ -1,7 +1,9 @@
 config {
     type: "table",
-    tags: "call_daily"
-}
+    tags: ["daily", "2024_2025"],
+    description: "till march 31st 2025"
+    }
+-- till_march31st2025
 
 with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
 from `platform_commons.assessment`
