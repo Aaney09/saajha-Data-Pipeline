@@ -1,6 +1,7 @@
 config {
     type: "table",
-    tags: "call_daily"
+    tags: ["daily", "2024_2025"],
+    description: "till march 31st 2025"
 }
 
 select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
