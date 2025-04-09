@@ -257,7 +257,7 @@ round_3_assessment as third_assessed_on,r3_hindiLevel as third_hindi_level,r3_ma
 from PE_assigned
 inner join bothSubjectImproved
 using(assesseeActorId)
-where sample_group="mankind 3 assessed and improved" and Round_3_Assessment is not null and childclass not like "%6%"
+where sample_group="mankind 3 assessed and improved" and Round_3_Assessment is not null and safe_cast(regexp_extract (childclass,r'\d+' )as int64 )between 1 and 5
 limit 500
 )
 

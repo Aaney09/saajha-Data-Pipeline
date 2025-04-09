@@ -1,9 +1,9 @@
 config {
     type: "table",
     tags: ["daily", "2024_2025"],
-    description: "till march 31st 2025"
+    description: "FLN achieved till 8th April 2025 as PC will start roster for class wise FLN achieved for grade 1 and 2"
 }
 
 select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
 from ${ref("IE")}
-where FLNStatus  like "%FLN_ACHIEVED%" and date(FLNAchievedDate)<="2025-03-31"
+where FLNStatus  like "%FLN_ACHIEVED%" and date(FLNAchievedDate)<="2025-04-08"
