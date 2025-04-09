@@ -1,8 +1,9 @@
 config {
     type: "table",
-    tags: "call_daily"
+    tags: "call_daily",
+    description: "PC has updated class for 1 and 2"
 }
 
 select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
 from ${ref("IE")}
-where FLNStatus  like "%FLN_ACHIEVED%"
+where FLNStatus  like "%FLN_ACHIEVED%" and date()
