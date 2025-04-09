@@ -1,0 +1,279 @@
+config {
+    type: "table",
+    tags: ["daily", "2024_2025"],
+    description: "till march 31st 2025"
+}
+
+with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,level as hindiLevel,AssessmentInstanceAssesseDRId
+from `platform_commons.assessment`
+where QuestionText like "%Ask%" and date(AssessmentTakenOn) between "2024-10-01" and "2025-03-31")
+
+,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from (
+  select distinct assesseeActorId,hindiAssessDate 
+  from hindiAss
+  order by hindiAssessDate asc)
+order by assesseeActorid asc,hindiAssessDate asc,hindiLagDate asc)
+
+,
+hindiData as ((select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0)
+
+UNION ALL
+(select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))>=25)
+order by assesseeActorId  desc)
+
+, hindi as (select *, row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiData
+order by assesseeActorId asc,hindirounds asc)
+,lasthindiQuestion as (select distinct 
+AssesseeActorId,date(AssessmentTakenOn) dateofHindiAssessment,
+max(AssessmentInstanceAssesseDRId)lastHindiQuestionId
+from `platform_commons.assessment`
+where QuestionText like "%Ask%" and date(AssessmentTakenOn) between "2024-10-01" and "2025-03-31"
+group by AssesseeActorId,dateofHindiAssessment
+)
+
+,hindiLevel as (
+  select lhq.*,h.hindiLevel
+  from lasthindiQuestion lhq
+  inner join
+  hindiAss h
+  on h.assesseeActorId =lhq.assesseeActorId and h.AssessmentInstanceAssesseDRId = lhq.lastHindiQuestionId
+)
+
+,hindiAssessmentData as (select h.*,if(hl.hindiLevel="BEGINNER",0,safe_Cast(right(hindiLevel,1) as int64))hindiLevel
+from hindi h
+inner join hindiLevel hl
+on h.assesseeActorId= hl.assesseeActorId and h.hindiAssessDate= hl.dateofHindiAssessment
+)
+
+, mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,level as mathLevel,AssessmentInstanceAssesseDRId
+from `platform_commons.assessment`
+where QuestionText not like "%Ask%" and date(assessmentTakenOn) between "2024-10-01" and "2025-03-31")
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from (select distinct assesseeActorId,mathAssessDate
+from
+mathAss
+order by mathAssessDate asc)
+order by assesseeActorid asc,mathAssessDate asc,mathLagDate asc)
+
+, mathData as((select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mahtdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0)
+
+UNION ALL
+(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))>=25)
+order by assesseeActorId  desc)
+
+, math as
+(select *, row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds
+from mathData
+order by assesseeActorId asc,mathrounds asc)
+
+
+,lastmathQuestion as (select distinct 
+AssesseeActorId,date(AssessmentTakenOn) dateofmathAssessment,
+max(AssessmentInstanceAssesseDRId)lastmathQuestionId
+from `platform_commons.assessment`
+where QuestionText not like "%Ask%" and AssessmentId <> 6 and date(AssessmentTakenOn) between "2024-10-01" and "2025-03-31"
+group by AssesseeActorId,dateofmathAssessment
+)
+
+,mathLevel as (
+  select lmq.*,m.mathlevel
+  from lastmathQuestion lmq
+  inner join
+  mathAss m
+  on m.assesseeActorId =lmq.assesseeActorId and m.AssessmentInstanceAssesseDRId = lmq.lastmathQuestionId
+)
+,
+mathAssessmentData as (select m.*,if(mathLevel= "BEGINNER",0,safe_Cast(right(mathLevel,1) as int64))mathlevel
+from math m
+inner join mathLevel ml
+on m.assesseeActorId= ml.assesseeActorId and m.mathAssessDate= ml.dateofmathAssessment)
+
+, hindiMath as (select md.*, hd.*Except(assesseeActorId)
+from hindiAssessmentData hd
+inner join
+mathAssessmentData md
+on md.assesseeActorId = hd.assesseeactorId
+and md.mathrounds = hd.hindirounds
+)
+
+,highestMathAssessment as (select assesseeActorId, count(distinct mathAssessDate)c,max(distinct mathRounds)highestRound
+from mathAssessmentData
+group by 1
+order by c asc)
+,highestHindiAssessment as (
+  select assesseeActorId,count(distinct hindiAssessDate)c,max(hindirounds)highestRound
+  from hindiAssessmentData
+  group by 1
+  order by c desc
+)
+,mfirstlevel as (select distinct assesseeActorId,mathLevel as firstmathLevel
+from mathAssessmentData
+where mathrounds=1)
+
+,mLastLevel as (
+select distinct mat.assesseeActorId,mathLevel  as lastmathLevel,highestRound
+from mathAssessmentData mat
+inner join highestmathAssessment hig
+on mat.assesseeActorId = hig.assesseeActorId and mathrounds= highestRound
+where mathrounds <>1
+)
+,hfirstLevel as (
+  select distinct assesseeActorId,
+  hindiLevel firstHindiLevel
+  from hindiAssessmentData
+  where hindirounds = 1
+)
+,hLastLevel as (
+select distinct hin.assesseeActorId,hindiLevel  as lastHindiLevel,highestRound
+from hindiAssessmentData hin
+inner join highestHindiAssessment hig
+on hin.assesseeActorId = hig.assesseeActorId and hindirounds= highestRound
+where hindiRounds <> 1)
+
+,hindiImprovedWithMin3Assess as (select distinct *
+from hfirstlevel
+Inner join hlastLevel
+using(assesseeActorId)
+where highestRound>=3 and lastHindiLevel>firstHindiLevel
+)
+,mathImprovedWithMin3Assess as(
+  select distinct *
+from mfirstlevel
+Inner join mlastLevel
+using(assesseeActorId)
+where highestRound>=3 and lastmathLevel>firstmathLevel
+)
+
+
+,bothSubjectImproved as (
+  select 
+assesseeActorId,firstmathLevel,lastmathLevel,firstHindiLevel,lastHindiLevel
+from mathImprovedWithMin3Assess
+inner join hindiImprovedWithMin3Assess
+using(assesseeActorId)
+)
+
+,nothindiImprovedWithMin3Assess as (select distinct *
+from hfirstlevel
+Inner join hlastLevel
+using(assesseeActorId)
+where highestRound>=3 and lastHindiLevel<=firstHindiLevel
+)
+,notmathImprovedWithMin3Assess as(
+  select distinct *
+from mfirstlevel
+Inner join mlastLevel
+using(assesseeActorId)
+where highestRound>=3 and lastmathLevel<=firstmathLevel
+)
+,uniqueChildid as (
+  select distinct assesseeActorId
+  from notmathImprovedWithMin3Assess
+full outer join nothindiImprovedWithMin3Assess
+using(assesseeActorId)
+)
+
+,notbothSubjectImproved as (
+  select 
+assesseeActorId,firstmathLevel,lastmathLevel,firstHindiLevel,lastHindiLevel
+from uniqueChildid
+left join hfirstLevel
+using(assesseeActorId)
+left join hLastLevel
+using(assesseeActorId)
+left join mfirstLevel
+using(assesseeActorId) 
+left join mLastLevel
+using(assesseeActorId)
+)
+, 
+ assessedOCtOnwards as (select distinct AssesseeActorID,
+-- date
+from `platform_commons.assessment`
+left join `dataform.bain_report` b
+using(assesseeActorid)
+where b.assesseeActorId is null and date(AssessmentTakenOn) between "2024-10-01" and "2025-03-31"
+)
+-- ORDER BY RAND()
+-- LIMIT 10
+
+
+,approx500 as (select distinct assesseeActorId,ABS(FARM_FINGERPRINT(CAST(assesseeActorId AS STRING))) / 9223372036854775807 AS hash_value
+from assessedOCtOnwards
+
+-- TABLESAMPLE SYSTEM (10 PERCENT)
+-- WHERE RAND() < 0.4
+-- ORDER BY RAND()
+-- LIMIT 1200
+-- WHERE MOD(ABS(FARM_FINGERPRINT(safe_cast(assesseeActorId as string))), 100) < 40
+
+)
+,assignedGroup as (
+  select distinct assesseeActorId,hash_value
+  ,
+           CASE
+          --  WHEN hash_value < 0.35 THEN "mankind 3 assessed" -- Group 1: 26%
+           WHEN hash_value < 0.40 THEN "mankind 3 assessed and improved" -- Group 2: 25%
+           WHEN hash_value < 0.85 THEN "mankind 3 assessed and math improved"
+           ELSE "mankind 3 assessed and hindi improved"                     -- Group 5: 20%
+         END AS sample_group
+
+      from approx500
+)
+
+,pj_2024_25 as (
+  SELECT * except(agentNumber,parentNumber,firstopted_in_on),min(firstopted_in_on
+)firstopted_in_on FROM  `saajhadata.platform_commons.parentJourney`()
+  group by all
+)
+,PE_assigned as 
+(
+select distinct *
+from assignedGroup
+inner join pj_2024_25
+using(assesseeActorId)
+
+)
+
+,atLeast3AssessedImprovedBoth as(select distinct assesseeActorid as childid,agentName,childClass,parentid,childName,firstmathLevel,lastmathLevel,firstHindiLevel,lastHindiLevel,
+round_1_assessment as first_assessed_on,r1_hindiLevel as first_hindi_level,r1_mathLevel as first_math_level,
+round_2_assessment as second_assessed_on,r2_hindiLevel as second_hindi_level,r2_mathLevel as second_math_level,
+round_3_assessment as third_assessed_on,r3_hindiLevel as third_hindi_level,r3_mathLevel as third_math_level,
+from PE_assigned
+inner join bothSubjectImproved
+using(assesseeActorId)
+where sample_group="mankind 3 assessed and improved" and Round_3_Assessment is not null and childclass not like "%6%"
+limit 500
+)
+
+select distinct *,case 
+when 
+firstmathLevel< lastmathLevel  then "improved"
+when firstmathLevel> lastmathLevel  then "not improved"
+when firstmathLevel= lastmathLevel and lastmathLevel=4  then "no change-highest level"
+when firstmathLevel= lastmathLevel and lastmathLevel<>4  then "no change"
+end mathImprovementStatus,
+case 
+when 
+firsthindiLevel< lasthindiLevel  then "improved"
+when firsthindiLevel> lasthindiLevel  then "not improved"
+when firsthindiLevel= lasthindiLevel and lasthindiLevel=4  then "no change-highest level"
+when firsthindiLevel= lasthindiLevel and lasthindiLevel<>4  then "no change"
+end hindiImprovementStatus
+from(select distinct *,
+from atLeast3AssessedImprovedBoth)
