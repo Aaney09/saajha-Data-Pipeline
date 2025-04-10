@@ -1,9 +1,9 @@
 config {
     type: "table",
     tags: "call_daily",
-    description: "PC has updated class for 1 and 2"
+    description: "current academic year"
 }
 
 select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus
 from ${ref("IE")}
-where FLNStatus  like "%FLN_ACHIEVED%" and date()
+where FLNStatus  like "%FLN_ACHIEVED%" and date(FLNAchievedDate) between "2025-04-01" and "2026-03-31"
