@@ -1,8 +1,0 @@
-config {
-    type: "table"
-}
-select *
-from ${ref("rfaConrtrol")}
-Union distinct
-select *
-from ${ref("rfaTreatment")}
