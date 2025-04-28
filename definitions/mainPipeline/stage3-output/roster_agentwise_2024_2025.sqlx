@@ -8,7 +8,7 @@ config {
 
 with rosters as (select distinct ParentId,childId,Round roundoFCall, min(date(CallStartDateTime))callDate
 from `platform_commons.roster`
-where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2024-04-01" and "2025-03-31"
+where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
 group by all )
 
 ,year_2024_25 as (
@@ -47,7 +47,7 @@ group by all)
   count(distinct if(CallStartDateTime is not null,parentid,null))uniqueParentsDialed,
   count(distinct CallStartDateTime)totalDials,
 from `platform_commons.roster`
-where CallDate  between "2024-04-01" and "2025-03-31" and ProjectId<>1102996
+where CallDate  between "2025-04-01" and "2026-03-31" and ProjectId<>1102996
 group by all)
 
 , agent_names as (

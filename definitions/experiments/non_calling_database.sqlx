@@ -1,0 +1,12 @@
+config {
+    type: "table"
+}
+
+
+
+
+select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name,last_profile_update_on
+from ${ref("delhi_profiles")}
+left join ${ref("allPhoneNumberWithPid")}
+on phone_number = number
+where number is null
