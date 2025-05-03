@@ -1,8 +1,0 @@
-config {
-    type: "table"
-}
-select phone_number, min(timestamp)opted_in_at
-
-from ${ref("opt_in_records","opt_in_users")}
-group by phone_number
-order by opted_in_at asc
