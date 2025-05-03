@@ -19,7 +19,7 @@ with google_form AS (
     SELECT
         DISTINCT phone_number,
         datetime(end_time)submitted_time,
-    SAFE_CAST(regexp_extract(regexp_extract(form_id,'(M[a-zA-Z]+[0-4])'),'([0-4])') as int64)
+    SAFE_CAST(regexp_extract(form_id,'L(?:evel)?([0-4])') as int64)
      LevelNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
     SAFE_CAST(regexp_extract(regexp_extract(form_id,'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
