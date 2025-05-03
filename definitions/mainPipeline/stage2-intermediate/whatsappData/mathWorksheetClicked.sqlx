@@ -20,7 +20,7 @@ config {
     `redirector.FLN_links`
   WHERE
     SAFE_CAST(RIGHT(phone_number,12) AS int64) IS NOT NULL
-    AND content_id LIKE "%MathsLevel%"
+    AND content_id LIKE "%Maths%"
     AND content_id LIKE "%Worksheet%"
     AND SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
   ORDER BY
