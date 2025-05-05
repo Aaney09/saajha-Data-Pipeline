@@ -5,7 +5,7 @@ config {
 
 
 
-select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name,last_profile_update_on
+select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name,last_profile_update_on, if(number is null,false,true)call_support
 from ${ref("delhi_profiles")}
 left join ${ref("allPhoneNumberWithPid")}
 on phone_number = number
