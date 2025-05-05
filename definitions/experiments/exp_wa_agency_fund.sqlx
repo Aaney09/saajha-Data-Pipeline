@@ -1,0 +1,29 @@
+config {
+    type:"table",
+    tags: "agency_fund_WA"
+}
+
+with onboarded as (select phone_number,child_class,timestamp(substring(opted_in_at,0,19))opted_in_at,call_support
+from ${ref("onboarded")}
+where opted_in_at is not null
+)
+
+, response as (select  phone_number,responded_at
+from ${ref("template-response")}
+where template_button_template_name = "wap"
+qualify row_number() over(partition by phone_number order by responded_at)=1
+)
+
+
+,completed as (select phone_number,sent_at
+from ${ref('otherMessagesSent')}
+where message_content like "%जल्द ही आपके बच्चे का रिजल्ट आपको प्राप्त होगा।%"
+qualify row_number() over(partition by phone_number order by sent_at)=1
+)
+
+select distinct o.phone_number,child_class,opted_in_at,call_support,responded_at as form_iniated_on,if(responded_at is not null,1,0)forms_initiated,c.sent_at form_completed_at,if(c.sent_at is not null,1,0)form_completed
+from  onboarded o
+left join response  r
+using(phone_number)
+left join completed c
+using(phone_number)
