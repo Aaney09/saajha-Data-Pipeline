@@ -21,9 +21,41 @@ where message_content like "%जल्द ही आपके बच्चे �
 qualify row_number() over(partition by phone_number order by sent_at)=1
 )
 
+,initiated as (select phone_number,responded_at
+from `dataform.template-response`
+where template_button_template_name in ("agency_wap_control","agency_wap_t1")
+qualify row_number() over(partition by phone_number order by responded_at)=1
+),
+submitted as 
+(select  phone_number,sent_at
+from `dataform.otherMessagesSent`
+where message_content like "%भाग लेने के लिए, धन्यवाद! 🙏🏻%")
+
+-- select distinct phone_number
+-- from initiated 
+-- inner join submitted
+-- using(phone_number)
+,
+
+form_initiated as (
+    select *
+    from response 
+    union distinct 
+    select *
+    from initiated
+)
+
+,form_completed as (
+    select  *
+    from completed
+    union distinct 
+    select *
+    from submitted
+)
+
 select distinct o.phone_number,child_class,opted_in_at,call_support,responded_at as form_iniated_on,if(responded_at is not null,1,0)forms_initiated,c.sent_at form_completed_at,if(c.sent_at is not null,1,0)form_completed
 from  onboarded o
-left join response  r
+left join form_initiated  r
 using(phone_number)
-left join completed c
-using(phone_number)
+left join form_completed c
+using(phone_number) 
