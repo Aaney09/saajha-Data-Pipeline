@@ -47,14 +47,14 @@ select distinct phone_number,id,chat_id,template_name,sent_at,lengthOfSplitedArr
 ifnull(worksheetNumber,worksheet)as worksheetNumber,
 ifnull(LevelNumber, hLevel)levelNumber,
 ifnull(monthNumber,month) monthNumber,
-math_assessment_name,
+math_assessment_name, 
 hindi_assessment_name,
 hindi_assessment_date,
 math_assessment_date
 
 from hindi_worksheet_extract
 where 
-mathAssessedDate_raw != "" and  hindiAssessedDate_raw !=""
+(mathAssessedDate_raw != "" and mathAssessedDate_raw <> "@mathsassessmentdoneon") and  hindiAssessedDate_raw !="" 
 
 order by sent_at desc
 
