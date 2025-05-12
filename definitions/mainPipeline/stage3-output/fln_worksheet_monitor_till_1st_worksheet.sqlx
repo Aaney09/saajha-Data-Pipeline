@@ -3,7 +3,6 @@ config {
     tags: "wa_daily"
 }
 
-
 with 
 hindi as (select distinct AssessmentId hindiAssessmentId,AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,datetime(AssessmentTakenOn)assessedOn
 from `platform_commons.assessment`
@@ -152,7 +151,11 @@ from mathResultSent a
 left join sent_math_first_content_within_same_or_next_Day h
 using(phone_number,sent_at)
 )
-
+-- ,Dc as (
+--   select distinct phone_number
+--   from ${ref("911171279787","contacts")}
+--   where lower() like "%dc%"
+-- )
 ,assessment as (select dateOfAssessment,count(distinct parentid) pidAssessed, 
 count(distinct childId)totalChildren, 
 count(distinct if(FLNAchievedDate is not null,ParentId,Null))BothSubjectFLNAchievedParentid,
