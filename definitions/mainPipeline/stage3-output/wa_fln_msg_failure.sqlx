@@ -38,9 +38,14 @@ order by dates desc
     (((template_name like "%fln_result_template1%" 
     and message_content like "%गणित%")
     or template_name ="fln_math_result_v1"
-    or template_name = "fln_math_result")) OR (
-      (template_name ="fln_level_achieved_maths" or template_name = "mfln_single_level_achieved" or (template_name ="fln_single_level_achieved" and message_content like "%गणित%"))
+    or template_name = "fln_math_result")) 
+    OR (
+      (template_name ="fln_level_achieved_maths" 
+      or template_name = "mfln_single_level_achieved" 
+      or (template_name ="fln_single_level_achieved" and message_content like "%गणित%"))
     )
+    or template_name LIKE "%fln_not_achieved_result%" 
+    or template_name like "%fln_hindi_achieved_result%"
     group by all
     -- and date(sent_at)>="2024-12-01"
 )
