@@ -13,6 +13,8 @@ with google_form AS (
     string(null) hindi_assessment,
     datetime(null) maths_assessment_date,
     datetime(null) hindi_assessment_date,
+    null childid,
+    null parentid,
   FROM
     `whatsapp_tools.maths_fln_forms`)
 ,react_form as (
@@ -27,6 +29,8 @@ with google_form AS (
     hindi_assessment,
     maths_assessment_date,
     hindi_assessment_date,
+    childid,
+    parentid
     FROM
     `saajhadata.whatsapp_tools.maths_react_forms`
 )
