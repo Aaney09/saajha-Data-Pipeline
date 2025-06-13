@@ -15,5 +15,5 @@ SELECT
 
 FROM
   ${ref("911171279787","statuses")}
-where date(datetime_add(updated_at, interval 330 minute))<current_date()
+where date(datetime_add(updated_at, interval 330 minute))<current_date("Asia/Kolkata")
 qualify row_number() over(partition by message_uuid order by updated_at desc)=1
