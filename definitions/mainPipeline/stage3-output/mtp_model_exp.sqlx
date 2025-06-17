@@ -132,9 +132,9 @@ qualify row_number() over (partition by urn order by updated_at desc)=1
 
 select *
 from profile
-left join math_worksheetCounts
+left join math_worksheet
 using(parentid)
-left join hindi_worksheetCounts
+left join hindi_worksheet
 using(parentid)
 left join incomingCalls
 using(parentid)
