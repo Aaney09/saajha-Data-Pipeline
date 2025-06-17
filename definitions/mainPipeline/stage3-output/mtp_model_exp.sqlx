@@ -1,0 +1,140 @@
+config {
+    type: "table",
+    tags: "wa_daily"
+    }
+
+with template_Sent as (
+select phone_number,template_name,template_meta_data,sent_at,title,last_message_status,ts.uuid
+from `dataform.template-sent` ts
+left join `dataform.912250555658_statuses` st
+on ts.uuid=st.message_uuid
+where 
+template_name in("hfln_video_template_v2","hfln_worksheet_v6","mfln_worksheet_v2")  and phone_number not in(918888727876
+,919971478794,918527647594,919915539829) and
+lower(template_meta_data) like "%childid=%"
+and date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 )
+
+, hindi_worksheet_sent as (select distinct
+ safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[6],"=")[1] as int64) parentid,
+    uuid,
+    last_message_status,
+    safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[7],"=")[1] as int64)childid,
+    SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[8],"=")[1] worksheetLinks,
+     sent_at,
+     title as error_reason
+from template_Sent
+where template_name in("hfln_video_template_v2","hfln_worksheet_v6")
+and array_length(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&"))>=9
+)
+
+,math_worksheet_sent as (select distinct
+ safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[6],"=")[1] as int64) parentid,
+    uuid,
+    last_message_status,
+    safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[7],"=")[1] as int64)childid,
+    SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[8],"=")[1] worksheetLinks,
+     sent_at,
+     title as error_reason
+from template_Sent
+where template_name in("mfln_worksheet_v2")
+and array_length(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&"))>=9
+)
+
+,hindi_last_worksheet_link as (select parentid,uuid,worksheetLinks as lastHindiWorksheetSentLink,sent_at as last_hindi_worksheet_sent_on,
+from hindi_worksheet_sent -- ** update to 2nd subquery
+qualify row_number() over(partition by parentid order by sent_at desc)=1
+)
+,hindi_worksheet_completed as (
+  select parentId,count(distinct form_id)hindiworksheetsSubmittedLastWeek,max(inserted_at) last_hindi_worksheet_Submitted_on_last_Week
+  from `whatsapp_tools.hindi_fln_forms`
+  where date(inserted_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
+  group by 1
+)
+,hindi_worksheetCounts as (select parentid,
+   count(distinct uuid)hindi_sentOverall,
+     count(distinct if(last_message_status<>"failed", uuid,null))hindi_successfullySentLastWeek,
+     count(distinct if(last_message_status="failed", uuid,null))hindi_Failed_last_Week,
+     array_agg(distinct error_reason ignore nulls)last_week_failed_reasons_hindi,
+from hindi_worksheet_sent -- this will be  2nd subquery once user profile 
+where hindi_worksheet_sent.parentid is not null
+group by all )
+
+,hindi_worksheet as (select distinct parentid,
+hindi_sentOverall,hindi_successfullySentLastWeek,hindi_Failed_last_Week,last_week_failed_reasons_hindi,
+  lastHindiWorksheetSentLink,last_hindi_worksheet_sent_on,
+  hindiworksheetsSubmittedLastWeek,
+  last_hindi_worksheet_Submitted_on_last_Week 
+from hindi_worksheetCounts s
+  left join hindi_last_worksheet_link
+using(parentid)
+left join hindi_worksheet_completed 
+using(parentid)
+)
+
+
+,math_last_worksheet_link as (select parentid,uuid,worksheetLinks as lastMathWorksheetSentLink,sent_at as last_math_worksheet_sent_on,
+from math_worksheet_sent -- ** update to 2nd subquery
+qualify row_number() over(partition by parentid order by sent_at desc)=1
+)
+,math_worksheet_completed as (
+  select parentId,count(distinct form_id)mathWorksheetsSubmittedLastWeek,max(inserted_at) last_math_worksheet_Submitted_on_last_Week
+  from whatsapp_tools.maths_react_forms
+  where date(inserted_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
+  group by 1
+)
+
+,math_worksheetCounts as (select parentid,
+   count(distinct uuid)math_sentOverall,
+     count(distinct if(last_message_status<>"failed", uuid,null))math_successfullySentLastWeek,
+     count(distinct if(last_message_status="failed", uuid,null))math_Failed_last_Week,
+     array_agg(distinct error_reason ignore nulls)last_week_failed_reasons_math,
+from math_worksheet_sent m-- this will be  2nd subquery once user profile 
+where m.parentid is not null
+group by all )
+,incomingCalls as (
+ select parentid,sum(no_incoming_attempts)no_incoming_attempts
+ from ( select parentid,IncomingCallId,max(TotalRequestCount)no_incoming_attempts
+  from platform_commons.incoming
+  where datetime(InitialRequestDateTime)  between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1
+  group by all)
+  group by 1
+)
+
+,math_worksheet as (select distinct parentid,
+math_sentOverall,math_successfullySentLastWeek,math_Failed_last_Week,last_week_failed_reasons_math,
+  lastMathWorksheetSentLink,last_math_worksheet_sent_on,
+  mathWorksheetsSubmittedLastWeek,
+  last_math_worksheet_Submitted_on_last_Week,no_incoming_attempts
+from math_worksheetCounts s
+  left join math_last_worksheet_link
+using(parentid)
+left join math_worksheet_completed 
+using(parentid)
+left join incomingCalls
+using(parentid))
+
+
+,profile as (select safe_cast(json_value(details,"$.parentid") as int64)parentid,safe_cast(json_value(details,"$.childid") as int64)childid,json_value(details,"$.experiment")experiment,json_value(details,"$.experimentarm") exp_arm ,json_value(details,"$.assessmentdate") assessmentdate,json_value(details,"$.experimentstatus") experimentstatus,
+from 
+`911171279787.contacts`
+-- `912250555658.contacts`
+where json_value(details,"$.experiment")="ME"
+qualify row_number() over (partition by urn order by updated_at desc)=1
+)
+
+select *
+from profile
+left join math_worksheet
+using(parentid)
+left join hindi_worksheet
+using(parentid)
+left join incomingCalls
+using(parentid)
