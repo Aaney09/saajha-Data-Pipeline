@@ -57,6 +57,6 @@ select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,child
         PARSE_DATETIME('%m/%d/%Y %H:%M:%S', math_ws.decoded_hindi_assessment_date)
       ELSE NULL
     END AS hindi_assessment_date,
-    parentid,
-    childid
+    safe_Cast(parentid as int64)parentid ,
+    safe_Cast(childid as int64) childid
 from math_ws
