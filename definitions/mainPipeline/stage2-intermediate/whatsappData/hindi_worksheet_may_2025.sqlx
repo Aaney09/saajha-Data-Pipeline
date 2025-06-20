@@ -43,20 +43,17 @@ and last_message_status <> "failed"
 
 
 select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,childid,parentid),
-    CASE
-      WHEN REGEXP_CONTAINS(hindi_ws.decoded_math_assessment_date, r'\d{1,2} [A-Za-z]{3} \d{4}, \d{1,2}:\d{2} (AM|PM)') THEN
-        PARSE_DATETIME('%d %b %Y, %I:%M %p', hindi_ws.decoded_math_assessment_date)
-      WHEN REGEXP_CONTAINS(hindi_ws.decoded_math_assessment_date, r'\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2}') THEN
-        PARSE_DATETIME('%m/%d/%Y %H:%M:%S', hindi_ws.decoded_math_assessment_date)
-      ELSE NULL
-    END AS math_assessment_date,
-    CASE
-      WHEN REGEXP_CONTAINS(hindi_ws.decoded_hindi_assessment_date, r'\d{1,2} [A-Za-z]{3} \d{4}, \d{1,2}:\d{2} (AM|PM)') THEN
-        PARSE_DATETIME('%d %b %Y, %I:%M %p', hindi_ws.decoded_hindi_assessment_date)
-      WHEN REGEXP_CONTAINS(hindi_ws.decoded_hindi_assessment_date, r'\d{1,2}/\d{1,2}/\d{4} \d{2}:\d{2}:\d{2}') THEN
-        PARSE_DATETIME('%m/%d/%Y %H:%M:%S', hindi_ws.decoded_hindi_assessment_date)
-      ELSE NULL
-    END AS hindi_assessment_date,
+    COALESCE(
+    SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p',hindi_ws.decoded_math_assessment_date),
+    SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p',hindi_ws.decoded_math_assessment_date),
+    SAFE.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', hindi_ws.decoded_math_assessment_date)
+  ) AS math_assessment_date,
+
+  COALESCE(
+    SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p', hindi_ws.decoded_hindi_assessment_date ),
+    SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p', hindi_ws.decoded_hindi_assessment_date),
+    safe.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', hindi_ws.decoded_hindi_assessment_date) )
+    AS hindi_assessment_date,
     safe_Cast(parentid as int64)parentid ,
     safe_Cast(childid as int64) childid
 from hindi_ws

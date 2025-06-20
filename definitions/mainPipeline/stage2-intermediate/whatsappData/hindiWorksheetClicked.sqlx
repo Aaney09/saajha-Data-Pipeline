@@ -17,6 +17,8 @@ config {
     hindi_assessment,
     maths_assessment_date,
     hindi_assessment_date,
+    childid,
+    parentid
     -- safe_cast(regexp_extract(maths_assessment,'[0-9]+') as int64 )as mathAssessmentNumber,
     -- safe_cast(regexp_extract(hindi_assessment,'[0-9]+') as int64 )as hindiAssessmentNumber,
   FROM
