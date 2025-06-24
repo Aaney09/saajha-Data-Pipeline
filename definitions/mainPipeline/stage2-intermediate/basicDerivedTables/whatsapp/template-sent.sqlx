@@ -4,7 +4,7 @@ config {
 }
 
 with _87_status as (
-    select message_uuid,status as last_message_status,updated_date as updated_status_at
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
     from ${ref("911171279787_statuses")}
 )
 ,_87 as  (SELECT distinct 
@@ -19,6 +19,8 @@ with _87_status as (
     template template_meta_data, 
     rendered_content as message_content,
     last_message_status,
+    title as error_reason,
+    code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     updated_status_at, 
     911171279787 saajha_whatsapp_number,
@@ -31,7 +33,7 @@ where message_type = "template" and datetime_add(inserted_at, Interval 330 minut
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 ,_58_status as (
-    select message_uuid,status as last_message_status,updated_date as updated_status_at
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
     from ${ref("912250555658_statuses")}
 )
 , fln_number as (
@@ -47,6 +49,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     template template_meta_data, 
     rendered_content as message_content,
     last_message_status,
+    title as error_reason,
+    code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     updated_status_at, 
     912250555658 saajha_whatsapp_number,
@@ -59,7 +63,7 @@ where message_type = "template" and datetime_add(inserted_at, Interval 330 minut
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 ,_73_status as (
-    select message_uuid,status as last_message_status,updated_date as updated_status_at
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
     from ${ref("911171817073_statuses")}
 )
 ,
@@ -76,6 +80,8 @@ _911171817073_noida as (
     template template_meta_data, 
     rendered_content as message_content,
     last_message_status,
+    title as error_reason,
+    code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     updated_status_at, 
     911171817073 saajha_whatsapp_number,
@@ -88,7 +94,7 @@ where message_type = "template" and datetime_add(inserted_at, Interval 330 minut
 qualify row_number()over(partition by uuid order by updated_at desc)=1
     )
 ,_43_status  as (
-    select message_uuid,status as last_message_status,updated_date as updated_status_at
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
     from ${ref("912250323343_statuses")}
 )
 ,
@@ -105,6 +111,8 @@ agents as (
     template template_meta_data, 
     rendered_content as message_content,
     last_message_status,
+    title as error_reason,
+    code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     updated_status_at,  
     912250323343 saajha_whatsapp_number,
