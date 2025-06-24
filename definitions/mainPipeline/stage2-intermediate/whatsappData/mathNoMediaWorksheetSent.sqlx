@@ -6,6 +6,9 @@ config {
 with  component0 as (
     select 
 distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'),"&"))) lengthOfSplitedArray,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'), "&")[2],"=")[1] linkeOfContent,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'),
@@ -24,7 +27,7 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[0].parameters[0].text'),"&"))) = 3
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
-    and last_message_status <> "failed"
+    -- and last_message_status <> "failed"
   order by sent_at desc
 )
 
@@ -32,6 +35,9 @@ datetime(null) as math_assessment_date
 , array_5_assessment_and_month as (
 select 
 distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfSplitedArray,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[4],"=")[1] linkeOfContent,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
@@ -58,13 +64,16 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =5
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
-    and last_message_status <> "failed"
+    -- and last_message_status <> "failed"
   order by sent_at desc
 )
 
 ,array_3_assessment_and_month as (
 select 
 distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfSplitedArray,
 -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[2],"=")[1] linkeOfContent,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
@@ -83,7 +92,7 @@ datetime(null) as math_assessment_date
     where 
     ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) = 3
     AND upper(template_name) = "MATHS_WORKSHEET_NO_MEDIA_V1"
-    and last_message_status <> "failed"
+    -- and last_message_status <> "failed"
   order by sent_at desc
 )
 

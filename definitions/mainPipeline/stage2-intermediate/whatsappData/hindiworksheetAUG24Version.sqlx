@@ -6,6 +6,9 @@ config {
 
 with hindi_worksheet_extract as (select distinct
 phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
 -- SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")splits,
 ARRAY_LENGTH(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")) lengthOfSplitedArray,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
@@ -37,7 +40,7 @@ where
 template_name in("hfln_worksheet_","hfln_worksheet_v4") and phone_number not in(918888727876
 ,919971478794,918527647594,919915539829)
 
-and last_message_status <> "failed"
+-- and last_message_status <> "failed"
 and ARRAY_LENGTH(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))>= 7
 order by lengthOfSplitedArray asc
 
