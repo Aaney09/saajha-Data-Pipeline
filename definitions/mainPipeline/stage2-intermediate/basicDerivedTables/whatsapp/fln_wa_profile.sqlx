@@ -17,7 +17,7 @@ select distinct
     json_value(details,"$.experimentarm") experiment_arm,
     datetime_add(inserted_at,interval 330 minute)wa_profile_created_on,
     datetime_add(updated_at,interval 330 minute)last_profile_update_on,
-    details,
+    details as last_profile_meta_data,
 
    from  ${ref("912250555658","contacts")}  
 --    where safe_Cast(json_value(details,"$.opted_in") as Bool )=True
