@@ -1,0 +1,117 @@
+config {
+  type:"table",
+  tags: "daily_calls"
+}
+
+
+with hindiAss as (select distinct childId,date(assessmentDate)hindiAssessDate,parentId,agentMobile,agentName
+from `platform_commons.prelim`
+where assessmentName like "%HINDI%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
+
+,
+hindiDates  as(select distinct childId,hindiAssessDate,parentId,agentMobile,agentName,
+lag(date(hindiAssessDate)) over (partition by childId order by hindiAssessDate asc)hindiLagDate,
+from 
+hindiAss
+order by childId asc,hindiAssessDate asc,hindiLagDate asc)
+
+,
+hindiData as ((select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0)
+
+UNION ALL
+(select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))>=25)
+order by childId  desc)
+
+, hindi as (select *, row_number() over(partition by childId order by hindiAssessDate asc)hindirounds
+from hindiData
+order by childId asc,hindirounds asc)
+
+
+, mathAss as (select distinct childId,date(assessmentDate)mathAssessDate,parentId,agentMobile,agentName
+
+from `platform_commons.prelim`
+where assessmentName not like "%HINDI%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
+
+, mathDates as
+(select distinct childId,mathAssessDate,parentId,agentMobile,agentName,
+lag(date(mathAssessDate)) over (partition by childId order by mathAssessDate asc)mathLagDate,
+
+from
+mathAss
+order by childId asc,mathAssessDate asc,mathLagDate asc)
+
+, mathData as((select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0)
+
+UNION ALL
+(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))>=25)
+order by childId  desc)
+
+, math as
+(select *, row_number() over(partition by childId order by mathAssessDate asc)mathrounds
+from mathData
+order by childId asc,mathrounds asc)
+
+
+, hindiMath as (select md.*, hd.*Except(childId,parentid,agentMobile,agentName)
+from hindi hd
+inner join
+math md
+on md.childId = hd.childId
+and md.mathrounds = hd.hindirounds
+and md.agentMobile = hd.agentMobile
+)
+,
+opt_in as (
+  select distinct rosterparentid
+  from `dataform.allPhoneNumberWithPid`
+  inner join
+  (select distinct phone_number from (select phone_number
+  from `opt_in_records.opt_in_users`
+  union distinct 
+  select phone_number
+  from `process_improvement.opt_in_users`))
+  on number = phone_number
+
+),
+
+opted_out as (
+  select distinct 
+  parentId
+   from `dataform.opted_out`
+)
+
+
+select hindirounds,
+--  distinct hindiAssessDate as date,agentMobile,agentName,
+-- count(distinct if(o.parentId is not null,o.parentId,Null))opted_out,
+-- count(distinct if(oi.rosterparentId is not null,oi.rosterparentId,Null))opted_in,
+count(distinct hm.parentid) totalParentsAssessed,
+count(distinct childId) totalChildrenAssessed,
+-- count(distinct if(hindiRounds=1,hm.childid,null))Round_1,
+-- count(distinct if(hindiRounds=2,hm.childid,null))Round_2,
+-- count(distinct if(hindiRounds=3,hm.childid,null))Round_3,
+-- count(distinct if(hindiRounds=4,hm.childid,null))Round_4,
+-- count(distinct if(hindiRounds=5,hm.childid,null))Round_5,
+-- count(distinct if(hindiRounds=6,hm.childid,null))Round_6,
+-- count(distinct if(hindiRounds=7,hm.childid,null))Round_7,
+-- count(distinct if(hindiRounds=8,hm.childid,null))Round_8,
+-- count(distinct if(hindiRounds=9,hm.childid,null))Round_9,
+-- count(distinct if(hindiRounds=10,hm.childid,null))Round_10,
+-- count(distinct if(hindiRounds=11,hm.childid,null))Round_11,
+-- count(distinct if(hindiRounds=12,hm.childid,null))Round_12
+
+from hindiMath hm
+left join opted_out o
+on hm.parentId = o.parentid
+left join opt_in oi
+on hm.parentId = oi.rosterParentId
+group by all
+order by 1 desc
