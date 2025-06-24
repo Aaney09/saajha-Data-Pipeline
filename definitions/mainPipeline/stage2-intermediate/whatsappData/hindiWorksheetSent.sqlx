@@ -4,7 +4,7 @@ config {
     }
 
 
-with  component1 as (
+with  component1 as ( 
     select 
 distinct phone_number,id,chat_id,template_name,sent_at,
 last_message_status,
@@ -303,7 +303,7 @@ template_name in ("hfln_comic_2_with_button"
     "&")[4],"=")[1],"%20"," "),",","")  != ""
 --   and last_message_status <> "failed"
 
-)
+) 
 ,aug_2024_version as (
     select *
     from ${ref("hindiworksheetAUG24Version")}
