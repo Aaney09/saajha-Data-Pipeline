@@ -45,7 +45,9 @@ and ARRAY_LENGTH(SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters
 order by lengthOfSplitedArray asc
 
 )
-select distinct phone_number,id,chat_id,template_name,sent_at,lengthOfSplitedArray,
+select distinct phone_number,id,chat_id,template_name,sent_at,last_message_status,
+error_code,
+error_reason,lengthOfSplitedArray,
 ifnull(worksheetNumber,worksheet)as worksheetNumber,
 ifnull(LevelNumber, hLevel)levelNumber,
 ifnull(monthNumber,month) monthNumber,
