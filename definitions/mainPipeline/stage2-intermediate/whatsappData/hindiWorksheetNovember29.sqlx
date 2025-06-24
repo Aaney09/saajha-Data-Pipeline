@@ -10,6 +10,9 @@ select distinct
 phone_number,
 id,chat_id,template_name,
 sent_at,
+last_message_status,
+error_code,
+error_reason,
 ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
 safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
     "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
@@ -34,7 +37,7 @@ template_name in("hfln_video_template_v2","hfln_worksheet_v6") and phone_number 
 ,919971478794,918527647594,919915539829)
 -- and template_meta_data not like "%eOn:%"
 
-and last_message_status <> "failed"
+-- and last_message_status <> "failed"
  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=7
   )
 
