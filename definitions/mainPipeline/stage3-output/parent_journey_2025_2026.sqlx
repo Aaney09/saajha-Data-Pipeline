@@ -1,8 +1,8 @@
 
 config {
     type: "table",
-    tags: ["daily", "2024_2025"],
-    description: "till march 31st 2025"
+    tags: ["call_daily"],
+    description: "from april 2025 till march 31st 2026"
 }
 
 
@@ -10,7 +10,7 @@ config {
 
 with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
 from `platform_commons.assessment`
-where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2024-04-01" and "2025-03-31"
+where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
 
 ,
@@ -29,7 +29,7 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
 , mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
 if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
 from `platform_commons.assessment`
-where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2024-04-01" and "2025-03-31"
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
 
