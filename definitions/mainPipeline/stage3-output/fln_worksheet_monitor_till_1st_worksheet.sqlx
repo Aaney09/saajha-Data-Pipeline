@@ -42,7 +42,7 @@ where math.dateOfAssessment >= "2025-04-01"
     or template_name LIKE "%fln_not_achieved_result%" 
     or template_name like "%fln_hindi_achieved_result%"
     )
-    -- and last_message_status <> "failed"
+    and last_message_status <> "failed"
     -- and date(sent_at)>="2024-12-01"
 )
 ,hindi_result_sent as (
@@ -58,33 +58,33 @@ where math.dateOfAssessment >= "2025-04-01"
     
     )
     and date(sent_at)>="2025-04-01"
-    -- and last_message_status <> "failed"
+    and last_message_status <> "failed"
 )
 , BothSubjectFLNAchievedTemplateSent as (
   select distinct phone_number,sent_at
   from ${ref("template-sent")}
   where template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2") and date(sent_at)>="2025-04-01"
---   and last_message_status <> "failed"
+  and last_message_status <> "failed"
 )
 , fln_achieved_maths_template_sent as (
   select distinct phone_number,sent_at,
   from ${ref("template-sent")}
   where (template_name ="fln_level_achieved_maths" or template_name = "mfln_single_level_achieved" or (template_name ="fln_single_level_achieved" and message_content like "%गणित%" )  or template_name like "%fln_hindi_achieved_result%") and date(sent_at)>="2025-04-01"
---   and last_message_status <> "failed"
+  and last_message_status <> "failed"
   
 )
 ,fln_achieved_hindi_template_sent as (
   select distinct phone_number, sent_at
   from ${ref("template-sent")}
   where (template_name = "fln_level_achieved_hindi" or template_name = "hfln_single_level_achieved_v1" or (template_name ="fln_single_level_achieved" and message_content like "%हिंदी%") or template_name ="fln_maths_achieved_result" or template_name like "%fln_hindi_achieved_result%")and date(sent_at)>="2025-04-01"
---   and last_message_status <> "failed"
+  and last_message_status <> "failed"
 )
 
 ,hindi_video as (
   select distinct phone_number, sent_at
   from ${ref("template-sent")}
   where ((template_name = "hfln_content_template" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%") or (template_name = "hfln_content_template_v2" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%") or (template_name = "hfln_video_template_v2" and template_meta_data like "%आपने जो *स्वर* देखे और सुने हैं उन्हें दोहराने और लिखने✍️ की कोशिश करें।%"))
---   and last_message_status <> "failed"
+  and last_message_status <> "failed"
 )
 
 , math_first_worksheet_sent as (
