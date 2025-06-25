@@ -90,13 +90,13 @@ where math.dateOfAssessment >= "2025-04-01"
 , math_first_worksheet_sent as (
   select distinct phone_number,sent_at as math_worksheet1_sent_on
   from ${ref("mathWorksheetSent")}
-  where worksheetNumber =1 
+  where worksheetNumber =1 and last_message_status <> "failed"
 )
 
 , hindi_first_worksheet_sent as (
   select distinct phone_number,sent_at as hindi_worksheet1_sent_on
   from ${ref("hindiWorksheetSent")}
-  where worksheetNumber =1 
+  where worksheetNumber =1 and last_message_status <> "failed"
 )
 
 ,mathResultSent as (
