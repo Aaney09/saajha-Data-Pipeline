@@ -24,11 +24,41 @@ on o.parentid=c.parentid and date(last_opted_out) = date(CallstartDatetime)
 where date(last_opted_out) between "2025-04-01" and "2026-03-31" 
 group by all)
 
+
+-- with /
+,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round 
+from `dataform.opted_out`o
+inner join `platform_commons.futureRoster` c
+on o.parentid=c.parentid and date(last_opted_out) = calldate
+where date(last_opted_out) between "2025-04-01" and "2026-03-31")
+
+, overalldials as (select distinct agentMobile,parentid,callingRound,
+count(distinct CallstartDatetime) overalltotalDials,
+count(distinct date(CallstartDatetime))overall_number_of_days_called
+from `dataform.called`
+group by all)
+
+, average_call_attempts_before_opt_out as (
+    select agentMobile,callinground as round,
+    avg(overalltotalDials)avg_calls_attempted_before_opted_out,
+     avg(overall_number_of_days_called)avg_days_called_before_opted_out
+    from overalldials
+    group by all
+)
+
+-- select distinct *
+-- from opt_out_2024_25
+-- left join overalldials
+-- using(parentid)
+-- left join year2024_25
+-- using(parentid)
 select *
 from scheduled
 left join future_roster
 using(AgentMobile,round)
 left join opted_out
+using(AgentMobile,round)
+left join average_call_attempts_before_opt_out
 using(AgentMobile,round)
 
 
