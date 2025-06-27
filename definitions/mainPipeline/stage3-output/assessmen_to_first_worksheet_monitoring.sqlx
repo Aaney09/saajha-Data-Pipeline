@@ -137,7 +137,7 @@ from non_failed)
 )
 
 ,math_hindiResultSent as (
-  select distinct a.*,m.*except(parentid,location),b.*except(parentid,location),COALESCE(b.location,m.location) as city
+  select distinct a.*,m.*except(parentid),b.*except(parentid)
 from assessments a
 left join BothSubjectFLNAchievedTemplateSent b 
 on a.parentid = b.parentid and dateOfAssessment=date(flnAchieved_Result_sent_on)
@@ -146,7 +146,7 @@ on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
 )
 
 , sent_math_first_content as (
-  select distinct m.* 
+  select distinct m.*
   from math_hindiResultSent r
   inner join math_first_worksheet_Sent m
   using(parentid)
@@ -163,7 +163,7 @@ on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
 )
 
 ,hindi_first_video as (
-  select distinct v.*except(location)
+  select distinct v.*
   from math_hindiResultSent r
   inner join hindi_video v
   using(parentid)
@@ -182,7 +182,7 @@ left join hindi_video
 using(parentid)
 order by dateOfAssessment desc,parentid)
 
-select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,m.city,
+select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
     count(distinct parentid)ParentIdAssessed,
     count(distinct childid)ChildiAssessed,
 
