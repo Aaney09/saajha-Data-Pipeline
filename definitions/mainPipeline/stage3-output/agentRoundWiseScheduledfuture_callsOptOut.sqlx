@@ -12,30 +12,35 @@ where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 d
 group by all)
 
 ,scheduled as (
-    select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)parentsScheduled
-from `platform_commons.roster`
+    select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)overall_parents_scheduled_current_ay
+from `platform_commons.futureRoster`
 where CallDate >="2025-04-01"
 group by all
 )
-,opted_out as (select distinct count(o.parentId) parentsOptedOut,agentMobile,callingRound as  Round
+,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round
 from `dataform.opted_out`o
-inner join `dataform.called` c
-on o.parentid=c.parentid and date(last_opted_out) = date(CallstartDatetime)
-where date(last_opted_out) between "2025-04-01" and "2026-03-31" 
+inner join `platform_commons.futureRoster` c
+on o.parentid=c.parentid and date(last_opted_out) = calldate
+where date(last_opted_out) between "2025-04-01" and "2026-03-31"
 group by all)
 
 
 -- with /
-,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round 
+,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round, date(last_opted_out) opted_out_date
 from `dataform.opted_out`o
 inner join `platform_commons.futureRoster` c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
 where date(last_opted_out) between "2025-04-01" and "2026-03-31")
 
-, overalldials as (select distinct agentMobile,parentid,callingRound,
+, overalldials as (
+    select distinct c.agentMobile,c.parentid,callingRound,
 count(distinct CallstartDatetime) overalltotalDials,
 count(distinct date(CallstartDatetime))overall_number_of_days_called
-from `dataform.called`
+from `dataform.called` c 
+inner join opt_out_parents o
+on c.parentid = o.parentid and c.agentMobile = safe_cast(concat("91",o.agentMobile) as int64) 
+and c.callingRound= o.round 
+-- and opted_out_date=date(CallEndDatetime)
 group by all)
 
 , average_call_attempts_before_opt_out as (
