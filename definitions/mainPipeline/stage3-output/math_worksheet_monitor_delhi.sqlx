@@ -142,7 +142,7 @@ distinct profile_updated_date,
       count(distinct if(phone_number is null	,p_num,null))/count(distinct parentid)*100
         ,2
       ) math_turn_failure_rate,
-      count(distinct if(last_message_status ="failed",p_num,null)) as math_worksheet_turn_failed,
+      count(distinct if(last_message_status ="failed",p_num,null)) as math_worksheet_meta_failed,
       if(count(distinct if(phone_number is not null	,p_num,null))<>0,
       round(count(distinct if(last_message_status ="failed",p_num,null))/count(distinct if(phone_number is not null	,p_num,null)) * 100
       ,2)
