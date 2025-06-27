@@ -12,7 +12,7 @@ on s.childid = c.childid and s.math_assessment_date = c.maths_assessment_date an
 left join `dataform.mathWorksheetCompleted` co 
 on c.childid = co.childid and c.maths_assessment_date=co.maths_assessment_date and c.LevelNumber = co.LevelNumber 
 and c.worksheetNumber= co.worksheetNumber
-where s.childid is not null
+where s.childid is not null and last_message_status<>"failed"
 )
 
 
