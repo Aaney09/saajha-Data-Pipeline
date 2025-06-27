@@ -1,4 +1,7 @@
-
+config {
+    type:"table",
+    tags: "wa_daily"
+}
 
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,safe_cast(regexp_extract(Level,r'\d') as int64) as hindiLevel
