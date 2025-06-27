@@ -89,7 +89,7 @@ opted_out as (
 )
 
 
-select hindirounds,
+select hindirounds as rounds_since_april_2025,
 --  distinct hindiAssessDate as date,agentMobile,agentName,
 -- count(distinct if(o.parentId is not null,o.parentId,Null))opted_out,
 -- count(distinct if(oi.rosterparentId is not null,oi.rosterparentId,Null))opted_in,
@@ -113,5 +113,6 @@ left join opted_out o
 on hm.parentId = o.parentid
 left join opt_in oi
 on hm.parentId = oi.rosterParentId
+where hindiAssessDate < current_date("Asia/Kolkata")
 group by all
 order by 1 desc

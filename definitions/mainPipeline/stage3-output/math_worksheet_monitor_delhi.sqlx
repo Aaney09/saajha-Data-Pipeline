@@ -1,0 +1,167 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+with mathProfile as (
+  SELECT distinct 
+    safe_cast(trim(urn, '+') as int64) as p_num, 
+    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    json_value(details,"$.opted_in")opted_in_status,
+    json_value(details, "$.contentflowmaths")mathContentProfile,
+    json_value(details,"$.lastworksheetsubject")lastsubject,
+    json_value(details, "$.lastmathworksheetsent")lastsent,			
+    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
+    safe_cast(json_value(details, "$.hindilevel")as int64)hindi_level,
+    safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
+    if(json_value(details, "$.lastmathworksheetsenton")<>"",
+    datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
+FROM `saajhadata.912250555658.contacts`		
+where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")-3			
+qualify row_number() over(partition by urn,date(updated_at) order by updated_at desc)=1
+)	
+
+-- select *
+-- from mathProfile
+
+,ongoing_opt_in as (select *,  case  
+when childClass = 1 and math_Level>=2 then TRUE
+when childClass = 2 and math_Level>=3 then TRUE
+when childClass >=3 and math_Level>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when childClass = 1 and hindi_Level>=3 then TRUE
+when childClass >=2 and hindi_Level>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from mathProfile
+where (mathContentProfile = "inprocess" or mathContentProfile = "wait" or mathContentProfile = "active" ) and opted_in_status = "true" and lastsubject = "hindi" )
+
+,whom_math_Worksheet_should_not_go as (
+  select *
+  from ongoing_opt_in
+  where math_Level=4 
+  UNION DISTINCT
+  select *
+  from ongoing_opt_in
+  where hindiFLnAchievedClassWise=true and mathFLnAchievedClassWise= true
+)
+
+,worksheetTemp as (select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
+from 
+-- `dataform.mathWorksheetSent`
+`dataform.template-sent`
+inner join `dataform.allPhoneNumberWithPid`
+on phone_number = number
+where (template_name like "%mfln_worksheet%" or template_name like "%rmfln%" )
+-- and flow_name like "%MFLN Worksheet [Apr2025]%"
+)
+
+-- ,failed as (
+--   select *
+--   from worksheetTemp
+--   where last_message_status="failed"
+-- )
+-- ,non_failed as (
+--   select *
+--   from worksheetTemp
+--   where last_message_status<>"failed"
+-- )
+-- ,at_least_1_success as (
+--   select nf.*
+--   from non_failed nf
+--   inner join 
+--   failed f
+--   using(rosterparentid,worksheet_sent_date)
+--   -- where f.rosterparentid is null
+-- )
+-- ,none_success as (
+--   select f.*
+--   from failed f
+--   left join at_least_1_success s
+--   using(rosterparentid,worksheet_sent_date)
+--   where s.rosterparentid is null
+-- )
+-- ,worksheet_Sent as (select 
+-- *
+-- from at_least_1_success
+-- union distinct 
+-- select *
+-- from none_success
+-- union distinct 
+-- select *
+-- from non_failed)
+
+, assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
+from `platform_commons.prelim`)
+
+,whom_worksheet_should_go as (
+select distinct o.p_num,profile_updated_date,o.parentid,math_level,hindi_level
+from ongoing_opt_in o
+left join assessment a
+on o.parentid = a.parentid and o.profile_updated_date= a.date_assessment
+where a.parentid is null)
+
+,_2nd_Set as (
+select distinct o.p_num,profile_updated_date,o.parentid,math_level,hindi_level
+from ongoing_opt_in o
+inner join assessment a
+on o.parentid = a.parentid and o.profile_updated_date= a.date_assessment
+where lastMathWorksheetSentOn<assessmentDate
+)
+
+,both_kind as (
+  select *
+  from whom_worksheet_should_go
+  union distinct
+  select *
+  from _2nd_Set
+)
+
+,overall_whom_math_worksheet_should_go as (
+  select *
+  from both_kind
+  left join
+  whom_math_Worksheet_should_not_go g
+  using(p_num,parentId,math_level,profile_updated_date,hindi_level)
+  where g.p_num is  null
+)
+
+
+-- select *
+-- from overall_whom_math_worksheet_should_go
+,overall_worksheet_status as 
+(select 
+distinct profile_updated_date,
+      count(distinct parentid)whomMathWorksheetHasToProcessFromTurn,
+      count(distinct if(phone_number is null	,p_num,null)) whom_math_worksheet_has_not_processed_from_turn,
+      round(
+      count(distinct if(phone_number is null	,p_num,null))/count(distinct parentid)*100
+        ,2
+      ) math_turn_failure_rate,
+      count(distinct if(last_message_status ="failed",p_num,null)) as math_worksheet_turn_failed,
+      if(count(distinct if(phone_number is not null	,p_num,null))<>0,
+      round(count(distinct if(last_message_status ="failed",p_num,null))/count(distinct if(phone_number is not null	,p_num,null)) * 100
+      ,2)
+      ,null) math_meta_failure_rate,
+      count(distinct if(error_code="131050",p_num,null)) as mathWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(error_code="131049",p_num,null)) as mathWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if(error_code="131026",p_num,null)) as mathWorksheetError_131026_Message_Undeliverable,
+      count(distinct if(error_code="131000",p_num,null)) as mathWorksheetError_131000_Something_went_wrong,
+      count(distinct if(error_code="130472",p_num,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,
+from overall_whom_math_worksheet_should_go s	
+left join worksheetTemp w	
+on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
+group by 1
+order by s.profile_updated_date desc
+)
+
+
+select * 
+from overall_worksheet_status
+order by 1 desc
+
+
