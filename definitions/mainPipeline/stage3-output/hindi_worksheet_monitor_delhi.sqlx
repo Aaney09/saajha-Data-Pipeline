@@ -74,7 +74,7 @@ distinct profile_updated_date,
       if(count(distinct if(phone_number is not null	,p_num,null))<>0,
       round(count(distinct if(last_message_status ="failed",p_num,null))/count(distinct if(phone_number is not null	,p_num,null)) * 100
       ,2)
-      ,null) math_meta_failure_rate,
+      ,null) hindi_meta_failure_rate,
       count(distinct if(error_code="131050",p_num,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
       count(distinct if(error_code="131049",p_num,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
       count(distinct if(error_code="131026",p_num,null)) as hindiWorksheetError_131026_Message_Undeliverable,
