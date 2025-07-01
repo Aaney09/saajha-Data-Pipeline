@@ -18,7 +18,7 @@ with _911171279787 as (SELECT distinct
     context_id,
 from ${ref("911171279787","messages")}
 where message_type = "interactive" and direction="inbound"
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 , _912250555658 as (SELECT distinct 
     safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
@@ -35,7 +35,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("912250555658","messages")}
 where message_type = "interactive" and direction="inbound"
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _911171817073 as (SELECT distinct 
@@ -53,7 +53,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("911171817073","messages")}
 where message_type = "interactive" and direction="inbound"
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _912250323343 as (SELECT distinct 
@@ -71,7 +71,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("912250323343","messages")}
 where message_type = "interactive" and direction="inbound"
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 select *
 from _911171279787
