@@ -18,7 +18,7 @@ with _911171279787 as (select distinct
     context_id,
 
 from ${ref("911171279787","messages")}
-where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _912250555658 as (select distinct
@@ -37,7 +37,7 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     context_id,
 
 from ${ref("912250555658","messages")}
-where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 , _911171817073 as (select distinct
     safe_cast(trim(from_addr,"+") as int64) phone_number,
@@ -55,7 +55,7 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     context_id,
 
 from ${ref("911171817073","messages")}
-where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _912250323343 as (select distinct
@@ -73,7 +73,7 @@ where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<c
     "agents" wa_number_purpose,
     context_id,
 from ${ref("912250323343","messages")}
-where message_type="button" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 select *
 from _911171279787

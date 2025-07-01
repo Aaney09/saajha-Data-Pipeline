@@ -16,7 +16,7 @@ with _911171279787 as
     context_id
 from ${ref("911171279787","messages")}
 where message_type not in ("interactive","button") and direction="inbound" 
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 , _912250555658 as
 (SELECT distinct 
@@ -32,7 +32,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("912250555658","messages")}
 where message_type not in ("interactive","button") and direction="inbound" 
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _911171817073 as
@@ -49,7 +49,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("911171817073","messages")}
 where message_type not in ("interactive","button") and direction="inbound" 
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 , _912250323343 as
@@ -66,7 +66,7 @@ and datetime_add(inserted_at, Interval 330 minute)<current_date()
     context_id,
 from ${ref("912250323343","messages")}
 where message_type not in ("interactive","button") and direction="inbound" 
-and datetime_add(inserted_at, Interval 330 minute)<current_date()
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
 

@@ -21,7 +21,7 @@ with _911171279787 as (SELECT distinct
     "onboarding" as wa_number_purpose,
     external_id,
 from ${ref("911171279787","messages")}
-where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 , _912250555658 as (SELECT distinct 
@@ -42,7 +42,7 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     "only fln" wa_number_purpose,
     external_id,
 from ${ref("912250555658","messages")}
-where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 
@@ -64,7 +64,7 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     "Noida" wa_number_purpose,
     external_id,
 from ${ref("911171817073","messages")}
-where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 
@@ -86,7 +86,7 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     "agents" wa_number_purpose,
     external_id
 from ${ref("912250323343","messages")}
-where message_type = "interactive" and direction="outbound" and datetime_add(inserted_at, Interval 330 minute)<current_date()
+where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 

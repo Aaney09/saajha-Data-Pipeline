@@ -29,7 +29,7 @@ with _87_status as (
 from ${ref("911171279787","messages")}
 left join _87_status
 on uuid = message_uuid
-where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)< current_date("Asia/Kolkata")
+where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 ,_58_status as (
@@ -59,7 +59,7 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
 from ${ref("912250555658","messages")}
 left join _58_status
 on uuid = message_uuid
-where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)< current_date("Asia/Kolkata")
+where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 ,_73_status as (
@@ -90,7 +90,7 @@ _911171817073_noida as (
 from ${ref("911171817073","messages")}
 left join _73_status
 on uuid = message_uuid
-where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)< current_date("Asia/Kolkata")
+where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
     )
 ,_43_status  as (
@@ -121,7 +121,7 @@ agents as (
 from ${ref("912250323343","messages")}
 left join _73_status
 on uuid = message_uuid
-where message_type = "template" and datetime_add(inserted_at, Interval 330 minute)< current_date("Asia/Kolkata")
+where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
     )
 
