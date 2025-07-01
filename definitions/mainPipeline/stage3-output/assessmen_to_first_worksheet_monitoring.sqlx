@@ -6,14 +6,18 @@ config {
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,safe_cast(regexp_extract(Level,r'\d') as int64) as hindiLevel
 from `platform_commons.assessment`
-where QuestionText like "%Ask%" and AssessmentId<>6)
+where QuestionText like "%Ask%" and AssessmentId<>6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
 , math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, safe_cast(regexp_extract(Level,r'\d') as int64)  as mathlevel
 from `platform_commons.assessment`
-where QuestionText not like  "%Ask%" and AssessmentId <> 6)
+where QuestionText not like  "%Ask%" and AssessmentId <> 6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
 
 , childDetails as (select 
 distinct 
-IEId as childId, OnBoardedUserId as parentid,ProjectId as ProjectId,
+IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
 )
@@ -35,7 +39,7 @@ from hindi h
 inner join math m
 using(assesseeActorID,dateOfAssessment)
 inner join childDetails c
-on assesseeActorID=childId
+on assesseeActorID=childid
 where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
 )
 
@@ -96,60 +100,78 @@ select *
 from non_failed)
 
 
-, BothSubjectFLNAchievedTemplateSent as (
-  select distinct parentid,
-  -- phone_number,
-  sent_at as flnAchieved_Result_sent_on,last_message_status as flnachieved_msg_status,error_code as flnachieved_error_code,error_reason as flnachieved_error_reason,location
-  from worksheet_Sent
-  where template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2") and date(sent_at)>="2025-04-01"
-)
+-- , BothSubjectFLNAchievedTemplateSent as (
+--   select distinct parentid,
+--   -- phone_number,
+--   sent_at as flnAchieved_Result_sent_on,last_message_status as flnachieved_msg_status,error_code as flnachieved_error_code,error_reason as flnachieved_error_reason,location
+--   from allNumbersPIDtemplatesent
+--   where template_name in ("fln_level_achieved_v3" ,"fln_hindi_math_achieve_video" ,"fln_both_level_achieved","fln_both_level_achieved_v2") and date(sent_at)>="2025-04-01"
+-- )
 ,combinedResult as (
   select distinct parentid,
   phone_number,
-  sent_at as combined_Result_sent_on,date(sent_At)+2 as math_1stWorksheetTosendOn,date(sent_At)+1 as hindi_1stWorksheetTosendOn,last_message_status as combined_Result_msg_status,error_code as combined_result_error_code,error_reason as combined_result_error_reason,location
-  from worksheet_Sent
-  where template_name LIKE "%fln_not_achieved_result%" or template_name like "%fln_maths_achieved_result%" or template_name like "%fln_hindi_achieved_result%"
+  sent_at as combined_Result_sent_on,last_message_status as combined_Result_msg_status,error_code as combined_result_error_code,error_reason as combined_result_error_reason,location
+  from allNumbersPIDtemplatesent
+  where template_name LIKE "%fln_not_achieved_result%" or template_name like "%fln_maths_achieved_result%" or template_name like "%fln_hindi_achieved_result%" or template_name like "%fln_both_level_achieved_v2%"
 )
 ,hindi_video as (
   select distinct parentid,
   phone_number as hindi_1st_video_sent_to,
   date(sent_at)hindi_1st_video_sent_on,last_message_status as hindi_1st_video_msg_status,error_code as hindi_1st_video_error_code,error_reason as hindi_1st_video_error_reason,location
-  from worksheet_Sent
+  from allNumbersPIDtemplatesent
   where (
 (template_name = "hfln_video_template_v2"))
   -- and last_message_status <> "failed"
 )
 
 , math_first_worksheet_sent as (
-  select distinct parentid,
+  select distinct parentid,childid,
   phone_number as math_1st_worksheet_sent_to,
   date(sent_at) as math_worksheet1_sent_on,last_message_status as math_1st_worksheet_msg_status,error_code as math_1st_worksheet_error_code,error_reason as math_1st_worksheet_error_reason,
   from `dataform.mathWorksheetSent` -- mfln_worksheet_v2
   where worksheetNumber =1 
 )
 
+,math_first_worksheet_success as (
+  select distinct parentid,childid,
+  from math_first_worksheet_sent
+  where math_1st_worksheet_msg_status<>"failed"
+)
+
 , hindi_first_worksheet_sent as (
-  select distinct parentid,
+  select distinct parentid,childid,
   phone_number as hindi_1st_worksheet_sent_to,
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
   from `dataform.hindiWorksheetSent`
   where worksheetNumber =1 
 )
-
+,hindi_first_worksheet_success as (
+  select distinct parentid,childid,
+  from hindi_first_worksheet_sent
+  where hindi_1st_worksheet_msg_status<>"failed"
+)
 ,math_hindiResultSent as (
-  select distinct a.*,m.*except(parentid),b.*except(parentid)
+  select distinct a.*,m.*except(parentid),
+  -- b.*except(parentid)
 from assessments a
-left join BothSubjectFLNAchievedTemplateSent b 
-on a.parentid = b.parentid and dateOfAssessment=date(flnAchieved_Result_sent_on)
+-- left join BothSubjectFLNAchievedTemplateSent b 
+-- on a.parentid = b.parentid and dateOfAssessment=date(flnAchieved_Result_sent_on)
 left join combinedResult m
 on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
+)
+
+--
+,result_processed_from_turn as (
+  select parentid
+  from math_hindiResultSent
+  where combined_Result_sent_on is not null
 )
 
 , sent_math_first_content as (
   select distinct m.*
   from math_hindiResultSent r
   inner join math_first_worksheet_Sent m
-  using(parentid)
+  using(childid)
   where math_content_to_send_on=math_worksheet1_sent_on
   -- datetime_diff(m.math_worksheet1_sent_on,sent_at,day)= 2
 )
@@ -167,7 +189,7 @@ on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
   from math_hindiResultSent r
   inner join hindi_video v
   using(parentid)
-  where hindi_1stWorksheetTosendOn=hindi_1st_video_sent_on
+  where hindi_content_to_send_on =hindi_1st_video_sent_on
   -- datetime_diff(v.sent_at,r.sent_at,day) between 1 and 2
 )
 
@@ -175,27 +197,27 @@ on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
 from 
 math_hindiResultSent
 left join sent_math_first_content 
-using(parentid)
+using(parentid,childid)
 left join sent_hindi_first_worksheet 
-using(parentid)
+using(parentid,childid)
 left join hindi_video 
 using(parentid)
-order by dateOfAssessment desc,parentid)
+)
 
-select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
-    count(distinct parentid)ParentIdAssessed,
-    count(distinct childid)ChildiAssessed,
+select  dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
+count(distinct parentid)ParentIdAssessed,
+    count(distinct m.childid)ChildiAssessed,
 
-    count(distinct if(combined_Result_sent_on is not null or flnAchieved_Result_sent_on  is  not null,parentid,null) ) processedResultsCombinedAsWellFLNAchieved,
+    count(distinct if(combined_Result_sent_on is not null ,parentid,null) ) processedResultsCombinedAsWellFLNAchieved,
     round(
-      (count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null or flnAchieved_Result_sent_on  is  not null,parentid,null) )
+      (count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null ,parentid,null) )
     ) / count(distinct parentid)*100,2) turn_result_failure_Rate,
-    count(distinct if(combined_result_msg_status="failed" or flnAchieved_msg_Status="failed",parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
+    count(distinct if(combined_result_msg_status="failed" ,parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
     round(
     (  
-      count(distinct if(combined_result_msg_status="failed" or flnAchieved_msg_Status="failed",parentid,null))
+      count(distinct if(combined_result_msg_status="failed",parentid,null))
       +
-      count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null or flnAchieved_Result_sent_on  is  not null,parentid,null) )
+      count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null,parentid,null) )
     )
       /count(distinct parentid)*100
     ,2)combined_result_and_fln_Achieved_failure_rate,
@@ -204,26 +226,26 @@ select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
 
        /** combined result meta error details **/
        count(distinct if(combined_result_msg_status="failed" ,parentid,null))combined_result_meta_failed,
-      count(distinct if(combined_result_error_code="131050" or flnachieved_error_code="131050",parentid,null)) as combined_result_131050_User_has_stopped_reciept_of_marketing_messages,
-      count(distinct if(combined_result_error_code="131049" or flnachieved_error_code="131049",parentid,null)) as combined_result_131049_Meta_chose_not_to_deliver,
-      count(distinct if(combined_result_error_code="131026" or flnachieved_error_code="131026",parentid,null)) as combined_result_131026_Message_Undeliverable,
-       count(distinct if(combined_result_error_code="131000" or flnachieved_error_code="131000",parentid,null)) as combined_result_131000_Something_went_wrong,
-      count(distinct if(combined_result_error_code="130472" or flnachieved_error_code="130472",parentid,null)) as combined_result_130472_User_number_is_part_of_an_experiment,
+      count(distinct if(combined_result_error_code="131050" ,parentid,null)) as combined_result_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(combined_result_error_code="131049",parentid,null)) as combined_result_131049_Meta_chose_not_to_deliver,
+      count(distinct if(combined_result_error_code="131026" ,parentid,null)) as combined_result_131026_Message_Undeliverable,
+       count(distinct if(combined_result_error_code="131000",parentid,null)) as combined_result_131000_Something_went_wrong,
+      count(distinct if(combined_result_error_code="130472" ,parentid,null)) as combined_result_130472_User_number_is_part_of_an_experiment,
 
-    
-   count(distinct if(g.childid is null,parentid,null)) mathWorksheetToProcess,
-   count(distinct if(math_worksheet1_sent_on is not null,parentid,null))mathWorksheetProcessed,
+
+    count(distinct if(g.childid is null,parentid,null)) mathWorksheetToProcess,
+   count(distinct if(g.childid is null and math_worksheet1_sent_on is not null,parentid,null))mathWorksheetProcessed,
    round(
     (
-      count(distinct if(g.childid is null,parentid,null))-count(distinct if(math_worksheet1_sent_on is not null,parentid,null))
+      count(distinct if(g.childid is null,parentid,null))-count(distinct if(g.childid is null  and math_worksheet1_sent_on is not null,parentid,null))
     )
     /count(distinct if(g.childid is null,parentid,null)) *100
     ,2) turn_math_failure_Rate,
-   count(distinct if(math_1st_worksheet_msg_status="failed",parentid,null))mathWorksheet_meta_failed,
-   round(count(distinct if(math_1st_worksheet_msg_status="failed",parentid,null))/count(distinct if(math_worksheet1_sent_on is not null,parentid,null))*100,2)mathWorksheet_meta_failure_rate,
+   count(distinct if(math_1st_worksheet_msg_status="failed" and ws.parentid is not null,parentid,null))mathWorksheet_meta_failed,
+   round(count(distinct if(math_1st_worksheet_msg_status="failed" and ws.parentid is not null,parentid,null))/count(distinct if(math_worksheet1_sent_on is not null,parentid,null))*100,2)mathWorksheet_meta_failure_rate,
    round(
     (
-      count(distinct if(math_1st_worksheet_msg_status="failed",parentid,null))
+      count(distinct if(math_1st_worksheet_msg_status="failed" and ws.parentid is not null,parentid,null))
         +
       (count(distinct if(g.childid is null,parentid,null)))-count(distinct if(math_worksheet1_sent_on is not null,parentid,null))
     
@@ -232,25 +254,26 @@ select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
     
     ,2)
   math_1st_content_failure_rate,
-
    /** math worksheet meta error details **/
-      count(distinct if(math_1st_worksheet_error_code="131050",parentid,null)) as mathWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
-      count(distinct if(math_1st_worksheet_error_code="131049",parentid,null)) as mathWorksheetError_131049_Meta_chose_not_to_deliver,
-      count(distinct if(math_1st_worksheet_error_code="131026",parentid,null)) as mathWorksheetError_131026_Message_Undeliverable,
-      count(distinct if(math_1st_worksheet_error_code="131000",parentid,null)) as mathWorksheetError_131000_Something_went_wrong,
-      count(distinct if(math_1st_worksheet_error_code="130472",parentid,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,
+      count(distinct if(math_1st_worksheet_error_code="131050"  and ws.parentid is not null,parentid,null)) as mathWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(math_1st_worksheet_error_code="131049"  and ws.parentid is not null,parentid,null)) as mathWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if(math_1st_worksheet_error_code="131026"  and ws.parentid is not null,parentid,null)) as mathWorksheetError_131026_Message_Undeliverable,
+      count(distinct if(math_1st_worksheet_error_code="131000"  and ws.parentid is not null,parentid,null)) as mathWorksheetError_131000_Something_went_wrong,
+      count(distinct if(math_1st_worksheet_error_code="130472"  and ws.parentid is not null,parentid,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,
 
+
+/**HINDI **/
 
    count(distinct if(hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,parentid,null))hindiWorksheetOrVideoProcessed,
    round(  (
     count(distinct parentid)-count(distinct if(hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,parentid,null))
    )
    /count(distinct parentid) * 100,2) turn_hindi_failure_rate,
- count(distinct if(hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed",parentid,null))hindiWorksheetOrVideo_meta_failed,
- round( count(distinct if(hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed",parentid,null))/count(distinct if(hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,parentid,null))*100,2)hindiworksheetOrVideo_meta_failure_rate,
+ count(distinct if((hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed") and hs.parentid is not null,parentid,null))hindiWorksheetOrVideo_meta_failed,
+ round( count(distinct if((hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed") and hs.parentid is not null,parentid,null))/count(distinct if(hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,parentid,null))*100,2)hindiworksheetOrVideo_meta_failure_rate,
  round(
   (
-      (count(distinct if(hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed",parentid,null)))
+      (count(distinct if((hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed") and hs.parentid is not null,parentid,null)))
     +
     (
       count(distinct parentid)- count(distinct if(hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,parentid,null))
@@ -260,14 +283,25 @@ select dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
 
 
    /** hindi worksheet and video meta error details **/
-      count(distinct if(hindi_1st_worksheet_error_code="131050" or hindi_1st_video_error_reason="131050",parentid,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
-      count(distinct if(hindi_1st_worksheet_error_code="131049"or hindi_1st_video_error_reason="131049",parentid,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
-      count(distinct if(hindi_1st_worksheet_error_code="131026" or hindi_1st_video_error_reason="131026",parentid,null)) as hindiWorksheetError_131026_Message_Undeliverable,
-      count(distinct if(hindi_1st_worksheet_error_code="131000" or hindi_1st_video_error_reason="131000",parentid,null)) as hindiWorksheetError_131000_Something_went_wrong,
-      count(distinct if(hindi_1st_worksheet_error_code="130472" or hindi_1st_video_error_reason="130472",parentid,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
+      count(distinct if((hindi_1st_worksheet_error_code="131050" or hindi_1st_video_error_reason="131050") and hs.parentid is not null ,parentid,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if((hindi_1st_worksheet_error_code="131049"or hindi_1st_video_error_reason="131049")  and hs.parentid is not null,parentid,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if((hindi_1st_worksheet_error_code="131026" or hindi_1st_video_error_reason="131026") and hs.parentid is not null,parentid,null)) as hindiWorksheetError_131026_Message_Undeliverable,
+      count(distinct if((hindi_1st_worksheet_error_code="131000" or hindi_1st_video_error_reason="131000") and hs.parentid is not null,parentid,null)) as hindiWorksheetError_131000_Something_went_wrong,
+      count(distinct if((hindi_1st_worksheet_error_code="130472" or hindi_1st_video_error_reason="130472"  and hs.parentid is not null),parentid,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
 
 from main_ m
 left join whom_math_worksheet_should_not_go g
-using(childid,parentid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel)
+using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel,hindilevel)
+left join hindi_first_worksheet_success hs
+using(parentid,childid)
+left join math_first_worksheet_success ws
+using(parentid,childid)
+
+-- where
+--  dateOfAssessment = "2025-06-28" 
+--  and m.parentid = 1978513
+-- and
+--  g.parentid is null
 group by all
 order by 1 desc
+

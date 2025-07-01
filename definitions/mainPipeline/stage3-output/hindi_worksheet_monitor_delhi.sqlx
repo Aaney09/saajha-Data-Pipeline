@@ -24,7 +24,7 @@ qualify row_number() over(partition by urn,date(updated_at) order by updated_at 
 
 ,ongoing_opt_in as (select *
 from hindiProfile
-where (hindiContentProfile = "inprocess" or hindiContentProfile = "wait" or hindiContentProfile = "active" ) and opted_in_status = "true" and lastsubject = "maths")
+where (hindiContentProfile = "inprocess" or hindiContentProfile = "wait" or hindiContentProfile = "active"  or hindiContentProfile="highestLevel"  or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "maths")
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 from 
