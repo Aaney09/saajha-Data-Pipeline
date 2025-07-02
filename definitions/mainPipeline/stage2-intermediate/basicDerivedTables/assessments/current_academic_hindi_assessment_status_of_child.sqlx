@@ -1,0 +1,51 @@
+config {
+    type: "table",
+    tags: ["call_daily"],
+    description: "Hindi assessment first and last level of a child from april 2025 till march 31st 2026"
+    }
+
+with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
+from `platform_commons.assessment`
+where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
+
+,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from hindiAss
+)
+
+,
+hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25
+)
+
+,highestHindiAssessment as (
+  select assesseeActorId,max(hindirounds)highestRound
+  from hindiData
+  group by 1
+
+)
+,hfirstLevel as (
+  select distinct assesseeActorId,
+  hindiLevel as firstHindiLevel
+  from hindiAss
+  qualify row_number()over(partition by assesseeActorid order by hindiAssessDate asc)=1
+)
+,hLastLevel as (
+  select distinct AssesseeActorId, hindiLevel as lastHindiLevel,
+  from hindiAss
+  qualify row_number()over(partition by assesseeActorid order by hindiAssessDate desc)=1
+)
+,hindi_improve_status as (
+  select distinct *
+from hfirstlevel
+Inner join hlastLevel
+using(assesseeActorId)
+inner join highestHindiAssessment hig
+using(assesseeActorId)
+)
+
+select *
+from hindi_improve_status 
