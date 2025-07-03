@@ -202,7 +202,7 @@ opted_out as (
   select distinct parentId,last_opted_out as opted_out_on,opt_out_reason as opted_out_reason
   from `dataform.opted_out`
 ),
-lastAssessedAgent as  (
+lastAssessed as  (
 
   select distinct ParentId,childid,childClass,alternateMObileNumber,parentMobileNumber,Projectid,parentName,childName
   AgentName,
@@ -235,7 +235,7 @@ opted_out.opted_out_on<Round_12_assessment
 ,"Yes","No") returnedParent
 from assessmentDetails
 Inner join
-lastAssessedAgent la
+lastAssessed la
 on assesseeActorId = la.childid
 left join
 opt_in 
