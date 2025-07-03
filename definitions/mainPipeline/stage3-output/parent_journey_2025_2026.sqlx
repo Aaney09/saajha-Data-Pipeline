@@ -204,9 +204,11 @@ opted_out as (
 ),
 lastAssessed as  (
 
-  select distinct ParentId,childid,childClass,alternateMObileNumber,parentMobileNumber,Projectid,parentName,childName
+  select distinct ParentId,childid,childClass,
+  alternateMObileNumber,parentMobileNumber as parentNumber,
+  Projectid,parentname,childName,
   AgentName,
-         agentMobile as agentNumber
+  agentMobile as agentNumber
   from `platform_commons.prelim`
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
 )
@@ -219,7 +221,7 @@ from `platform_commons.IE`)
 select assessmentDetails.*,schoolId.school_id,
 la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
 opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
-if(la.parentId = fln.parentId,"Yes","No")FLNStatus,FLNAchievedOn,
+if(la.parentId = fln.parentId,"Yes","No")FLNAchieved,FLNAchievedOn,
 if(opted_out.opted_out_on<Round_1_assessment or
 opted_out.opted_out_on<Round_2_assessment or
 opted_out.opted_out_on<Round_3_assessment or
