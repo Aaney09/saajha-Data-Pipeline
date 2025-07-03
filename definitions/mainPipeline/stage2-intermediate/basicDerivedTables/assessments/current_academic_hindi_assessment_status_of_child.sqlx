@@ -22,7 +22,7 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
 )
 
 ,highestHindiAssessment as (
-  select assesseeActorId,max(hindirounds)highestRound
+  select assesseeActorId,max(hindirounds)highestHindiRound
   from hindiData
   group by 1
 
@@ -39,7 +39,7 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
   qualify row_number()over(partition by assesseeActorid order by hindiAssessDate desc)=1
 )
 ,hindi_improve_status as (
-  select distinct *
+  select distinct *,lastHindiLevel-firstHindiLevel as shift_in_hindi_level
 from hfirstlevel
 Inner join hlastLevel
 using(assesseeActorId)
