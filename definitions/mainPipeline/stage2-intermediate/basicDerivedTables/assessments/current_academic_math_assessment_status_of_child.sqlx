@@ -47,7 +47,7 @@ qualify row_number()over(partition by assesseeActorid order by mathAssessDate as
 
 
 ,math_improvement_status as (
-   select distinct *
+   select distinct *,lastmathLevel-firstmathLevel as shift_in_math_level
 from mfirstlevel
 Inner join mlastLevel
 using(assesseeActorId)
