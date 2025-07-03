@@ -22,7 +22,7 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
 )
 
 ,highestHindiAssessment as (
-  select assesseeActorId,max(hindirounds)highestRound
+  select assesseeActorId,max(hindirounds)highestHindiRound
   from hindiData
   group by 1
 

@@ -30,7 +30,7 @@ where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,d
 
 
 ,highestMathAssessment as (select assesseeActorId,
-count(distinct mathRounds)highestRound
+count(distinct mathRounds)highestMathRound
 from mathData
 group by 1
 )
