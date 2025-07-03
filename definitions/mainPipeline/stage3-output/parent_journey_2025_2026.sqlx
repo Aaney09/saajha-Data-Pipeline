@@ -157,15 +157,7 @@ where hindiRounds = 12)r12
 using(assesseeActorid))
 
 ,
-parentChildDetails as (
-  select IEId,DisplayName as childName,Education as childClass,
-  safe_Cast(concat("91",OnBoardedUserLogin) as int64) parentNumber,
-  OnBoardedUserDisplayName as parentname,
-  OnBoardedUserId as parentId,
-  if(FLNStatus like "%ACHIEVED%","Yes","Not Yet")FLNAchieved, 
- if(FLNStatus like "%ACHIEVED%",FLNAchievedDate,null)FLNAchievedOn,
-  from `platform_commons.IE`
-),
+
 all_opt_ins as (
   select distinct phone_number,min(firstopted_in_on_bau)firstopted_in_on
   from(select distinct phone_number,date(min(timestamp))firstopted_in_on_bau
@@ -185,8 +177,13 @@ opt_in as (
   from all_opt_ins
   inner join `dataform.allPhoneNumberWithPid`
   on phone_number = number
-),
+)
 
+,fln as (
+select parentid,childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
+from `dataform.FLNAchieved`
+)
+,
 firstAttemp as (select ParentId,
   date(min(CallStartDateTime))firstCallAttemptedOn
   from 
@@ -205,20 +202,13 @@ opted_out as (
   select distinct parentId,last_opted_out as opted_out_on,opt_out_reason as opted_out_reason
   from `dataform.opted_out`
 ),
-lastCalledAgent as  (
-   with lastAgent as (
-  select distinct ParentId,
-  last_value(AgentName) over(partition by parentid order by CallStartDateTime asc 
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)agentName,
-                            
-  last_value(AgentMobile) over(partition by parentid order by CallStartDateTime asc 
-                            ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)agentNumber
-  from `platform_commons.roster`
-)
-select parentid,agentNumber,max(lastAgent.AgentName)AgentName
-from lastAgent
-group by parentId,agentNumber
-order by parentId asc
+lastAssessed as  (
+
+  select distinct ParentId,childid,childClass,alternateMObileNumber,parentMobileNumber,Projectid,parentName,childName
+  AgentName,
+         agentMobile as agentNumber
+  from `platform_commons.prelim`
+ qualify row_number() over(partition by childid order by assessmentdate desc)=1
 )
 
 , schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId 
@@ -226,7 +216,10 @@ from `platform_commons.IE`)
 
 
 
-select assessmentDetails.*,schoolId.school_id,parentChildDetails.* except(ieid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,opted_out.* except(parentid),if(parentChildDetails.parentId = opted_out.parentId,"Yes","No") opted_out,lastCalledAgent.AgentName,agentNumber,
+select assessmentDetails.*,schoolId.school_id,
+la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
+opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
+if(la.parentId = fln.parentId,"Yes","No")FLNStatus,FLNAchievedOn,
 if(opted_out.opted_out_on<Round_1_assessment or
 opted_out.opted_out_on<Round_2_assessment or
 opted_out.opted_out_on<Round_3_assessment or
@@ -242,18 +235,18 @@ opted_out.opted_out_on<Round_12_assessment
 ,"Yes","No") returnedParent
 from assessmentDetails
 Inner join
-parentChildDetails
-on assessmentDetails.assesseeActorId = parentChildDetails.IEID
+lastAssessed la
+on assesseeActorId = la.childid
 left join
 opt_in 
-on parentChildDetails.parentid = opt_in.rosterParentid
+on la.parentid = opt_in.rosterParentid
 left join
 firstAttemp
-on parentChildDetails.parentId = firstAttemp.parentId
+on la.parentId = firstAttemp.parentId
 left join opted_out
-on parentChildDetails.parentId = opted_out.parentId
-left join lastCalledAgent
-on parentChildDetails.parentId = lastCalledAgent.parentId
+on la.parentId = opted_out.parentId
+left join fln
+on la.parentId = fln.parentId
 left join schoolId
-on parentChildDetails.parentId = schoolId.parentId
+on la.parentId = schoolId.parentId
 
