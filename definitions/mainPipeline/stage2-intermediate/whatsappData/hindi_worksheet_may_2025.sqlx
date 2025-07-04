@@ -33,6 +33,10 @@ replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].param
     "&")[6],"=")[1] as int64) parentid,
      SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
      "&")[7],"=")[1] childid,
+          SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[8],"=")[1] worksheet_link,
+     saajha_whatsapp_number,
+     uuid
 from ${ref("template-sent")}
 
 where 
@@ -45,7 +49,9 @@ template_name in("hfln_video_template_v2","hfln_worksheet_v6") and phone_number 
   )
 
 
-select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,childid,parentid),
+select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,childid,parentid,worksheet_link,
+     saajha_whatsapp_number,
+     uuid),
     COALESCE(
     SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p',hindi_ws.decoded_math_assessment_date),
     SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p',hindi_ws.decoded_math_assessment_date),
@@ -58,5 +64,8 @@ select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,child
     safe.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', hindi_ws.decoded_hindi_assessment_date) )
     AS hindi_assessment_date,
     safe_Cast(parentid as int64)parentid ,
-    safe_Cast(childid as int64) childid
+    safe_Cast(childid as int64) childid,
+    worksheet_link,
+    saajha_whatsapp_number,
+    uuid
 from hindi_ws

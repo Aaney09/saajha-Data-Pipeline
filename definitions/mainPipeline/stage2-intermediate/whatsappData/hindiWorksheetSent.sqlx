@@ -317,42 +317,42 @@ template_name in ("hfln_comic_2_with_button"
     from ${ref("hindi_worksheet_may_2025")}
     
 )
-
-select *, null as parentid, null as childid,
+select * 
+from may_2025_version
+UNION distinct 
+select *,null,null,null,null,null
 from v4HindiRedirector_with_dateTime
 where phone_number not in (918527647594,919915539829)
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from hindiFLNContentV3_level2and3
 where phone_number not in (918527647594,919915539829)
 union distinct
-SELECT *,null,null
+SELECT *,null,null,null,null,null
 FROM component1
 where phone_number not in (918527647594,919915539829)
 UNION distinct 
-SELECT * ,null,null
+SELECT * ,null,null,null,null,null
 FROM component2
 where phone_number not in (918527647594,919915539829)
 UNion distinct
-select *,null,null
+select *,null,null,null,null,null
 from level0
 where phone_number not in (918527647594,919915539829)
 UNION distinct 
-select *,null,null
+select *,null,null,null,null,null
 from aug_2024_version
 UNION distinct 
-select *
+select *,null,null,null
 from nov_2024_version
 UNION distinct 
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("mtp_v2_hindi")}
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("hindi_mtp_utility_20Feb2025")} 
 where phone_number not in (918527647594,919915539829)
-UNION distinct 
-select * 
-from may_2025_version
+
 
 
 

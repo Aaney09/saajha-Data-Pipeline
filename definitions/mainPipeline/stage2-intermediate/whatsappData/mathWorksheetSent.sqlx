@@ -6,27 +6,27 @@ config {
 select *
 from ${ref("mathWorksheetJan2025ChildId")}
 UNION distinct 
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("mathMediaWorksheetSent")}
 where phone_number not in (918527647594,919915539829)
 UNION DISTINCT
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("mathNoMediaWorksheetSent")}
 where phone_number not in (918527647594,919915539829)
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("math_aug_2024_version")}
 where phone_number not in (918527647594,919915539829)
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("mathWorksheet29thNov")}
 where phone_number not in (918527647594,919915539829)
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("mtp_v2_math")}
 where phone_number not in (918527647594,919915539829)
 union distinct
-select *,null,null
+select *,null,null,null,null,null
 from ${ref("math_mtp_utility_20Feb2025")}
 where phone_number not in (918527647594,919915539829)
 
