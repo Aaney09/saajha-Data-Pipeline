@@ -3,52 +3,39 @@ config {
     tags: "wa_daily"
     }
 
-with template_Sent as (
-select phone_number,template_name,template_meta_data,sent_at,title,last_message_status,ts.uuid
-from `dataform.template-sent` ts
-left join `dataform.912250555658_statuses` st
-on ts.uuid=st.message_uuid
-where 
-template_name in("hfln_video_template_v2","hfln_worksheet_v6","mfln_worksheet_v2")  and phone_number not in(918888727876
-,919971478794,918527647594,919915539829) and
-lower(template_meta_data) like "%childid=%"
-and date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 )
-
-, hindi_worksheet_sent as (select distinct
- safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[6],"=")[1] as int64) parentid,
+with  hindi_worksheet_sent as (select distinct
+    parentid,
     uuid,
     last_message_status,
-    safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-     "&")[7],"=")[1] as int64)childid,
-    SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-     "&")[8],"=")[1] worksheetLinks,
-     sent_at,
-     title as error_reason
-from template_Sent
-where template_name in("hfln_video_template_v2","hfln_worksheet_v6")
-and array_length(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&"))>=9
+    childid,
+    worksheet_link,
+    sent_at,
+    error_reason 
+from `dataform.hindiWorksheetSent`
+where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
 )
+
+-- select *
+-- from hindi_worksheet_sent
+-- where parentid = 721926
 
 ,math_worksheet_sent as (select distinct
- safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&")[6],"=")[1] as int64) parentid,
+     parentid,
     uuid,
     last_message_status,
-    safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-     "&")[7],"=")[1] as int64)childid,
-    SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-     "&")[8],"=")[1] worksheetLinks,
-     sent_at,
-     title as error_reason
-from template_Sent
-where template_name in("mfln_worksheet_v2")
-and array_length(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
-    "&"))>=9
-)
+    childid,
+    worksheet_link,
+    sent_at,
+    error_reason 
+from `dataform.mathWorksheetSent`
+where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 )
 
-,hindi_last_worksheet_link as (select parentid,uuid,worksheetLinks as lastHindiWorksheetSentLink,sent_at as last_hindi_worksheet_sent_on,
+
+
+-- select *
+-- from math_worksheet_sent
+-- where parentid = 721926
+,hindi_last_worksheet_link as (select parentid,uuid,worksheet_link as lastHindiWorksheetSentLink,sent_at as last_hindi_worksheet_sent_on,
 from hindi_worksheet_sent -- ** update to 2nd subquery
 qualify row_number() over(partition by parentid order by sent_at desc)=1
 )
@@ -80,7 +67,7 @@ using(parentid)
 )
 
 
-,math_last_worksheet_link as (select parentid,uuid,worksheetLinks as lastMathWorksheetSentLink,sent_at as last_math_worksheet_sent_on,
+,math_last_worksheet_link as (select parentid,uuid,worksheet_link as lastMathWorksheetSentLink,sent_at as last_math_worksheet_sent_on,
 from math_worksheet_sent -- ** update to 2nd subquery
 qualify row_number() over(partition by parentid order by sent_at desc)=1
 )
@@ -122,17 +109,20 @@ left join incomingCalls
 using(parentid))
 
 
-,profile as (select safe_cast(json_value(details,"$.parentid") as int64)parentid,safe_cast(json_value(details,"$.childid") as int64)childid,json_value(details,"$.experiment")experiment,json_value(details,"$.experimentarm") exp_arm ,json_value(details,"$.assessmentdate") assessmentdate,json_value(details,"$.experimentstatus") experimentstatus,
-from 
-`911171279787.contacts`
+,profile as (select safe_cast(json_value(last_profile_meta_data,"$.parentid") as int64)parentid,safe_cast(json_value(last_profile_meta_data,"$.childid") as int64)childid,json_value(last_profile_meta_data,"$.experiment")experiment,json_value(last_profile_meta_data,"$.experimentarm") exp_arm ,json_value(last_profile_meta_data,"$.assessmentdate") assessmentdate,json_value(last_profile_meta_data,"$.experimentstatus") experimentstatus,
+from `dataform.delhi_profiles`
+-- `911171279787.contacts`
 -- `912250555658.contacts`
-where json_value(details,"$.experiment")="ME"
-qualify row_number() over (partition by urn order by updated_at desc)=1
+where json_value(last_profile_meta_data,"$.experiment")="ME"
+-- qualify row_number() over (partition by phone_number order by updated_at desc)=1
 )
 
 select *
 from profile
-left join math_worksheet
+left join math_worksheetCounts
 using(parentid)
-left join hindi_worksheet
+left join hindi_worksheetCounts
 using(parentid)
+left join incomingCalls
+using(parentid)
+-- where parentid = 721926
