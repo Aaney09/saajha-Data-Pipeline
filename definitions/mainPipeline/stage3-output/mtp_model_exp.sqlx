@@ -99,14 +99,16 @@ group by all )
 math_sentOverall,math_successfullySentLastWeek,math_Failed_last_Week,last_week_failed_reasons_math,
   lastMathWorksheetSentLink,last_math_worksheet_sent_on,
   mathWorksheetsSubmittedLastWeek,
-  last_math_worksheet_Submitted_on_last_Week,no_incoming_attempts
+  last_math_worksheet_Submitted_on_last_Week
+  -- ,no_incoming_attempts
 from math_worksheetCounts s
   left join math_last_worksheet_link
 using(parentid)
 left join math_worksheet_completed 
 using(parentid)
-left join incomingCalls
-using(parentid))
+-- left join incomingCalls
+-- using(parentid)
+)
 
 
 ,profile as (select safe_cast(json_value(last_profile_meta_data,"$.parentid") as int64)parentid,safe_cast(json_value(last_profile_meta_data,"$.childid") as int64)childid,json_value(last_profile_meta_data,"$.experiment")experiment,json_value(last_profile_meta_data,"$.experimentarm") exp_arm ,json_value(last_profile_meta_data,"$.assessmentdate") assessmentdate,json_value(last_profile_meta_data,"$.experimentstatus") experimentstatus,
@@ -117,11 +119,11 @@ where json_value(last_profile_meta_data,"$.experiment")="ME"
 -- qualify row_number() over (partition by phone_number order by updated_at desc)=1
 )
 
-select *
+select * 
 from profile
-left join math_worksheetCounts
+left join math_worksheet
 using(parentid)
-left join hindi_worksheetCounts
+left join hindi_worksheet
 using(parentid)
 left join incomingCalls
 using(parentid)
