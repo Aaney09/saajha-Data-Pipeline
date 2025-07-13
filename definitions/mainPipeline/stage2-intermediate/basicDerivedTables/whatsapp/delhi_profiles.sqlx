@@ -8,7 +8,7 @@ select distinct
     safe_cast(regexp_extract(urn,'[0-9]+') as int64) as phone_number, 
     safe_cast(json_value(details, "$.parentid") as int64)  as parent_id,
     json_value(details, "$.name")  as parent_name,
-    json_value(details,"$.opted_in_at") opted_in_at,
+    datetime_add(safe_cast(left(json_value(details,"$.opted_in_at"),19) as datetime),Interval 330 minute) opted_in_at,
     safe_cast(json_value(details, "$.childclass") as int64) as child_class,
     json_value(details, "$.childname")  as child_name,
     safe_cast(json_value(details,"$.schoolid") as int64) as schoolid,
