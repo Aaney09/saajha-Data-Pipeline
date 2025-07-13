@@ -3,7 +3,7 @@ config {
     tags: "agency_fund_WA"
 }
 
-with onboarded as (select phone_number,child_class,timestamp(substring(opted_in_at,0,19))opted_in_at,call_support
+with onboarded as (select phone_number,child_class,opted_in_at,call_support
 from ${ref("onboarded")}
 where opted_in_at is not null
 )
