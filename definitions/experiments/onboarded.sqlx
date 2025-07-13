@@ -28,15 +28,30 @@ where np.phone_number is null
 )
 
 ,dp as (select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name
-,last_profile_update_on, if(number is null,false,true)call_support,rosterparentid as parentid
+       ,last_profile_update_on, if(number is null,false,true)call_support,rosterparentid
+
 from ${ref("delhi_profiles")}
 left join ${ref("allPhoneNumberWithPid")}
-on phone_number = number )
+on phone_number = number 
+
+)
+,generating_id as (
+  select distinct phone_number,
+  safe_cast(MOD(ABS(FARM_FINGERPRINT(safe_Cast(phone_number as string))), 9000000000) + 10000000000 as int64) random_id
+  from dp
+)
 
 
-select *
+select dp.*except( opted_in_at),
+do.*except(phone_number),
+ifnull(rosterparentid,
+-- safe_cast(MOD(ABS(FARM_FINGERPRINT(GENERATE_UUID())), 9000000000) + 1000000000  as int64)
+random_id) as parentid
 from 
 dp 
 left join 
-delhi_optin
-using(phone_number,opted_in_at)
+delhi_optin do
+using(phone_number)
+left join generating_id
+using(phone_number)
+where  opt_in_status is true
