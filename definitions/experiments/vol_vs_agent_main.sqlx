@@ -3,7 +3,7 @@ config {
     tags: "vol_vs_agent_exp"
 }
 
-with agents_vols as (select  *except(hindi_level,math_level,grade),
+with agents_vols as (select  parentid,agentname,assesment_date,Agent_Type,
 
    if(hindi_Level="Beginner",1,0) as H0,
    if(hindi_Level="Level 1",1,0) as H1,
@@ -18,21 +18,42 @@ with agents_vols as (select  *except(hindi_level,math_level,grade),
    if(math_Level="Level 4",1,0) as M4,
 from `adhoc.agent_vs_volunteer`)
 
-,
-optins as (
-  select phone_number, timestamp 
-  from `opt_in_records.opt_in_users`
-  
+,exp_assessment as (
+  select safe_cast(parentid as int64) as parentid,lastAssessmentBy,date(  lastAssessment)last_assessment_date,arm,if(hindiLevel="0",1,0) as H0,
+   if(hindiLevel="1",1,0) as H1,
+   if(hindiLevel="2",1,0) as H2,
+   if(hindiLevel="3",1,0) as H3,
+   if(hindiLevel="4",1,0) as H4,
+
+   if(mathsLevel="0",1,0) as M0,
+   if(mathsLevel="1",1,0) as M1,
+   if(mathsLevel="2",1,0) as M2,
+   if(mathsLevel="3",1,0) as M3,
+   if(mathsLevel="4",1,0) as M4,
+ from `process_improvement.volberesolvecalls`
+  -- where arm in("Full_time_agent") -- update to agent vs volunteerArm
+)
+
+,union_of_pre_and_post_exp as (
+  select *
+  from agents_vols 
   union distinct
-  select distinct phone_number,timestamp 
-  from `process_improvement.opt_in_users`
+  select *
+  from exp_assessment
 
 )
 
-select distinct *,if(v.parentid is not null,true,false)Volunteer_pilot
 
-from `dataform.onboarded`
-left join agents_vols  v
+select distinct 
+-- phone_number
+o.*,a.*except(parentid),if(v.parentid is not null,true,false)volunteer_pilot
+from `dataform.onboarded` o
+left join union_of_pre_and_post_exp  a
 using(parentid)
--- where v.parentid is not null
---  and assesment_date is not null
+left join agents_vols v
+using(parentid)
+-- where v.parentid is  null
+--  and call_support is false
+--  and opt_in_status is true
+--  and opted_in_at is not null
+--  and child_class between 1 and 5
