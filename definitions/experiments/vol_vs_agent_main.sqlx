@@ -1,6 +1,6 @@
 config {
-    type:"table",
-    tags: "agency"
+    type:"view",
+    tags: "vol_vs_agent_exp"
 }
 
 with agents_vols as (select  *except(hindi_level,math_level,grade),
