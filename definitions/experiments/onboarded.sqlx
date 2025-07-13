@@ -3,10 +3,39 @@ config {
 }
 
 
+with
+optins as (
+  select phone_number, timestamp 
+  from `opt_in_records.opt_in_users`
+  
+  union distinct
+  select distinct phone_number,timestamp 
+  from `process_improvement.opt_in_users`
 
+)
 
-select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name,last_profile_update_on, if(number is null,false,true)call_support
+, opt_inDateRange as (select distinct phone_number,timestamp as opted_in_at,
+from optins  
+qualify row_number() over(partition by phone_number order by timestamp) =1
+)
+
+,delhi_optin as (select distinct o.*
+  from opt_inDateRange  o
+  left join `dataform.noida_profiles` np
+using(phone_number)
+where np.phone_number is null
+)
+
+,dp as (select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name
+,last_profile_update_on, if(number is null,false,true)call_support,rosterparentid as parentid
 from ${ref("delhi_profiles")}
 left join ${ref("allPhoneNumberWithPid")}
-on phone_number = number
-where number is null
+on phone_number = number )
+
+
+select *
+from 
+dp 
+left join 
+delhi_optin
+using(phone_number,opted_in_at)

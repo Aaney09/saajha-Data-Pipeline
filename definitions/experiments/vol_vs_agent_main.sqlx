@@ -1,0 +1,38 @@
+config {
+    type:"table",
+    tags: "agency"
+}
+
+with agents_vols as (select  *except(hindi_level,math_level,grade),
+
+   if(hindi_Level="Beginner",1,0) as H0,
+   if(hindi_Level="Level 1",1,0) as H1,
+   if(hindi_Level="Level 2",1,0) as H2,
+   if(hindi_Level="Level 3",1,0) as H3,
+   if(hindi_Level="Level 4",1,0) as H4,
+
+   if(math_Level="Beginner",1,0) as M0,
+   if(math_Level="Level 1",1,0) as M1,
+   if(math_Level="Level 2",1,0) as M2,
+   if(math_Level="Level 3",1,0) as M3,
+   if(math_Level="Level 4",1,0) as M4,
+from `adhoc.agent_vs_volunteer`)
+
+,
+optins as (
+  select phone_number, timestamp 
+  from `opt_in_records.opt_in_users`
+  
+  union distinct
+  select distinct phone_number,timestamp 
+  from `process_improvement.opt_in_users`
+
+)
+
+select distinct *,if(v.parentid is not null,true,false)Volunteer_pilot
+
+from `dataform.onboarded`
+left join agents_vols  v
+using(parentid)
+-- where v.parentid is not null
+--  and assesment_date is not null
