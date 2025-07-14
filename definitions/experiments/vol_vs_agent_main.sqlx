@@ -1,5 +1,5 @@
 config {
-    type:"view",
+    type:"table",
     tags: "vol_vs_agent_exp"
 }
 
@@ -31,7 +31,7 @@ from `adhoc.agent_vs_volunteer`)
    if(mathsLevel="3",1,0) as M3,
    if(mathsLevel="4",1,0) as M4,
  from `process_improvement.volberesolvecalls`
-  -- where arm in("Full_time_agent") -- update to agent vs volunteerArm
+  where arm in("Full_time_agent") -- update to agent vs volunteerArm
 )
 
 ,union_of_pre_and_post_exp as (
