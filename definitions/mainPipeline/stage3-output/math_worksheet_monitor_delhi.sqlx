@@ -136,10 +136,10 @@ where lastMathWorksheetSentOn<assessmentDate
 ,overall_worksheet_status as 
 (select 
 distinct profile_updated_date,
-      count(distinct parentid)whomMathWorksheetHasToProcessFromTurn,
+      count(distinct p_num)whomMathWorksheetHasToProcessFromTurn,
       count(distinct if(phone_number is null	,p_num,null)) whom_math_worksheet_has_not_processed_from_turn,
       round(
-      count(distinct if(phone_number is null	,p_num,null))/count(distinct parentid)*100
+      count(distinct if(phone_number is null	,p_num,null))/count(distinct p_num)*100
         ,2
       ) math_turn_failure_rate,
       count(distinct if(last_message_status ="failed",p_num,null)) as math_worksheet_meta_failed,
