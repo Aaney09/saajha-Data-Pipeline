@@ -1,10 +1,9 @@
 config {
     type:"table",
-    tags: "vol_vs_agent_exp_post_randomization"
+    tags: "vol_vs_agent_exp_before_randomization"
 }
 
-with 
-agents_vols as (select  parentid,agentname,assesment_date,Agent_Type,
+with agents_vols as (select  parentid,agentname,assesment_date,Agent_Type,
 
    if(hindi_Level="Beginner",1,0) as H0,
    if(hindi_Level="Level 1",1,0) as H1,
@@ -19,9 +18,8 @@ agents_vols as (select  parentid,agentname,assesment_date,Agent_Type,
    if(math_Level="Level 4",1,0) as M4,
 from `adhoc.agent_vs_volunteer`)
 
-,
-exp_assessment as (
-  select safe_cast(v.parentid as int64) as parentid,lastAssessmentBy,date(  lastAssessment)last_assessment_date,arm,if(hindiLevel="0",1,0) as H0,
+,exp_assessment as (
+  select safe_cast(parentid as int64) as parentid,lastAssessmentBy,date(  lastAssessment)last_assessment_date,arm,if(hindiLevel="0",1,0) as H0,
    if(hindiLevel="1",1,0) as H1,
    if(hindiLevel="2",1,0) as H2,
    if(hindiLevel="3",1,0) as H3,
@@ -32,32 +30,30 @@ exp_assessment as (
    if(mathsLevel="2",1,0) as M2,
    if(mathsLevel="3",1,0) as M3,
    if(mathsLevel="4",1,0) as M4,
- from `process_improvement.volberesolvecalls` v
-
-  where arm in("AG","PV","NPV") -- update to agent vs volunteerArm
+ from `process_improvement.volberesolvecalls`
+  where arm in("Full_time_agent") -- update to agent vs volunteerArm
 )
 
 ,union_of_pre_and_post_exp as (
---   select *
---   from agents_vols 
---   union distinct
+  select *
+  from agents_vols 
+  union distinct
   select *
   from exp_assessment
 
 )
 
 
-select m.* except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4) ,e.* except(parentId)
-from `dataform.vol_vs_agent_main`m
-inner join exp_assessment e
+select distinct 
+-- phone_number
+o.*,a.*except(parentid),if(v.parentid is not null,true,false)volunteer_pilot
+from `dataform.onboarded` o
+left join union_of_pre_and_post_exp  a
 using(parentid)
-
-Union Distinct 
-select m.* 
-except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4) 
-,e.* except(parentId)
-from `dataform.vol_vs_agent_main` m 
-left join exp_assessment  e
+left join agents_vols v
 using(parentid)
-where e.parentId is null
-
+-- where v.parentid is  null
+--  and call_support is false
+--  and opt_in_status is true
+--  and opted_in_at is not null
+--  and child_class between 1 and 5
