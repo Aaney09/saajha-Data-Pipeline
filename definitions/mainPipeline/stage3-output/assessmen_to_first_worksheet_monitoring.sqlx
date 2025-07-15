@@ -5,12 +5,12 @@ config {
 
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,safe_cast(regexp_extract(Level,r'\d') as int64) as hindiLevel
-from `platform_commons.assessment`
+from ${ref("assessment")}
 where QuestionText like "%Ask%" and AssessmentId<>6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
 , math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, safe_cast(regexp_extract(Level,r'\d') as int64)  as mathlevel
-from `platform_commons.assessment`
+from ${ref("assessment")}
 where QuestionText not like  "%Ask%" and AssessmentId <> 6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
@@ -56,8 +56,8 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
 
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
-  from `dataform.allPhoneNumberWithPid`
-  inner join `dataform.template-sent` 
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("template-sent")}
   on number = phone_number
   where number is not null
   and date(sent_at)>="2025-04-01"
@@ -128,7 +128,7 @@ from non_failed)
   select distinct parentid,childid,
   phone_number as math_1st_worksheet_sent_to,
   date(sent_at) as math_worksheet1_sent_on,last_message_status as math_1st_worksheet_msg_status,error_code as math_1st_worksheet_error_code,error_reason as math_1st_worksheet_error_reason,
-  from `dataform.mathWorksheetSent` -- mfln_worksheet_v2
+  from ${ref("mathWorksheetSent")} -- mfln_worksheet_v2
   where worksheetNumber =1 
 )
 
@@ -142,7 +142,7 @@ from non_failed)
   select distinct parentid,childid,
   phone_number as hindi_1st_worksheet_sent_to,
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
-  from `dataform.hindiWorksheetSent`
+  from ${ref("hindiWorksheetSent")}
   where worksheetNumber =1 
 )
 ,hindi_first_worksheet_success as (

@@ -17,7 +17,7 @@ with hindiProfile as (
     json_value(details, "$.hindilevel")hindi_level,
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
-FROM `saajhadata.912250555658.contacts`		
+FROM ${ref("912250555658","contacts")}  		
 where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")
 qualify row_number() over(partition by urn,date(updated_at) order by updated_at desc)=1
 )	
@@ -27,15 +27,15 @@ from hindiProfile
 where (hindiContentProfile = "inprocess" or hindiContentProfile = "wait" or hindiContentProfile = "active"  or hindiContentProfile="highestLevel"  or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "maths")
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
-from 
+
 -- `dataform.hindiWorksheetSent`
-`dataform.template-sent`
+from ${ref("template-sent")}
 where (template_name like "%hfln_%" )
 -- and flow_name like "%HFLN Worksheet [Apr2025]%"
 )
 
 , assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
-from `platform_commons.prelim`)
+from ${ref("prelim")})
 
 ,whom_worksheet_should_go as (
 select distinct o.p_num,profile_updated_date,o.parentid,
