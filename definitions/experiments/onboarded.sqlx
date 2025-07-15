@@ -1,8 +1,8 @@
 config {
-    type: "table",
-    tags: "wa_daily"
-}
+    type: "view",
 
+}
+    -- tags: "wa_daily"
 
 with
 optins as (
