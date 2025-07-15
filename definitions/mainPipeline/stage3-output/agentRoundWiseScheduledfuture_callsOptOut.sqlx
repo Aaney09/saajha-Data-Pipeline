@@ -1,9 +1,12 @@
 
 config {
-    type: "table",
+
+    type: "incremental",
     tags: "call_daily"
 }
+ 
 with future_roster as (select distinct safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round,
+-- max(AgentName)agentName,
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
@@ -14,14 +17,14 @@ group by all)
 ,scheduled as (
     select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)overall_parents_scheduled_current_ay
 from `platform_commons.futureRoster`
-where CallDate >="2025-04-01"
+where date(ExtractionDate) >="2025-03-31"
 group by all
 )
 ,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round
 from `dataform.opted_out`o
 inner join `platform_commons.futureRoster` c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
-where date(last_opted_out) between "2025-04-01" and "2026-03-31"
+where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
 group by all)
 
 
@@ -30,8 +33,8 @@ group by all)
 from `dataform.opted_out`o
 inner join `platform_commons.futureRoster` c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
-where date(last_opted_out) between "2025-04-01" and "2026-03-31")
-
+where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
+)
 , overalldials as (
     select distinct c.agentMobile,c.parentid,callingRound,
 count(distinct CallstartDatetime) overalltotalDials,
@@ -57,9 +60,11 @@ group by all)
 -- using(parentid)
 -- left join year2024_25
 -- using(parentid)
-select *
-from scheduled
-left join future_roster
+select *,current_date("Asia/Kolkata") as updated_on
+from 
+scheduled
+left join
+ future_roster
 using(AgentMobile,round)
 left join opted_out
 using(AgentMobile,round)
