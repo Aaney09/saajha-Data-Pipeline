@@ -18,7 +18,7 @@ with mathProfile as (
     safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
     if(json_value(details, "$.lastmathworksheetsenton")<>"",
     datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
-FROM `saajhadata.912250555658.contacts`		
+FROM ${ref("912250555658","contacts")}  	
 where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")		
 qualify row_number() over(partition by urn,date(updated_at) order by updated_at desc)=1
 )	
@@ -51,9 +51,7 @@ where (mathContentProfile = "inprocess" or mathContentProfile = "wait" or mathCo
 )
 
 ,worksheetTemp as (select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
-from 
--- `dataform.mathWorksheetSent`
-`dataform.template-sent`
+from ${ref("template-sent")}
 inner join `dataform.allPhoneNumberWithPid`
 on phone_number = number
 where (template_name like "%mfln_worksheet%" or template_name like "%rmfln%" )
@@ -96,7 +94,7 @@ where (template_name like "%mfln_worksheet%" or template_name like "%rmfln%" )
 -- from non_failed)
 
 , assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
-from `platform_commons.prelim`)
+from ${ref("prelim")})
 
 ,whom_worksheet_should_go as (
 select distinct o.p_num,profile_updated_date,o.parentid,math_level,hindi_level
