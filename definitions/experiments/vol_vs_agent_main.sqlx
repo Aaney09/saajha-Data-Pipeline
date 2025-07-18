@@ -47,14 +47,14 @@ exp_assessment as (
 )
 
 
-select m.* except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4) ,e.* except(parentId)
+select m.* except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4, lastAssessmentBy,last_assessment_date,arm) ,e.* except(parentId)
 from `dataform.vol_vs_agent_main`m
 inner join exp_assessment e
 using(parentid)
 
 Union Distinct 
 select m.* 
-except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4) 
+except(h0,h1,h2,h3,h4,m0,m1,m2,m3,m4, lastAssessmentBy,last_assessment_date,arm) 
 ,e.* except(parentId)
 from `dataform.vol_vs_agent_main` m 
 left join exp_assessment  e
