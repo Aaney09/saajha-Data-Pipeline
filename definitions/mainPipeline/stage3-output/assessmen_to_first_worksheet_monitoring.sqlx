@@ -4,12 +4,12 @@ config {
 }
 
 with 
-hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,safe_cast(regexp_extract(Level,r'\d') as int64) as hindiLevel
+hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
 from ${ref("assessment")}
 where QuestionText like "%Ask%" and AssessmentId<>6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
-, math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, safe_cast(regexp_extract(Level,r'\d') as int64)  as mathlevel
+, math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
 from ${ref("assessment")}
 where QuestionText not like  "%Ask%" and AssessmentId <> 6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
