@@ -99,6 +99,13 @@ case
     else count(distinct if(date(sent_at) between Round_5_Assessment and Round_6_Assessment,worksheetNumber,null ))
 End round_5_worksheet_sent,
 
+/**-- ROUND 6 -- **/
+case 
+    when Round_7_Assessment is null then count(distinct if(date(sent_at) >Round_6_Assessment,worksheetNumber,null))
+    else count(distinct if(date(sent_at) between Round_6_Assessment and Round_7_Assessment,worksheetNumber,null ))
+End round_6_worksheet_sent,
+
+
 
 from `dataform.parent_journey_2025_2026`  pj
 left join worksheet s
