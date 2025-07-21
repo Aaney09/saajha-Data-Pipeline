@@ -111,7 +111,7 @@ from `dataform.parent_journey_2025_2026`  pj
 left join worksheet s
 on assesseeActorid = s.childid 
 
-group by assesseeActorid, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment)
+group by assesseeActorid, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
 select *
 from `dataform.parent_journey_2025_2026`
