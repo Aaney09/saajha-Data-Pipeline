@@ -20,7 +20,7 @@ with mathProfile as (
     datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
 FROM ${ref("912250555658","contacts")}  	
 where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")		
-qualify row_number() over(partition by urn,date(updated_at) order by updated_at desc)=1
+qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute)) order by updated_at desc)=1
 )	
 
 -- select *
