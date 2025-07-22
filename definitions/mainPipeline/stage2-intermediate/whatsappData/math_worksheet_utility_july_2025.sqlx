@@ -1,0 +1,72 @@
+config {
+    type: "table",
+    tags: "wa_daily"
+    }
+
+with math_ws as (
+
+select distinct
+phone_number,
+id,chat_id,template_name,
+sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1]content_id,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],r'Worksheet(\d+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'L(?:evel)?([0-4])') as int64) LevelNumber,
+
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] hindi_assessment_name ,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+
+replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),","," ")decoded_math_assessment_date ,
+
+replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),","," ")decoded_hindi_assessment_date ,    
+     safe_Cast(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[6],"=")[1] as int64) parentid,
+     SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[7],"=")[1] childid,
+     SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+     "&")[8],"=")[1] worksheet_link,
+     saajha_whatsapp_number,
+     uuid
+
+FROM
+   `dataform.template-sent`
+where 
+template_name ="fln_worksheet" and template_meta_data like "%content_id=Maths%" and phone_number not in(918888727876
+,919971478794,918527647594,919915539829)
+-- and last_message_status <> "failed"
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))>=9
+  )
+
+
+select * except(decoded_hindi_assessment_date,decoded_math_assessment_date,childid,parentid,worksheet_link,saajha_whatsapp_number,
+     uuid),
+ COALESCE(
+    SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p',math_ws.decoded_math_assessment_date),
+    SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p',math_ws.decoded_math_assessment_date),
+    SAFE.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', math_ws.decoded_math_assessment_date)
+  ) AS math_assessment_date,
+
+  COALESCE(
+    SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p', math_ws.decoded_hindi_assessment_date ),
+    SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p', math_ws.decoded_hindi_assessment_date),
+    safe.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', math_ws.decoded_hindi_assessment_date) )
+    AS hindi_assessment_date,
+    safe_Cast(parentid as int64)parentid ,
+    safe_Cast(childid as int64) childid,
+    worksheet_link,
+    saajha_whatsapp_number,
+    uuid
+from math_ws
