@@ -317,6 +317,10 @@ template_name in ("hfln_comic_2_with_button"
     from ${ref("hindi_worksheet_may_2025")}
     
 )
+
+select *
+from ${ref("hindi_worksheet_utility_july_2025")}
+union distinct 
 select * 
 from may_2025_version
 UNION distinct 

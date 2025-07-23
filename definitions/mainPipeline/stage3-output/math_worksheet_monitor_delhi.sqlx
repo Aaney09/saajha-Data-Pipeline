@@ -54,7 +54,7 @@ where (mathContentProfile = "inprocess" or mathContentProfile = "wait" or mathCo
 from ${ref("template-sent")}
 inner join `dataform.allPhoneNumberWithPid`
 on phone_number = number
-where (template_name like "%mfln_worksheet%" or template_name like "%rmfln%" )
+where template_name like "%mfln_worksheet%" or template_name like "%rmfln%"  or (template_name ="fln_worksheet" and template_meta_data like "%content_id=Maths%")
 -- and flow_name like "%MFLN Worksheet [Apr2025]%"
 )
 
