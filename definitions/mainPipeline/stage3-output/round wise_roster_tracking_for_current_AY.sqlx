@@ -7,7 +7,7 @@ config {
 
 with futureRosters as (select distinct Round,parentid,childid,max(calldate)last_call_scheduled_date
 from `platform_commons.futureRoster`
-where calldate >="2025-04-01"
+where calldate >="2025-04-01" and agentMobile in (9555489577,7303046353,9582377226)
 group by all
 
 )
@@ -98,9 +98,10 @@ group by 1)
 ,rosters as (select distinct ParentId,childId,Round,
 from `platform_commons.roster`
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+and agentMobile in (9555489577,7303046353,9582377226)
 )
 
-,year_2024_25 as (
+,year_2025_26 as (
   select distinct *, row_number()over(partition by parentid,childid order by round Asc) as rounds_since_april_2025
   from rosters
 )
@@ -108,7 +109,7 @@ where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-0
 -- from `platform_commons.roster`)
 
 ,resolved as (select distinct rounds_since_april_2025,count(distinct parentid)resolved_parent,count(distinct childid)resolved_child,
-from year_2024_25
+from year_2025_26
 group by 1
 )
 
@@ -128,3 +129,4 @@ LEFT JOIN resolved
 using(rounds_since_april_2025)
 LEFT JOIN ${ref("roundwiseAssessment")}
 using(rounds_since_april_2025)
+

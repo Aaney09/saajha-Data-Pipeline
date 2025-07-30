@@ -110,6 +110,7 @@ End round_6_worksheet_sent,
 from `dataform.parent_journey_2025_2026`  pj
 left join worksheet s
 on assesseeActorid = s.childid 
+where agentNumber in (9555489577,7303046353,9582377226)
 
 group by assesseeActorid, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
@@ -117,3 +118,4 @@ select *
 from `dataform.parent_journey_2025_2026`
 left join childid_wise_worksheet_count
 on assesseeActorid = childid
+where agentNumber in (9555489577,7303046353,9582377226)

@@ -38,9 +38,9 @@ exp_assessment as (
 )
 
 ,union_of_pre_and_post_exp as (
---   select *
---   from agents_vols 
---   union distinct
+  select *
+  from agents_vols 
+  union distinct
   select *
   from exp_assessment
 
