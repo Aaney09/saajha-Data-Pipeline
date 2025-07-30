@@ -6,7 +6,7 @@ config {
 
 with hindiAss as (select distinct childId,date(assessmentDate)hindiAssessDate,parentId,agentMobile,agentName
 from `platform_commons.prelim`
-where assessmentName like "%HINDI%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
+where lower(assessmentName) like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
 
 ,
 hindiDates  as(select distinct childId,hindiAssessDate,parentId,agentMobile,agentName,
@@ -34,7 +34,7 @@ order by childId asc,hindirounds asc)
 , mathAss as (select distinct childId,date(assessmentDate)mathAssessDate,parentId,agentMobile,agentName
 
 from `platform_commons.prelim`
-where assessmentName not like "%HINDI%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
+where lower(assessmentName) not like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
 
 , mathDates as
 (select distinct childId,mathAssessDate,parentId,agentMobile,agentName,
@@ -113,6 +113,6 @@ left join opted_out o
 on hm.parentId = o.parentid
 left join opt_in oi
 on hm.parentId = oi.rosterParentId
-where hindiAssessDate < current_date("Asia/Kolkata")
+where hindiAssessDate < current_date("Asia/Kolkata") and agentMobile in (9555489577,7303046353,9582377226)
 group by all
 order by 1 desc

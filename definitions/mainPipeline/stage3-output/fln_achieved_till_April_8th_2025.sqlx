@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["daily", "2024_2025"],
+    tags: ["daily", "2024_2025","not_used"],
     description: "FLN achieved till 8th April 2025 as PC will start roster for class wise FLN achieved for grade 1 and 2"
 }
 
