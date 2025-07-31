@@ -173,10 +173,11 @@ all_opt_ins as (
 
 ,
 opt_in as (
-  select distinct rosterparentId,firstopted_in_on as opted_in_on
+  select distinct rosterparentId,min(firstopted_in_on) as opted_in_on
   from all_opt_ins
   inner join `dataform.allPhoneNumberWithPid`
   on phone_number = number
+  group by all
 )
 
 ,fln as (
@@ -221,7 +222,7 @@ from `platform_commons.IE`)
 select assessmentDetails.*,schoolId.school_id,
 la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
 opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
-if(la.parentId = fln.parentId,"Yes","No")FLNAchieved,FLNAchievedOn,
+if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
 if(opted_out.opted_out_on<Round_1_assessment or
 opted_out.opted_out_on<Round_2_assessment or
 opted_out.opted_out_on<Round_3_assessment or
@@ -248,7 +249,7 @@ on la.parentId = firstAttemp.parentId
 left join opted_out
 on la.parentId = opted_out.parentId
 left join fln
-on la.parentId = fln.parentId
+on la.childid = fln.childid
 left join schoolId
 on la.parentId = schoolId.parentId
 
