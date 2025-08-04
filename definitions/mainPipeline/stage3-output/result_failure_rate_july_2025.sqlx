@@ -1,0 +1,134 @@
+config {
+    type: "table",
+    tags: "wa_daily",
+    description: "new result utility template july end"
+    }
+
+
+with 
+hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+from ${ref("assessment")}
+where QuestionText like "%Ask%" and AssessmentId<>6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+, math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+from ${ref("assessment")}
+where QuestionText not like  "%Ask%" and AssessmentId <> 6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, childDetails as (select 
+distinct 
+IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+from `platform_commons.IE`
+)
+
+, assessments as (
+  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  case  
+when c.childClass = 1 and mathLevel>=2 then TRUE
+when c.childClass = 2 and mathLevel>=3 then TRUE
+when c.childClass >=3 and mathLevel>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when c.childClass = 1 and hindiLevel>=3 then TRUE
+when c.childClass >=2 and hindiLevel>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from hindi h
+inner join math m
+using(assesseeActorID,dateOfAssessment)
+inner join childDetails c
+on assesseeActorID=childid
+where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
+)
+
+,whom_math_worksheet_should_not_go as (
+  select *
+  from assessments
+  where mathLevel = 4
+  union distinct 
+  select *
+  from assessments
+  where mathFLnAchievedClassWise = true and hindiFLnAchievedClassWise=true
+)
+
+
+, allNumbersPIDtemplatesent as (
+  select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("template-sent")}
+  on number = phone_number
+  where number is not null
+  and date(sent_at)>="2025-04-01"
+  and saajha_whatsapp_number in (912250555658,911171817073)
+
+
+)
+
+,combinedResult as (
+  select distinct parentid,
+  phone_number,template_name,
+  sent_at as combined_Result_sent_on,last_message_status as combined_Result_msg_status,error_code as combined_result_error_code,error_reason as combined_result_error_reason,location
+  from allNumbersPIDtemplatesent
+  where template_name in ("fln_result_v2","fln_highest_level_v2")
+)
+
+
+,math_hindiResultSent as (
+  select distinct a.*,m.*except(parentid),
+  -- b.*except(parentid)
+from assessments a
+-- left join BothSubjectFLNAchievedTemplateSent b 
+-- on a.parentid = b.parentid and dateOfAssessment=date(flnAchieved_Result_sent_on)
+left join combinedResult m
+on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
+where dateOfAssessment >="2025-07-23"
+)
+
+
+-- select *
+-- from math_hindiResultSent
+-- where combined_Result_msg_status="failed"
+
+select  dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,
+count(distinct parentid)ParentIdAssessed,
+    count(distinct m.childid)ChildiAssessed,
+
+    count(distinct if(combined_Result_sent_on is not null ,parentid,null) ) processedResultsCombinedAsWellFLNAchieved,
+    round(
+      (count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null ,parentid,null) )
+    ) / count(distinct parentid)*100,2) turn_result_failure_Rate,
+    count(distinct if(combined_result_msg_status="failed" ,parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
+
+    round(count(distinct if(combined_result_msg_status="failed" ,parentid,null))/count(distinct if(combined_Result_sent_on is not null ,parentid,null) ),2) meta_failure_rate,
+    round(
+    (  
+      count(distinct if(combined_result_msg_status="failed",parentid,null))
+      +
+      count(distinct parentid)-count(distinct if(combined_Result_sent_on is not null,parentid,null) )
+    )
+      /count(distinct parentid)*100
+    ,2)combined_result_and_fln_Achieved_failure_rate,
+    -- count(distinct if(flnAchieved_Result_sent_on is not null,parentid,null)) flnAchieved_Result_sent_onProcessed,
+    -- count(distinct if(combined_Result_sent_on is not null,parentid,null)) combinedResultProcessed,
+
+       /** combined result meta error details **/
+       count(distinct if(combined_result_msg_status="failed" ,parentid,null))combined_result_meta_failed,
+      count(distinct if(combined_result_error_code="131050" ,parentid,null)) as combined_result_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(combined_result_error_code="131049",parentid,null)) as combined_result_131049_Meta_chose_not_to_deliver,
+      count(distinct if(combined_result_error_code="131026" ,parentid,null)) as combined_result_131026_Message_Undeliverable,
+       count(distinct if(combined_result_error_code="131000",parentid,null)) as combined_result_131000_Something_went_wrong,
+      count(distinct if(combined_result_error_code="130472" ,parentid,null)) as combined_result_130472_User_number_is_part_of_an_experiment,
+
+from math_hindiResultSent m
+group by all
+order by dateOfAssessment desc
+-- -- left join whom_math_worksheet_should_not_go g
+-- -- using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel,hindilevel)
+-- -- left join hindi_first_worksheet_success hs
+-- -- using(parentid,childid)
+-- -- left join math_first_worksheet_success ws
+-- -- using(parentid,childid)
