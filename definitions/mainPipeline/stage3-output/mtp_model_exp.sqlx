@@ -11,7 +11,7 @@ with  hindi_worksheet_sent as (select distinct
     worksheet_link,
     sent_at,
     error_reason 
-from `dataform.hindiWorksheetSent`
+from  ${ref("hindiWorksheetSent")}
 where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
 )
 
@@ -27,7 +27,7 @@ where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asi
     worksheet_link,
     sent_at,
     error_reason 
-from `dataform.mathWorksheetSent`
+from ${ref("hindiWorksheetSent")}
 where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 )
 
 
