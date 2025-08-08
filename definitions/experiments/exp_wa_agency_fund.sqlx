@@ -35,6 +35,7 @@ where message_content like "%भाग लेने के लिए, धन्�
 -- from initiated 
 -- inner join submitted
 -- using(phone_number)
+-- testing
 ,
 
 form_initiated as (
