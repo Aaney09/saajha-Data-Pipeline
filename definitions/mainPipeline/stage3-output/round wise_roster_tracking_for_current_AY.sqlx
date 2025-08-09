@@ -95,38 +95,58 @@ group by 1)
   from roundwise_FLN_achieved_raw
   group by 1
 )
-,rosters as (select distinct ParentId,childId,Round,
+,resolves as (select distinct ParentId,childId,Round,
 from `platform_commons.roster`
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
 and agentMobile in (9555489577,7303046353,9582377226)
 )
 
-,year_2025_26 as (
+,year_2025_26_resolved as (
   select distinct *, row_number()over(partition by parentid,childid order by round Asc) as rounds_since_april_2025
-  from rosters
+  from resolves
 )
 -- ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
 -- from `platform_commons.roster`)
 
 ,resolved as (select distinct rounds_since_april_2025,count(distinct parentid)resolved_parent,count(distinct childid)resolved_child,
-from year_2025_26
+from year_2025_26_resolved
 group by 1
 )
 
+,dialed as (select distinct ParentId,childId,Round,
+from `platform_commons.roster`
+where date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+and agentMobile in (9555489577,7303046353,9582377226)
+)
 
+,year_2025_26_dialed as (
+  select distinct *, row_number()over(partition by parentid,childid order by round Asc) as rounds_since_april_2025
+  from dialed
+)
+-- ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
+-- from `platform_commons.roster`)
 
-select rounds_since_april_2025, 
-unique_childid_scheduled,unique_parentid_scheduled,resolved_parent,resolved_child,totalParentsAssessed,totalChildrenAssessed,
+,dials as (select distinct rounds_since_april_2025,count(distinct parentid)dialed_parent,count(distinct childid)dialed_child,
+from year_2025_26_dialed
+group by 1 
+)
+
+select distinct rounds_since_april_2025, 
+unique_childid_scheduled,unique_parentid_scheduled,dialed_parent,resolved_parent,resolved_child,totalParentsAssessed,totalChildrenAssessed,
 childid_opted_out,parentid_opted_out,childid_support_terminated,parentid_support_terminated,childid_FLN_achieved,parentid_FLN_achieved
 from schedules 
-left join roundwise_opted_out 
-using(rounds_since_april_2025)
-left join roundwise_support_Terminated
-using(rounds_since_april_2025)
-LEFT JOIN  roundwise_FLN_achieved
+left join dials
 using(rounds_since_april_2025)
 LEFT JOIN resolved
 using(rounds_since_april_2025)
 LEFT JOIN ${ref("roundwiseAssessment")}
 using(rounds_since_april_2025)
+LEFT JOIN  roundwise_FLN_achieved
+using(rounds_since_april_2025)
+left join roundwise_opted_out 
+using(rounds_since_april_2025)
+left join roundwise_support_Terminated 
+using(rounds_since_april_2025)
+
+
 
