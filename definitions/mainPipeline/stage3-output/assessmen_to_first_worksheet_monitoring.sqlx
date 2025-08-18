@@ -63,41 +63,40 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   and date(sent_at)>="2025-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
 )
-,
-failed as (
-  select *
-  from allNumbersPIDtemplatesent
-  where last_message_status="failed"
-)
-,non_failed as (
-  select *
-  from allNumbersPIDtemplatesent
-  where last_message_status<>"failed"
-)
-,at_least_1_success as (
-  select nf.*
-  from non_failed nf
-  inner join 
-  failed f
-  using(parentid,sent_date)
-  -- where f.rosterparentid is null
-)
-,none_success as (
-  select f.*
-  from failed f
-  left join at_least_1_success s
-  using(parentid,sent_date)
-  where s.parentid is null
-)
-,worksheet_Sent as (select 
-*
-from at_least_1_success
-union distinct 
-select *
-from none_success
-union distinct 
-select *
-from non_failed)
+-- failed as (
+--   select *
+--   from allNumbersPIDtemplatesent
+--   where last_message_status="failed"
+-- )
+-- ,non_failed as (
+--   select *
+--   from allNumbersPIDtemplatesent
+--   where last_message_status<>"failed"
+-- )
+-- ,at_least_1_success as (
+--   select nf.*
+--   from non_failed nf
+--   inner join 
+--   failed f
+--   using(parentid,sent_date)
+--   -- where f.rosterparentid is null
+-- )
+-- ,none_success as (
+--   select f.*
+--   from failed f
+--   left join at_least_1_success s
+--   using(parentid,sent_date)
+--   where s.parentid is null
+-- )
+-- ,worksheet_Sent as (select 
+-- *
+-- from at_least_1_success
+-- union distinct 
+-- select *
+-- from none_success
+-- union distinct 
+-- select *
+-- from non_failed)
 
 
 -- , BothSubjectFLNAchievedTemplateSent as (
@@ -137,7 +136,7 @@ from non_failed)
 )
 
 ,math_first_worksheet_success as (
-  select distinct parentid,childid,
+  select distinct parentid,childid
   from math_first_worksheet_sent
   where math_1st_worksheet_msg_status<>"failed"
 )
