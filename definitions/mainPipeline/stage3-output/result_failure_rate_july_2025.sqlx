@@ -45,17 +45,6 @@ on assesseeActorID=childid
 where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
 )
 
-,whom_math_worksheet_should_not_go as (
-  select *
-  from assessments
-  where mathLevel = 4
-  union distinct 
-  select *
-  from assessments
-  where mathFLnAchievedClassWise = true and hindiFLnAchievedClassWise=true
-)
-
-
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
   from ${ref("allPhoneNumberWithPid")}
@@ -64,7 +53,6 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   where number is not null
   and date(sent_at)>="2025-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
-
 
 )
 
@@ -76,6 +64,7 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   where template_name in ("fln_result_v2","fln_highest_level_v2","fln_both_level_achieved_v2")
 )
 
+-- add logic for 1 success
 
 ,math_hindiResultSent as (
   select distinct a.*,m.*except(parentid),
@@ -103,7 +92,8 @@ count(distinct parentid)ParentIdAssessed,
     ) / count(distinct parentid)*100,2) turn_result_failure_Rate,
     count(distinct if(combined_result_msg_status="failed" ,parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
 
-    round(count(distinct if(combined_result_msg_status="failed" ,parentid,null))/count(distinct if(combined_Result_sent_on is not null ,parentid,null) ),2) meta_failure_rate,
+    round(count(distinct if(combined_result_msg_status="failed" ,parentid,null))
+    /count(distinct if(combined_Result_sent_on is not null ,parentid,null) ),2) meta_failure_rate,
     round(
     (  
       count(distinct if(combined_result_msg_status="failed",parentid,null))
