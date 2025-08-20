@@ -30,7 +30,7 @@ where (hindiContentProfile = "inprocess" or hindiContentProfile = "running" or h
 
 -- `dataform.hindiWorksheetSent`
 from ${ref("template-sent")}
-where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and template_meta_data like "%content_id=hindi%")
+where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
 -- and flow_name like "%HFLN Worksheet [Apr2025]%"
 )
 
