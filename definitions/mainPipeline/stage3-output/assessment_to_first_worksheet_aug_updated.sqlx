@@ -1,0 +1,67 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+with 
+hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+from ${ref("assessment")}
+where QuestionText like "%Ask%" and AssessmentId<>6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+, math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+from ${ref("assessment")}
+where QuestionText not like  "%Ask%" and AssessmentId <> 6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, childDetails as (select 
+distinct 
+IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+if(projectid=1103908,'Noida','Delhi') as city,
+safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+from `platform_commons.IE`
+)
+
+, assessments as (
+  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  case  
+when c.childClass = 1 and mathLevel>=2 then TRUE
+when c.childClass = 2 and mathLevel>=3 then TRUE
+when c.childClass >=3 and mathLevel>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when c.childClass = 1 and hindiLevel>=3 then TRUE
+when c.childClass >=2 and hindiLevel>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from hindi h
+inner join math m
+using(assesseeActorID,dateOfAssessment)
+inner join childDetails c
+on assesseeActorID=childid
+where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
+)
+select
+distinct 
+
+a.dateOfAssessment,
+a.city,
+rf.* except(dateOfAssessment,city),
+mw.* except(dateOfAssessment,city,ChildiAssessed,ParentIdAssessed),
+hw.* except(dateOfAssessment,city,ChildiAssessed,ParentIdAssessed)
+from assessments a
+left join ${ref("result_failure_rate_july_2025")} rf
+on a.dateOfAssessment=rf.dateOfAssessment
+and a.city=rf.city
+
+left join ${ref("math_assessment_to_first_worksheet")} mw
+on a.dateOfAssessment=mw.dateOfAssessment
+and a.city=mw.city
+
+left join ${ref("hindi_assessment_to_first_worksheet")} hw
+on a.dateOfAssessment=hw.dateOfAssessment
+and a.city=hw.city
+
+order by 1 desc
