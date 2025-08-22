@@ -16,12 +16,28 @@ group by 1)
 from `saajhadata.whatsapp_tools.hindi_fln_forms`
 where date(inserted_at) between "2025-04-01" and "2026-03-31"
 group by 1)
+,
+attempt_rate as (
+    select childId,
+    sum(attemptedQuestions) as attempted_question
+    from `saajhadata.whatsapp_tools.attemptrate`
+    where date(insertedat) between "2025-04-01" and "2026-03-31"
+ group by 1
 
-select distinct c.childid, ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0) as totalQuestionAnswered
+)
+
+
+
+
+select distinct c.childid, ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0) as totalQuestionAnswered,
+ifnull(ar.attempted_question,0) as attemptedquestions
 from bau_child_id c
 left join hindi_completed h
 on c.childid = h.childid
 left join math_completed m
 on c.childid = m.childid
+left join attempt_rate ar
+on c.childid=safe_cast(ar.childid as int64)
+where ar.attempted_question>0
 
 -- where ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0)>0
