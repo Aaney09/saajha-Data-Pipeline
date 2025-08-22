@@ -1,0 +1,169 @@
+
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+with 
+hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+from ${ref("assessment")}
+where QuestionText like "%Ask%" and AssessmentId<>6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+, math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+from ${ref("assessment")}
+where QuestionText not like  "%Ask%" and AssessmentId <> 6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, childDetails as (select 
+distinct 
+IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+if(projectid=1103908,'Noida','Delhi') as city,
+safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+from `platform_commons.IE`
+)
+
+, assessments as (
+  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  case  
+when c.childClass = 1 and mathLevel>=2 then TRUE
+when c.childClass = 2 and mathLevel>=3 then TRUE
+when c.childClass >=3 and mathLevel>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when c.childClass = 1 and hindiLevel>=3 then TRUE
+when c.childClass >=2 and hindiLevel>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from hindi h
+inner join math m
+using(assesseeActorID,dateOfAssessment)
+inner join childDetails c
+on assesseeActorID=childid
+where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
+)
+
+,whom_hindi_worksheet_should_not_go as (
+  select *
+  from assessments
+  where hindiLevel = 4
+  union distinct 
+  select *
+  from assessments
+  where mathFLnAchievedClassWise = true and hindiFLnAchievedClassWise=true
+)
+
+
+, allNumbersPIDtemplatesent as (
+  select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("template-sent")}
+  on number = phone_number
+  where number is not null
+  and date(sent_at)>="2025-04-01"
+  and saajha_whatsapp_number in (912250555658,911171817073)
+)
+
+,hindi_video as (
+  select distinct parentid,
+  phone_number as hindi_1st_video_sent_to,
+  date(sent_at)hindi_1st_video_sent_on,last_message_status as hindi_1st_video_msg_status,error_code as hindi_1st_video_error_code,error_reason as hindi_1st_video_error_reason,location
+  from allNumbersPIDtemplatesent
+  where (
+(template_name = "hfln_video_template_v2"))
+  -- and last_message_status <> "failed"
+)
+
+
+, hindi_first_worksheet_sent as (
+  select distinct parentid,childid,
+  phone_number as hindi_1st_worksheet_sent_to,
+  date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
+  from ${ref("hindiWorksheetSent")}
+  where worksheetNumber =1 
+)
+,hindi_first_worksheet_success as (
+  select distinct parentid,childid,hindi_worksheet1_sent_on
+  from hindi_first_worksheet_sent
+  where hindi_1st_worksheet_msg_status<>"failed"
+)
+
+
+
+
+, sent_hindi_first_worksheet as (
+  select distinct h.*
+  from assessments r
+  inner join hindi_first_worksheet_Sent h
+  using(parentid)
+  where hindi_content_to_send_on=hindi_worksheet1_sent_on
+  -- datetime_diff(c.hindi_worksheet1_sent_on,sent_at,day)=1
+)
+
+
+
+,main_ as (select a.*except(assesseeActorID),hw.* except(parentid,childid),hv.* except(parentid)
+from 
+assessments a
+-- left join sent_math_first_content 
+-- using(parentid,childid)
+left join sent_hindi_first_worksheet hw
+-- using(parentid,childid)
+on a.parentid=hw.parentid
+and a.childid=hw.childid
+and a.hindi_content_to_send_on=hw.hindi_worksheet1_sent_on
+left join hindi_video hv 
+-- using(parentid)
+on a.parentid=hv.parentid
+and a.hindi_content_to_send_on =hv.hindi_1st_video_sent_on
+
+)
+
+select  dateOfAssessment,
+m.hindi_content_to_send_on,
+m.city,
+-- math_content_to_send_on,
+count(distinct m.parentid)ParentIdAssessed,
+    count(distinct m.childid)ChildiAssessed,
+
+
+    count(distinct if(g.childid is null,m.parentid,null)) hindiWorksheetToProcess,
+   count(distinct if(g.childid is null and ( m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))hindiWorksheetProcessed,
+   round(
+    (
+      count(distinct if(g.childid is null,m.parentid,null))-count(distinct if(g.childid is null  and (m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))
+    )
+    /nullif(count(distinct if(g.childid is null,m.parentid,null)),0) *100
+    ,2) turn_hindi_failure_Rate,
+   count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))hindiWorksheet_meta_failed,
+   round(count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))/nullif(count(distinct if(m.hindi_worksheet1_sent_on is not null,m.parentid,null)),0)*100,2)hindiWorksheet_meta_failure_rate,
+   round(
+    (
+      count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))
+        +
+      (count(distinct if(g.childid is null,m.parentid,null)))-count(distinct if(m.hindi_worksheet1_sent_on is not null,m.parentid,null))
+    
+    )
+    /nullif(count(distinct if(g.childid is null,m.parentid,null)),0)*100
+    
+    ,2)
+  hindi_1st_content_failure_rate,
+ 
+
+   /** hindi worksheet and video meta error details **/
+      count(distinct if((hindi_1st_worksheet_error_code="131050" or hindi_1st_video_error_reason="131050") and hs.parentid is  null ,m.parentid,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if((hindi_1st_worksheet_error_code="131049"or hindi_1st_video_error_reason="131049")  and hs.parentid is  null,m.parentid,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if((hindi_1st_worksheet_error_code="131026" or hindi_1st_video_error_reason="131026") and hs.parentid is  null,m.parentid,null)) as hindiWorksheetError_131026_Message_Undeliverable,
+      count(distinct if((hindi_1st_worksheet_error_code="131000" or hindi_1st_video_error_reason="131000") and hs.parentid is  null,m.parentid,null)) as hindiWorksheetError_131000_Something_went_wrong,
+      count(distinct if((hindi_1st_worksheet_error_code="130472" or hindi_1st_video_error_reason="130472"  and hs.parentid is  null),m.parentid,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
+from main_ m
+left join whom_hindi_worksheet_should_not_go g
+using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
+left join hindi_first_worksheet_success hs
+on m.parentid=hs.parentid and m.childid= hs.childid
+and  date(m.hindi_content_to_send_on) = date(hs.hindi_worksheet1_sent_on)
+
+group by all
+order by 1 desc
+
