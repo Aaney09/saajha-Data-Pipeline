@@ -4,7 +4,7 @@ config {
 
 with bau_child_id as (select  distinct assesseeActorID as childId
 from ${ref("parent_journey_2025_2026")}
-where Projectid in (1103005,1103213,1103233,1103641)
+where Projectid not in (1103005,1103213,1103233,1103641)
 )
 
 ,math_completed as (select childid,sum(total_questions)total_question_answered_math
