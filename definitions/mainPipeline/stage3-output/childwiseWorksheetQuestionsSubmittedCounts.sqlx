@@ -1,0 +1,27 @@
+config {
+    type: "view"
+}
+
+with bau_child_id as (select  distinct assesseeActorID as childId
+from ${ref("parent_journey_2025_2026")}
+where Projectid in (1103005,1103213,1103233,1103641)
+)
+
+,math_completed as (select childid,sum(total_questions)total_question_answered_math
+from `saajhadata.whatsapp_tools.maths_react_forms`
+where date(inserted_at) between "2025-04-01" and "2026-03-31"
+group by 1)
+
+,hindi_completed as (select childid,sum(total_questions)total_question_answered_hindi
+from `saajhadata.whatsapp_tools.hindi_fln_forms`
+where date(inserted_at) between "2025-04-01" and "2026-03-31"
+group by 1)
+
+select distinct c.childid, ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0) as totalQuestionAnswered
+from bau_child_id c
+left join hindi_completed h
+on c.childid = h.childid
+left join math_completed m
+on c.childid = m.childid
+
+-- where ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0)>0
