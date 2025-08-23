@@ -135,7 +135,7 @@ count(distinct m.parentid)ParentIdAssessed,
   math_1st_content_failure_rate,
    /** math worksheet meta error details **/
       count(distinct if(math_1st_worksheet_error_code="131050"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
-      count(distinct if(math_1st_worksheet_error_code="131049"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_131049_Meta_chose__to_deliver,
+      count(distinct if(math_1st_worksheet_error_code="131049"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_131049_Meta_chose_not_to_deliver,
       count(distinct if(math_1st_worksheet_error_code="131026"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_131026_Message_Undeliverable,
       count(distinct if(math_1st_worksheet_error_code="131000"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_131000_Something_went_wrong,
       count(distinct if(math_1st_worksheet_error_code="130472"  and ws.parentid is null,m.parentid,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,

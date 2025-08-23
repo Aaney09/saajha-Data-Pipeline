@@ -129,15 +129,15 @@ count(distinct m.parentid)ParentIdAssessed,
 
 
     count(distinct if(g.childid is null,m.parentid,null)) hindiWorksheetToProcess,
-   count(distinct if(g.childid is null and ( m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))hindiWorksheetProcessed,
+   count(distinct if(g.childid is null and ( m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))hindiWorksheetOrVideoProcessed,
    round(
     (
       count(distinct if(g.childid is null,m.parentid,null))-count(distinct if(g.childid is null  and (m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))
     )
     /nullif(count(distinct if(g.childid is null,m.parentid,null)),0) *100
-    ,2) turn_hindi_failure_Rate,
-   count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))hindiWorksheet_meta_failed,
-   round(count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))/nullif(count(distinct if(m.hindi_worksheet1_sent_on is not null,m.parentid,null)),0)*100,2)hindiWorksheet_meta_failure_rate,
+    ,2) turn_hindi_failure_rate,
+   count(distinct if((hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed") and hs.parentid is  null,m.parentid,null))hindiWorksheetOrVideo_meta_failed,
+   round(count(distinct if((hindi_1st_worksheet_msg_status="failed" or hindi_1st_video_msg_status="failed") and hs.parentid is  null,m.parentid,null))/nullif(count(distinct if(m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null,m.parentid,null)),0)*100,2)hindiworksheetOrVideo_meta_failure_rate,
    round(
     (
       count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))
