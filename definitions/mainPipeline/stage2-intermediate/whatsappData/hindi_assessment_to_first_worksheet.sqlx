@@ -127,7 +127,6 @@ m.city,
 count(distinct m.parentid)ParentIdAssessed,
     count(distinct m.childid)ChildiAssessed,
 
-
     count(distinct if(g.childid is null,m.parentid,null)) hindiWorksheetToProcess,
    count(distinct if(g.childid is null and ( m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null))hindiWorksheetOrVideoProcessed,
    round(
@@ -142,7 +141,7 @@ count(distinct m.parentid)ParentIdAssessed,
     (
       count(distinct if(hindi_1st_worksheet_msg_status="failed" and hs.parentid is  null,m.parentid,null))
         +
-      (count(distinct if(g.childid is null,m.parentid,null)))-count(distinct if(m.hindi_worksheet1_sent_on is not null,m.parentid,null))
+      (count(distinct if(g.childid is null,m.parentid,null))-count(distinct if(g.childid is null  and (m.hindi_worksheet1_sent_on is not null or hindi_1st_video_sent_on is not null),m.parentid,null)))
     
     )
     /nullif(count(distinct if(g.childid is null,m.parentid,null)),0)*100
@@ -150,6 +149,7 @@ count(distinct m.parentid)ParentIdAssessed,
     ,2)
   hindi_1st_content_failure_rate,
  
+
 
    /** hindi worksheet and video meta error details **/
       count(distinct if((hindi_1st_worksheet_error_code="131050" or hindi_1st_video_error_reason="131050") and hs.parentid is  null ,m.parentid,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,

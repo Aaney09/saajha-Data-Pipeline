@@ -126,7 +126,7 @@ count(distinct m.parentid)ParentIdAssessed,
     (
       count(distinct if(math_1st_worksheet_msg_status="failed" and ws.parentid is null,m.parentid,null))
         +
-      (count(distinct if(g.childid is null,m.parentid,null)))-count(distinct if(m.math_worksheet1_sent_on is not null,m.parentid,null))
+      (count(distinct if(g.childid is null,m.parentid,null))-count(distinct if(m.math_worksheet1_sent_on is not null,m.parentid,null)))
     
     )
     /nullif(count(distinct if(g.childid is null,m.parentid,null)),0)*100
