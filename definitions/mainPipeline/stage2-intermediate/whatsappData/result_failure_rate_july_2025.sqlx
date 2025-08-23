@@ -65,11 +65,12 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   phone_number,
   sent_at as combined_Result_sent_on,last_message_status as combined_Result_msg_status,error_code as combined_result_error_code,error_reason as combined_result_error_reason,location
   from allNumbersPIDtemplatesent
-  where template_name LIKE "%fln_not_achieved_result%" 
-  or template_name like "%fln_maths_achieved_result%" 
-  or template_name like "%fln_hindi_achieved_result%"
-   or template_name like "%fln_both_level_achieved_v2%"
-   or template_name like "fln_result_v2" or template_name like "fln_highest_level_v2"
+  where 
+  -- template_name LIKE "%fln_not_achieved_result%" 
+  -- or template_name like "%fln_maths_achieved_result%" 
+  -- or template_name like "%fln_hindi_achieved_result%"
+  --  or template_name like "%fln_both_level_achieved_v2%"
+    template_name like "fln_result_v2" or template_name like "fln_highest_level_v2"
 )
 
 
