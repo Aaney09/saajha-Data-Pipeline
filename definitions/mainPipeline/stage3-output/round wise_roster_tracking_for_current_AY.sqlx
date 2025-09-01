@@ -5,9 +5,11 @@ config {
 
 
 
-with futureRosters as (select distinct Round,parentid,childid,max(calldate)last_call_scheduled_date
+with futureRosters as (select distinct Round,parentid,childid,max(calldate)last_call_scheduled_date,
+If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
 from `platform_commons.futureRoster`
-where calldate >="2025-04-01" and agentMobile in (9871916227,7303046353,8384058841)
+where calldate >="2025-04-01" 
+--and agentMobile in (9871916227,7303046353,8384058841)
 group by all
 
 )
@@ -16,13 +18,13 @@ group by all
 --  select distinct Round,parentid,childid 
 --  from futureRosters
 -- )
-,rounds as (select Round as overall_round,parentid,childid,row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
+,rounds as (select project_name, Round as overall_round,parentid,childid,row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
 from futureRosters
 )
 
-,schedules as (select rounds_since_april_2025,count(distinct childid)unique_childid_scheduled, count(distinct parentid)unique_parentid_scheduled, 
+,schedules as (select project_name,rounds_since_april_2025,count(distinct childid)unique_childid_scheduled, count(distinct parentid)unique_parentid_scheduled, 
 from rounds
-group by 1)
+group by 1,2)
 
 ,opted_out as (
   select distinct round,childid,parentid,last_call_scheduled_date,
@@ -98,7 +100,7 @@ group by 1)
 ,resolves as (select distinct ParentId,childId,Round,
 from `platform_commons.roster`
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
-and agentMobile in (9555489577,7303046353,9582377226)
+--and agentMobile in (9555489577,7303046353,9582377226)
 )
 
 ,year_2025_26_resolved as (
@@ -116,7 +118,7 @@ group by 1
 ,dialed as (select distinct ParentId,childId,Round,
 from `platform_commons.roster`
 where date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
-and agentMobile in (9555489577,7303046353,9582377226)
+--and agentMobile in (9555489577,7303046353,9582377226)
 )
 
 ,year_2025_26_dialed as (
@@ -131,7 +133,7 @@ from year_2025_26_dialed
 group by 1 
 )
 
-select distinct rounds_since_april_2025, 
+select distinct project_name,rounds_since_april_2025, 
 unique_childid_scheduled,unique_parentid_scheduled,dialed_parent,resolved_parent,resolved_child,totalParentsAssessed,totalChildrenAssessed,
 childid_opted_out,parentid_opted_out,childid_support_terminated,parentid_support_terminated,childid_FLN_achieved,parentid_FLN_achieved
 from schedules 
