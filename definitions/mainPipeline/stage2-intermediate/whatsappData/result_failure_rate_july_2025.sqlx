@@ -20,7 +20,9 @@ qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) o
 , childDetails as (select 
 distinct 
 IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
-if(projectid=1103908,'Noida','Delhi') as city,
+case when projectid=1103908 then 'Noida'
+    when  projectid=1103912 then 'Impact Evaluation'
+    else 'Delhi' end as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
 )

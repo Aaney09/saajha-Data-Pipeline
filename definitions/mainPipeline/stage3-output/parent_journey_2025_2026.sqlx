@@ -172,12 +172,13 @@ lastAssessed as  (
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
 )
 
-, schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId 
+, schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId,
+If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
 from `platform_commons.IE`)
 
 
 
-select assessmentDetails.*,schoolId.school_id,
+select assessmentDetails.*,schoolId.school_id,schoolId.project_name,
 la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
 opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
 if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
