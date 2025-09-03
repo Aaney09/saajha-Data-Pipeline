@@ -27,7 +27,7 @@ where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asi
     worksheet_link,
     sent_at,
     error_reason 
-from ${ref("hindiWorksheetSent")}
+from ${ref("mathWorksheetSent")}
 where date(sent_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 )
 
 
