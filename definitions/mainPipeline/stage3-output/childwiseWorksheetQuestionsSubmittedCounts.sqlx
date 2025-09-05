@@ -1,5 +1,6 @@
 config {
-    type: "view"
+    type: "table",
+    tags: "wa_daily"
 }
 
 with bau_child_id as (select  distinct assesseeActorID as childId
