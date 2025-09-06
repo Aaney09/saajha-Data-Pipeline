@@ -44,12 +44,14 @@ from resolved
 group by all)
 
 ,dials as (select AgentMobile,CallDate,
-If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 count(distinct ParentId)unique_scheduledParents,
   count(distinct if(CallStartDateTime is not null,parentid,null))uniqueParentsDialed,
   count(distinct CallStartDateTime)totalDials,
-from `platform_commons.roster`
-where CallDate  between "2025-04-01" and "2026-03-31" and ProjectId<>1102996
+from `platform_commons.roster` r -- inner join user
+inner join `platform_commons.User` u
+on r.parentid=u.userid
+where CallDate  between "2025-04-01" and "2026-03-31" and u.ProjectId<>1102996
 group by all)
 
 , agent_names as (
