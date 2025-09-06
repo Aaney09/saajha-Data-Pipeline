@@ -6,8 +6,10 @@ config {
 
 
 with futureRosters as (select distinct Round,parentid,childid,max(calldate)last_call_scheduled_date,
-If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
-from `platform_commons.futureRoster`
+If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+from `platform_commons.futureRoster` fr -- inner join on user for project id and pick from it
+inner join `platform_commons.User` u
+on fr.parentid=u.userid
 where calldate >="2025-04-01" 
 --and agentMobile in (9871916227,7303046353,8384058841)
 group by all

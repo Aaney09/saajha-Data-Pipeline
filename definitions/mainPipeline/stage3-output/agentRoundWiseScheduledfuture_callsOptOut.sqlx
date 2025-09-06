@@ -16,8 +16,10 @@ group by all)
 
 ,scheduled as (
     select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)overall_parents_scheduled_current_ay,
-    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
-from `platform_commons.futureRoster`
+    If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+from `platform_commons.futureRoster` f -- inner join here on user
+inner join `platform_commons.User` u
+on f.parentid=u.userid
 where date(ExtractionDate) >="2025-03-31"
 group by all
 )
