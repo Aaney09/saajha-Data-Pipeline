@@ -18,7 +18,6 @@ with hindiProfile as (
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
 FROM ${ref("912250555658_contacts")}  		
-where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
 
