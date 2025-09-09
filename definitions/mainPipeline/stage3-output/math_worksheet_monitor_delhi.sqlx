@@ -18,7 +18,7 @@ with mathProfile as (
     safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
     if(json_value(details, "$.lastmathworksheetsenton")<>"",
     datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
-FROM ${ref("912250555658","contacts")}  	
+FROM ${ref("912250555658_contacts")}  	
 where date(datetime_Add(updated_At, interval 330 minute)) < current_date("Asia/Kolkata")		
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute)) order by updated_at desc)=1
 )	

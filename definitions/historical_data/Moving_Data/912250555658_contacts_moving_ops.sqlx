@@ -9,15 +9,16 @@ config {
 
 BEGIN TRANSACTION;
 
+
 -- Step 1: Insert into secondary table
-INSERT INTO `saajhadata.Archive.912250555658_contacts`
+INSERT INTO ${ref("912250555658_contacts")}
+-- `saajhadata.Archive.912250555658_contacts`
 SELECT *
-FROM `912250555658.contacts`
+FROM ${ref("912250555658","contacts")}
 where datetime_add(updated_at, INTERVAL 330 minute) < current_date("Asia/Kolkata");
 
 -- Step 2: Delete from main/metadata table
-DELETE FROM `912250555658.contacts`
+DELETE FROM ${ref("912250555658","contacts")}
 where datetime_add(updated_at, INTERVAL 330 minute) < current_date("Asia/Kolkata");
-
 COMMIT TRANSACTION; 
 
