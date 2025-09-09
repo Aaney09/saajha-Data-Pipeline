@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "wa_daily"
+    tags: "not_used"
 }
 
 with queryRaisedByParent as (select distinct safe_Cast(right(msg.from_addr,10) as int64)phone_number,datetime_add(msgTag.inserted_at,interval 330 minute)queryMarkedAt,
