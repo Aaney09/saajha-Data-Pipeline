@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["daily", "2024_2025"],
+    tags: ["not_used", "2024_2025"],
     description: "till march 31st 2025"
 }
 
