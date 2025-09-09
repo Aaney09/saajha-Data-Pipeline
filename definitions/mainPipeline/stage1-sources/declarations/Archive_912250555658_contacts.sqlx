@@ -1,0 +1,6 @@
+config {
+    type:"declaration",
+    database:"saajhadata",
+    schema:"Archive",
+    name:"912250555658_contacts"
+}
