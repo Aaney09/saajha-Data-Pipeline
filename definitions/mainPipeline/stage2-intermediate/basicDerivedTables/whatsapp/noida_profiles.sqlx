@@ -19,5 +19,4 @@ select
     details as last_profile_meta_data,
 from  ${ref("Archive","911171817073_contacts")} 
 --    where safe_Cast(json_value(details,"$.opted_in") as Bool )=True
-where date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
    qualify (row_number() over(partition by urn order by updated_at desc))=1
