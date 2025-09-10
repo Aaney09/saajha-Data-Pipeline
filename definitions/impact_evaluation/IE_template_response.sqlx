@@ -1,0 +1,22 @@
+config {
+    type:"table",
+    tags: "IE"
+}
+
+select distinct
+    safe_cast(trim(from_addr,"+") as int64) phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    911171817034 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
+    context_id,
+
+from ${ref("911171817034","messages")}
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
