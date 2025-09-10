@@ -1,0 +1,84 @@
+
+config {
+
+    type: "table",
+    tags: "call_daily"
+}
+ 
+with future_roster as (select distinct safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round,
+-- max(AgentName)agentName,
+count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
+count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
+count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
+from ${ref("futureRoster")}
+where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) and date(CallDate) >= current_date("Asia/Kolkata") 
+AND ProjectId = 1103912 --and AgentName <>"Aashish" 
+group by all)
+
+,scheduled as (
+    select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)overall_parents_scheduled_current_ay,
+    If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+from ${ref("futureRoster")} f -- inner join here on user
+inner join ${ref("User")} u
+on f.parentid=u.userid
+where date(ExtractionDate) >="2025-03-31"
+and u.projectid=1103912
+group by all
+)
+,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round
+from ${ref("opted_out")}o
+inner join ${ref("futureRoster")} c
+on o.parentid=c.parentid and date(last_opted_out) = calldate
+where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
+and c.projectid=1103912
+group by all)
+
+
+-- with /
+,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round, date(last_opted_out) opted_out_date
+from ${ref("opted_out")}o
+inner join ${ref("futureRoster")} c
+on o.parentid=c.parentid and date(last_opted_out) = calldate
+where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
+and c.projectid=1103912
+)
+, overalldials as (
+    select distinct c.agentMobile,c.parentid,callingRound,
+count(distinct CallstartDatetime) overalltotalDials,
+count(distinct date(CallstartDatetime))overall_number_of_days_called
+from ${ref("called")} c 
+inner join opt_out_parents o
+on c.parentid = o.parentid and c.agentMobile = safe_cast(concat("91",o.agentMobile) as int64) 
+and c.callingRound= o.round 
+-- and opted_out_date=date(CallEndDatetime)
+group by all)
+
+, average_call_attempts_before_opt_out as (
+    select agentMobile,callinground as round,
+    avg(overalltotalDials)avg_calls_attempted_before_opted_out,
+     avg(overall_number_of_days_called)avg_days_called_before_opted_out
+    from overalldials
+    group by all
+)
+
+-- select distinct *
+-- from opt_out_2024_25
+-- left join overalldials
+-- using(parentid)
+-- left join year2024_25
+-- using(parentid)
+select *
+from 
+scheduled
+left join
+ future_roster
+using(AgentMobile,round)
+left join opted_out
+using(AgentMobile,round)
+left join average_call_attempts_before_opt_out
+using(AgentMobile,round)
+
+
+
+
+ 
