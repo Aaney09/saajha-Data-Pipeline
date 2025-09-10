@@ -61,8 +61,8 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   inner join ${ref("template-sent")}
   on number = phone_number
   where number is not null
-  and date(sent_at)>="2025-04-01"
-  and saajha_whatsapp_number in (912250555658,911171817073)
+  and date(sent_at)>="2025-04-05"
+  and saajha_whatsapp_number in (912250555658)
 )
 -- failed as (
 --   select *
