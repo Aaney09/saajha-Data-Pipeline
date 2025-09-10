@@ -1,6 +1,6 @@
 config {
   type:"table",
-  tags: "daily_calls"
+  tags: "IE"
 }
 
 
