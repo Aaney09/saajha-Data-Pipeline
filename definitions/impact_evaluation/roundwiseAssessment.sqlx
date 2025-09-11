@@ -112,14 +112,14 @@ count(distinct childId) totalChildrenAssessed,
 from hindiMath hm
 left join opted_out o
 on hm.parentId = o.parentid
-<<<<<<< HEAD
+-- <<<<<<< HEAD
 -- left join opt_in oi
 -- on hm.parentId = oi.rosterParentId
-where hindiAssessDate < current_date("Asia/Kolkata") --and agentMobile in (9871916227,7303046353,8384058841)
-=======
-left join opt_in oi
-on hm.parentId = oi.rosterParentId
+-- where hindiAssessDate < current_date("Asia/Kolkata") --and agentMobile in (9871916227,7303046353,8384058841)
+-- =======
+-- left join opt_in oi
+-- on hm.parentId = oi.rosterParentId
 where hindiAssessDate < current_date("Asia/Kolkata") 
->>>>>>> refs/heads/main
+-- >>>>>>> refs/heads/main
 group by all
 order by 1 desc
