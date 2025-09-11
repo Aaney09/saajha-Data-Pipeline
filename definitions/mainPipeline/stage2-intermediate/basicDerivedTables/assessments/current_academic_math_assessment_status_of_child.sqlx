@@ -35,12 +35,12 @@ from mathData
 group by 1
 )
 
-,mfirstlevel as (select distinct assesseeActorId,mathLevel as firstmathLevel
+,mfirstlevel as (select distinct assesseeActorId,mathAssessDate as first_math_assessment_date,mathLevel as firstmathLevel,
 from mathAss
 qualify row_number()over(partition by assesseeActorid order by mathAssessDate asc)=1)
 
 ,mLastLevel as (
-  select distinct AssesseeActorId, mathLevel as lastmathLevel,
+  select distinct AssesseeActorId,mathAssessDate as last_math_assessment_date,mathLevel as lastmathLevel,
   from mathAss
   qualify row_number()over(partition by assesseeActorid order by mathAssessDate desc)=1
 )
