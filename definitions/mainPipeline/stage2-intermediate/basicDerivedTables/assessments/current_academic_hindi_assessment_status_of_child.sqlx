@@ -28,13 +28,13 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
 
 )
 ,hfirstLevel as (
-  select distinct assesseeActorId,
+  select distinct assesseeActorId,hindiAssessDate as first_hindi_assessment_date,
   hindiLevel as firstHindiLevel
   from hindiAss
   qualify row_number()over(partition by assesseeActorid order by hindiAssessDate asc)=1
 )
 ,hLastLevel as (
-  select distinct AssesseeActorId, hindiLevel as lastHindiLevel,
+  select distinct AssesseeActorId,hindiAssessDate as last_hindi_assessment_date, hindiLevel as lastHindiLevel,
   from hindiAss
   qualify row_number()over(partition by assesseeActorid order by hindiAssessDate desc)=1
 )
