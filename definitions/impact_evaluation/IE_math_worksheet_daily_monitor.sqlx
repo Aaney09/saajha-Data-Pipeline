@@ -68,22 +68,22 @@ where lasthindiWorksheetSentOn<assessmentDate
 ,overall_worksheet_status as 
 (select 
 distinct profile_updated_date,
-      count(distinct p_num)whomHindiWorksheetHasToProcessFromTurn,
-      count(distinct if(phone_number is null	,p_num,null)) whom_hindi_worksheet_has_not_processed_from_turn,
+      count(distinct p_num)whommathWorksheetHasToProcessFromTurn,
+      count(distinct if(phone_number is null	,p_num,null)) whom_math_worksheet_has_not_processed_from_turn,
       round(
       count(distinct if(phone_number is null	,p_num,null))/count(distinct p_num)*100
         ,2
-      ) hindi_turn_failure_rate,
-      count(distinct if(last_message_status ="failed",p_num,null)) as hindi_worksheet_meta_failed,
+      ) math_turn_failure_rate,
+      count(distinct if(last_message_status ="failed",p_num,null)) as math_worksheet_meta_failed,
       if(count(distinct if(phone_number is not null	,p_num,null))<>0,
       round(count(distinct if(last_message_status ="failed",p_num,null))/count(distinct if(phone_number is not null	,p_num,null)) * 100
       ,2)
-      ,null) hindi_meta_failure_rate,
-      count(distinct if(error_code="131050",p_num,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
-      count(distinct if(error_code="131049",p_num,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
-      count(distinct if(error_code="131026",p_num,null)) as hindiWorksheetError_131026_Message_Undeliverable,
-      count(distinct if(error_code="131000",p_num,null)) as hindiWorksheetError_131000_Something_went_wrong,
-      count(distinct if(error_code="130472",p_num,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
+      ,null) math_meta_failure_rate,
+      count(distinct if(error_code="131050",p_num,null)) as mathWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(error_code="131049",p_num,null)) as mathWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if(error_code="131026",p_num,null)) as mathWorksheetError_131026_Message_Undeliverable,
+      count(distinct if(error_code="131000",p_num,null)) as mathWorksheetError_131000_Something_went_wrong,
+      count(distinct if(error_code="130472",p_num,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,
 from whom_worksheet_should_go_overall s	
 left join worksheetTemp w	
 on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
