@@ -9,32 +9,37 @@ with hindiProfile as (
     safe_cast(trim(urn, '+') as int64) as p_num, 
     safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
     json_value(details,"$.opted_in")opted_in_status,
+    json_value(details, "$.contentflowmaths")mathContentProfile,
     json_value(details, "$.contentflowhindi")hindiContentProfile,
     json_value(details,"$.lastworksheetsubject")lastsubject,
     json_value(details, "$.lastmathworksheetsent")lastsent,			
     datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
     date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
     json_value(details, "$.hindilevel")hindi_level,
+    json_value(details, "$.mathslevel")math_level,
+    if(json_value(details, "$.lastmathworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
-FROM ${ref("911171817034_contacts")}  		
+FROM ${ref("911171817034_contacts")}	
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
 
 ,ongoing_opt_in as (select *
 from hindiProfile
-where (hindiContentProfile = "inprocess") and hindi_level<>"4" and opted_in_status = "true" and lastsubject = "hindi")
+where (mathContentProfile = "inprocess") and math_level<>"4" and opted_in_status = "true" and lastsubject = "maths")
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
 from ${ref("IE_template_sent")}
-where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
+where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
 
 )
 
 , assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
-from ${ref("assessment_data")})
+from ${ref("assessment_data")}
+)
 
 ,whom_worksheet_should_go as (
 select distinct o.p_num,profile_updated_date,o.parentid,
@@ -87,5 +92,5 @@ group by 1
 )
 
 
-select * 
-from overall_worksheet_status
+select distinct *
+from overall_worksheet_status 
