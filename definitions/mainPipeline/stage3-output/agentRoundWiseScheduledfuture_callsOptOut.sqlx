@@ -10,7 +10,7 @@ with future_roster as (select distinct safe_cast(concat("91",AgentMobile) as int
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
-from `platform_commons.futureRoster`
+from `platform_commons.futureRoster` ---why still not changed to "$ reference?"
 where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) and date(CallDate) >= current_date("Asia/Kolkata") AND ProjectId <> 1102996 and AgentName <>"Aashish" 
 group by all)
 
@@ -18,14 +18,14 @@ group by all)
     select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round , count(distinct ParentId)overall_parents_scheduled_current_ay,
     If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
 from `platform_commons.futureRoster` f -- inner join here on user
-inner join `platform_commons.User` u
+inner join `platform_commons.User` u ---why still not changed to "$ reference?"
 on f.parentid=u.userid
 where date(ExtractionDate) >="2025-03-31"
 group by all
 )
 ,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round
-from `dataform.opted_out`o
-inner join `platform_commons.futureRoster` c
+from `dataform.opted_out`o ---why still not changed to "$ reference?"
+inner join `platform_commons.futureRoster` c ---why still not changed to "$ reference?"
 on o.parentid=c.parentid and date(last_opted_out) = calldate
 where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
 group by all)
@@ -33,7 +33,7 @@ group by all)
 
 -- with /
 ,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round, date(last_opted_out) opted_out_date
-from `dataform.opted_out`o
+from `dataform.opted_out`o ---why still not changed to "$ reference?"
 inner join `platform_commons.futureRoster` c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
 where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
@@ -42,8 +42,8 @@ where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(Extrac
     select distinct c.agentMobile,c.parentid,callingRound,
 count(distinct CallstartDatetime) overalltotalDials,
 count(distinct date(CallstartDatetime))overall_number_of_days_called
-from `dataform.called` c 
-inner join opt_out_parents o
+from `dataform.called` c  ---why still not changed to "$ reference?"
+inner join opt_out_parents o -----why still not changed to "$ reference?"
 on c.parentid = o.parentid and c.agentMobile = safe_cast(concat("91",o.agentMobile) as int64) 
 and c.callingRound= o.round 
 -- and opted_out_date=date(CallEndDatetime)

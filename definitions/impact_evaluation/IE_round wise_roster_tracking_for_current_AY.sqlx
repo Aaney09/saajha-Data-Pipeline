@@ -1,6 +1,6 @@
 config {
   type:"table",
-  tags: "daily_calls"
+  tags: "IE"
 }
 
 
@@ -146,7 +146,7 @@ left join dials
 using(rounds_since_april_2025)
 LEFT JOIN resolved
 using(rounds_since_april_2025)
-LEFT JOIN ${ref("roundwiseAssessment")}
+LEFT JOIN ${ref("IE_roundwiseAssessment")}
 using(rounds_since_april_2025)
 LEFT JOIN  roundwise_FLN_achieved
 using(rounds_since_april_2025)
