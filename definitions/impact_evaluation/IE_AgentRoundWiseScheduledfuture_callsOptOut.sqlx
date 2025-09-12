@@ -1,8 +1,7 @@
 
 config {
-
-    type: "table",
-    tags: "call_daily"
+     type: "table",
+    tags: "IE"
 }
  
 with future_roster as (select distinct safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round,
