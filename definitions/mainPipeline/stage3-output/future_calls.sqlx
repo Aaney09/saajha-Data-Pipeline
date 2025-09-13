@@ -3,6 +3,7 @@ config {
     tags: "call_daily"
 }
 select distinct AgentMobile,max(AgentName)AgentName,Round,
+If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards

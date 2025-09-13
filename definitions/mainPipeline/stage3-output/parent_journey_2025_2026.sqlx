@@ -119,11 +119,11 @@ using(assesseeActorid))
 all_opt_ins as (
   select distinct phone_number,min(firstopted_in_on_bau)firstopted_in_on
   from(select distinct phone_number,date(min(timestamp))firstopted_in_on_bau
-  from `opt_in_records.opt_in_users`
+  from ${ref("opt_in_records","opt_in_users")}
   group by 1
   union distinct
   select distinct phone_number,date(min(timestamp))firstopted_in_onPI,
-  from `process_improvement.opt_in_users`
+  from ${ref("process_improvement","opt_in_users")}
   group by 1)
   group by 1
   )
@@ -133,14 +133,14 @@ all_opt_ins as (
 opt_in as (
   select distinct rosterparentId,min(firstopted_in_on) as opted_in_on
   from all_opt_ins
-  inner join `dataform.allPhoneNumberWithPid`
+  inner join ${ref("allPhoneNumberWithPid")}
   on phone_number = number
   group by all
 )
 
 ,fln as (
 select parentid,childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
-from `dataform.FLNAchieved`
+from ${ref("FLNAchieved")}
 )
 ,
 firstAttemp as (select ParentId,
@@ -158,8 +158,8 @@ firstAttemp as (select ParentId,
   group by ParentId
 ),
 opted_out as (
-  select distinct parentId,last_opted_out as opted_out_on,opt_out_reason as opted_out_reason
-  from `dataform.opted_out`
+  select distinct parentId,date(OptedOutDateTime) as opted_out_on,null as opted_out_reason
+  from ${ref("opted_out_PC")}
 ),
 lastAssessed as  (
 
@@ -167,18 +167,21 @@ lastAssessed as  (
   alternateMObileNumber,parentMobileNumber as parentNumber,
   Projectid,parentname,childName,
   AgentName,
-  agentMobile as agentNumber
+  agentMobile as agentNumber,
+  If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+
   from ${ref("prelim")}
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
 )
 
 , schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId,
-If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
-from `platform_commons.IE`)
+-- If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
+from ${ref("IE")}
+)
 
 
 
-select assessmentDetails.*,schoolId.school_id,schoolId.project_name,
+select assessmentDetails.*,schoolId.school_id,
 la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
 opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
 if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,

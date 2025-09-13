@@ -7,8 +7,9 @@ config {
 
 
 with rosters as (select distinct ParentId,childId,Round roundoFCall, min(date(CallStartDateTime))callDate
-from `platform_commons.roster`
+from ${ref("roster")}
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+and projectid<> 1103912
 group by all )
 
 ,year_2024_25 as (
@@ -16,7 +17,9 @@ group by all )
   from rosters
 )
 ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
-from `platform_commons.roster`)
+from ${ref("roster")}
+where projectid<> 1103912
+)
 
 ,resolved as (select distinct * except(roundoFCall)
 from year_2024_25
@@ -48,16 +51,17 @@ If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 count(distinct ParentId)unique_scheduledParents,
   count(distinct if(CallStartDateTime is not null,parentid,null))uniqueParentsDialed,
   count(distinct CallStartDateTime)totalDials,
-from `platform_commons.roster` r -- inner join user
-inner join `platform_commons.User` u
+from ${ref("roster" )}r -- inner join user
+inner join ${ref("User")} u
 on r.parentid=u.userid
-where CallDate  between "2025-04-01" and "2026-03-31" and u.ProjectId<>1102996
+where CallDate  between "2025-04-01" and "2026-03-31" and r.ProjectId <> 1103912
 group by all)
 
 , agent_names as (
   select AgentMobile,max(AgentName)agent_name
-  from `platform_commons.roster`
-  group by 1
+  from ${ref("roster")}
+  where projectid<> 1103912
+    group by 1
 )
 
 select *
