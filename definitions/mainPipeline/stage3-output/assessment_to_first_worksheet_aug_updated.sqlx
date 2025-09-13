@@ -22,7 +22,7 @@ case when projectid=1103908 then 'Noida'
     when  projectid=1103912 then 'Impact Evaluation'
     else 'Delhi' end as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
-from `platform_commons.IE`
+from ${ref("IE")}
 )
 
 , assessments as (

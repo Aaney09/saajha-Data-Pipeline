@@ -10,8 +10,9 @@ config {
 
 
 select distinct OnBoardedUserId as parentid,
+--If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 from ${ref("valid_Assessed_2025_2026")}
-inner join `platform_commons.IE`
+inner join ${ref("IE")}
 on assesseeActorId = ieid
 where mathrounds>=3 and ProjectId<>1103908
 

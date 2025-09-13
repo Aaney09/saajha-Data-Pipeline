@@ -8,12 +8,15 @@ config {
 with incom as (  SELECT
     DATE(LastRequestDateTime) AS lastCallReceivedDate,
     AgentMobile,
-    COUNT(DISTINCT parentid)uniqueIncomingCalls,
+    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+    COUNT(DISTINCT parentid)as uniqueIncomingCalls,
+
   FROM
-    `platform_commons.incoming`
+    ${ref("incoming")}
   GROUP BY
     lastCallReceivedDate,
-    AgentMobile
+    AgentMobile,
+    project_name
     
   ORDER BY
     lastCallReceivedDate DESC)
@@ -22,27 +25,31 @@ with incom as (  SELECT
   SELECT
     DATE(CallStartDateTime)CallDate,
     AgentMobile,
+    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
     COUNT(parentid)totalDials,
     COUNT(DISTINCT parentid)uniqueDial,
     count(distinct if(FeedbackType like "%RESOLVED%",parentid,NULL)) totalResolvedCalls
   FROM
-    `platform_commons.incoming`
+    ${ref("incoming")}
     where CallStartDateTime is not null
-    group by CallDate,AgentMobile
+    group by CallDate,AgentMobile,project_name
 )
 
 , agent_names as (
-  select AgentMobile,max(AgentName)agent_name
-  from `platform_commons.incoming`
-  group by 1
+  select AgentMobile,    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+  max(AgentName)agent_name,
+  
+  from ${ref("incoming")}
+  group by 1,2
 )
 
 
 select incom.*,Incom_out.totalDials,Incom_out.uniqueDial,incom_out.totalResolvedCalls,agent_name
 from incom
 left join agent_names n
-using(agentMobile)
+using(agentMobile,project_name)
 left join incom_out
 on incom.agentMobile = Incom_out.agentMobile and incom.lastCallReceivedDate = Incom_out.CallDate
+and incom.project_name=incom_out.project_name
 where incom.lastCallReceivedDate between "2025-04-01" and "2026-03-31"
 order by incom.lastCallReceivedDate desc
