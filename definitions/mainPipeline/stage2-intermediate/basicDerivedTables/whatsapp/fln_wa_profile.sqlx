@@ -19,7 +19,7 @@ select distinct
     datetime_add(updated_at,interval 330 minute)last_profile_update_on,
     details as last_profile_meta_data,
 
-   from  ${ref("912250555658","contacts")}  
-   where date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
+   from  ${ref("912250555658_contacts")}  
+--    where date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 --    where safe_Cast(json_value(details,"$.opted_in") as Bool )=True
-   qualify (row_number() over(partition by urn order by updated_at desc))=1 
+   qualify (row_number() over(partition by urn order by datetime_add(updated_at, Interval 330 minute) desc))=1 
