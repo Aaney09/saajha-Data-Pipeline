@@ -20,4 +20,4 @@ select distinct
    from  ${ref("Archive","911171279787_contacts")}  
 
 --    where safe_Cast(json_value(details,"$.opted_in") as Bool )=True
-   qualify (row_number() over(partition by urn order by updated_at desc))=1 
+   qualify (row_number() over(partition by urn order by datetime_add(updated_at, Interval 330 minute) desc))=1 
