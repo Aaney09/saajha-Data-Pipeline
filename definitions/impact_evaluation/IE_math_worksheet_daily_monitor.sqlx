@@ -4,7 +4,7 @@ config {
 }
 
 
-with hindiProfile as (
+with mathProfile as (
   SELECT distinct 
     safe_cast(trim(urn, '+') as int64) as p_num, 
     safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
@@ -26,8 +26,11 @@ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interva
 )	
 
 ,ongoing_opt_in as (select *
-from hindiProfile
-where (mathContentProfile = "inprocess") and math_level<>"4" and opted_in_status = "true" and lastsubject = "maths")
+from mathProfile
+where (mathContentProfile = "inprocess") and math_level<>"4" and opted_in_status = "true" and lastsubject = "maths" 
+AND
+date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
+)
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
@@ -53,7 +56,7 @@ where a.parentid is null)
 from ongoing_opt_in o
 inner join assessment a
 on o.parentid = a.parentid and o.profile_updated_date= a.date_assessment
-where lasthindiWorksheetSentOn<assessmentDate
+where lastmathsWorksheetSentOn<assessmentDate
 )
 
 ,whom_worksheet_should_go_overall as (
@@ -94,3 +97,5 @@ group by 1
 
 select distinct *
 from overall_worksheet_status 
+-- order by p_num,updated_at_ist
+order by 1 desc

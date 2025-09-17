@@ -15,6 +15,8 @@ with hindiProfile as (
     datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
     date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
     json_value(details, "$.hindilevel")hindi_level,
+    if(json_value(details, "$.lastmathworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
 FROM ${ref("911171817034_contacts")}  		
@@ -23,7 +25,10 @@ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interva
 
 ,ongoing_opt_in as (select *
 from hindiProfile
-where (hindiContentProfile = "inprocess") and hindi_level<>"4" and opted_in_status = "true" and lastsubject = "hindi")
+where (hindiContentProfile = "inprocess") and hindi_level<>"4" and opted_in_status = "true" and lastsubject = "hindi"
+AND
+date_diff(profile_updated_date,date(lastmathsWorksheetSentOn),day)=1
+)
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
