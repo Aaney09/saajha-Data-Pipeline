@@ -33,7 +33,7 @@ replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].param
 from ${ref("template-sent")}
 
 where 
-template_name in("hfln_video_template_v2","hfln_worksheet_v6") and phone_number not in(918888727876
+template_name in("hfln_video_template_v2") and phone_number not in(918888727876
 ,919971478794,918527647594,919915539829)
 -- and template_meta_data not like "%eOn:%"
 
