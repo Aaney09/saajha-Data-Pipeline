@@ -37,7 +37,7 @@ from ${ref("template-sent")}
 
 
 where 
-template_name in("hfln_worksheet_","hfln_worksheet_v4") and phone_number not in(918888727876
+template_name in("hfln_worksheet_") and phone_number not in(918888727876
 ,919971478794,918527647594,919915539829)
 
 -- and last_message_status <> "failed"
