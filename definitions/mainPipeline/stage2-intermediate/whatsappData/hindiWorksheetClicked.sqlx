@@ -9,10 +9,10 @@ config {
     link_clicked,
     datetime(time)clicked_time,
     content_id,
-    SAFE_CAST(regexp_extract(regexp_extract(content_id,'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64)
+    SAFE_CAST(regexp_extract(content_id,r'[Ll](?:evel)?([0-4])') as int64)
      LevelNumber,
-    SAFE_CAST(regexp_extract(regexp_extract(content_id,'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
-    SAFE_CAST(regexp_extract(regexp_extract(content_id,'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+    SAFE_CAST(regexp_extract(content_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(content_id,r'M([0-9]+)') as int64) monthNumber,
     maths_assessment,
     hindi_assessment,
     maths_assessment_date,
@@ -25,8 +25,8 @@ config {
     `redirector.FLN_links`
   WHERE
     SAFE_CAST(RIGHT(phone_number,12) AS int64) IS NOT NULL
-    AND content_id LIKE "%hindiL%" 
-    AND content_id LIKE "%Worksheet%"
+    AND lower(content_id) LIKE "%hindi%" 
+    AND lower(content_id) LIKE "%worksheet%"
     and SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
   ORDER BY
     worksheetNumber ASC

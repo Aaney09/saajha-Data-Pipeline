@@ -5,7 +5,7 @@ config {
 
 with worksheet as (
     select s.*,c.clicked_time,co.submitted_time
- from `dataform.mathWorksheetSent` s
+ from ${ref("IE_math_worksheet_sent")} s
 left join
 `dataform.mathWorksheetClicked` c
 on s.childid = c.childid and s.math_assessment_date = c.maths_assessment_date and s.LevelNumber = c.LevelNumber and s.worksheetNumber= c.worksheetNumber
