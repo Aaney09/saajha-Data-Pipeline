@@ -5,13 +5,19 @@ config {
 
 
 
-with futureRosters as (select distinct Round,parentid,childid,max(calldate)last_call_scheduled_date,
-If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+with futureRosters as (
+  select distinct 
+      Round,
+      parentid,
+      childid,
+      cohort,
+      max(calldate)last_call_scheduled_date,
+-- If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
 from ${ref("platform_commons","futureRoster")} fr -- inner join on user for project id and pick from it
-inner join ${ref("platform_commons","User")} u
-on fr.parentid=u.userid
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
 where calldate >="2025-04-01" 
-and u.ProjectId=1103912
+
 --and agentMobile in (9871916227,7303046353,8384058841)
 group by all
 
@@ -21,16 +27,16 @@ group by all
 --  select distinct Round,parentid,childid 
 --  from futureRosters
 -- )
-,rounds as (select project_name, Round as overall_round,parentid,childid,row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
+,rounds as (select Cohort, Round as overall_round,parentid,childid,row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
 from futureRosters
 )
 
-,schedules as (select project_name,rounds_since_april_2025,count(distinct childid)unique_childid_scheduled, count(distinct parentid)unique_parentid_scheduled, 
+,schedules as (select cohort,rounds_since_april_2025,count(distinct childid)unique_childid_scheduled, count(distinct parentid)unique_parentid_scheduled, 
 from rounds
 group by 1,2)
 
 ,opted_out as (
-  select distinct round,childid,parentid,last_call_scheduled_date,
+  select distinct cohort,round,childid,parentid,last_call_scheduled_date,
   if(date(last_opted_out)=last_call_scheduled_date, 1,0)opted_out_status,
   -- parentid,o.childid,last_opted_out
   from  futureRosters
@@ -43,23 +49,23 @@ group by 1,2)
 -- order by parentid,last_call_scheduled_date
 
 ,roundwise_opted_out_raw as (
-  select distinct round,opted_out,childid,parentid,opted_out_status,
+  select distinct cohort,round,opted_out,childid,parentid,opted_out_status,
   row_number() over( partition by  childid,parentid order by ROund)rounds_since_april_2025
   from opted_out
 )
 
 
 ,roundwise_opted_out as (
-  select rounds_since_april_2025,
+  select cohort,rounds_since_april_2025,
   count(distinct if(opted_out_status= 1, childId,null)) childid_opted_out,count(distinct if(opted_out_status= 1, parentid,null))parentid_opted_out,
   from roundwise_opted_out_raw
-  group by 1
+  group by all
 
 )
 
 
 ,support_Terminated as (
-  select distinct Round,parentid,fr.childid,if(date(FLNAchievedDate)=last_call_scheduled_date, 1,0)support_terminated_status,FLNAchievedDate as support_terminated_on,fr.last_call_scheduled_date
+  select distinct cohort,Round,parentid,fr.childid,if(date(FLNAchievedDate)=last_call_scheduled_date, 1,0)support_terminated_status,FLNAchievedDate as support_terminated_on,fr.last_call_scheduled_date
   from futureRosters fr
   left JOIN 
   `platform_commons.IE` 
@@ -68,19 +74,20 @@ group by 1,2)
 )
 
 ,roundwise_support_Terminated_raw as (
-  select distinct round,parentid,childid,support_terminated_status,
+  select distinct cohort,round,parentid,childid,support_terminated_status,
   row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
   from support_Terminated
 )
 ,roundwise_support_Terminated as (
-  select rounds_since_april_2025,
+  select cohort,rounds_since_april_2025,
   count(distinct if(support_terminated_status=1,childId,null)) childid_support_terminated,count(distinct if(support_terminated_status=1,parentid,null))parentid_support_terminated,
   from roundwise_support_terminated_raw
-  group by 1
+  group by all
 )
 
 ,FLN_achieved as (
-  select distinct Round,parentid,fr.childid,if(date(FLNAchievedDate)=last_call_scheduled_date, 1,0)fln_achieved_status
+  select distinct cohort,Round,parentid,fr.childid,
+  if(date(FLNAchievedDate)=last_call_scheduled_date, 1,0)fln_achieved_status
   from futureRosters fr
   left JOIN 
   `platform_commons.IE` 
@@ -90,20 +97,22 @@ group by 1,2)
 
 )
 ,roundwise_FLN_achieved_raw as (
-  select distinct round,parentid,childid,fln_achieved_status,
+  select distinct round,parentid,childid,fln_achieved_status,cohort,
   row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
   from FLN_achieved
 )
 ,roundwise_FLN_achieved as (
-  select rounds_since_april_2025,
+  select cohort,rounds_since_april_2025,
   count(distinct if(fln_achieved_status = 1,childId,null)) childid_FLN_achieved,count(distinct if(fln_achieved_status=1, parentid,null))parentid_FLN_achieved,
   from roundwise_FLN_achieved_raw
-  group by 1
+  group by all
 )
-,resolves as (select distinct ParentId,childId,Round,
+,resolves as (select distinct ParentId,childId,Round,cohort
 from ${ref("roster")}
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
-and ProjectId=1103912
+-- and ProjectId=1103912
 --and agentMobile in (9555489577,7303046353,9582377226)
 )
 
@@ -114,15 +123,17 @@ and ProjectId=1103912
 -- ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
 -- from `platform_commons.roster`)
 
-,resolved as (select distinct rounds_since_april_2025,count(distinct parentid)resolved_parent,count(distinct childid)resolved_child,
+,resolved as (select distinct cohort,rounds_since_april_2025,count(distinct parentid)resolved_parent,count(distinct childid)resolved_child,
 from year_2025_26_resolved
-group by 1
+group by all
 )
 
-,dialed as (select distinct ParentId,childId,Round,
+,dialed as (select distinct ParentId,childId,Round,cohort,
 from ${ref("roster")}
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
 where date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
-and ProjectId=1103912
+-- and ProjectId=1103912
 --and agentMobile in (9555489577,7303046353,9582377226)
 )
 
@@ -133,27 +144,27 @@ and ProjectId=1103912
 -- ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
 -- from `platform_commons.roster`)
 
-,dials as (select distinct rounds_since_april_2025,count(distinct parentid)dialed_parent,count(distinct childid)dialed_child,
+,dials as (select distinct cohort,rounds_since_april_2025,count(distinct parentid)dialed_parent,count(distinct childid)dialed_child,
 from year_2025_26_dialed
-group by 1 
+group by all
 )
 
-select distinct project_name,rounds_since_april_2025, 
+select distinct cohort,rounds_since_april_2025, 
 unique_childid_scheduled,unique_parentid_scheduled,dialed_parent,resolved_parent,resolved_child,totalParentsAssessed,totalChildrenAssessed,
 childid_opted_out,parentid_opted_out,childid_support_terminated,parentid_support_terminated,childid_FLN_achieved,parentid_FLN_achieved
 from schedules 
 left join dials
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 LEFT JOIN resolved
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 LEFT JOIN ${ref("IE_roundwiseAssessment")}
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 LEFT JOIN  roundwise_FLN_achieved
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 left join roundwise_opted_out 
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 left join roundwise_support_Terminated 
-using(rounds_since_april_2025)
+using(rounds_since_april_2025,cohort)
 
 
 

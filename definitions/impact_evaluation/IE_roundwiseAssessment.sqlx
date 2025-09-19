@@ -4,12 +4,14 @@ config {
 }
 
 
-with hindiAss as (select distinct childId,date(assessmentDate)hindiAssessDate,parentId,agentMobile,agentName
+with hindiAss as (select distinct cohort,childId,date(assessmentDate)hindiAssessDate,parentId,agentMobile,agentName
 from ${ref("assessment_data")}
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
 where lower(assessmentName) like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
 
 ,
-hindiDates  as(select distinct childId,hindiAssessDate,parentId,agentMobile,agentName,
+hindiDates  as(select distinct cohort,childId,hindiAssessDate,parentId,agentMobile,agentName,
 lag(date(hindiAssessDate)) over (partition by childId order by hindiAssessDate asc)hindiLagDate,
 from 
 hindiAss
@@ -21,6 +23,7 @@ from hindiDates
 where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0)
 
 UNION ALL
+
 (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,
 from hindiDates
 where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))>=25)
@@ -31,13 +34,15 @@ from hindiData
 order by childId asc,hindirounds asc)
 
 
-, mathAss as (select distinct childId,date(assessmentDate)mathAssessDate,parentId,agentMobile,agentName
+, mathAss as (select distinct cohort,childId,date(assessmentDate)mathAssessDate,parentId,agentMobile,agentName
 
 from ${ref("assessment_data")}
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
 where lower(assessmentName) not like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
 
 , mathDates as
-(select distinct childId,mathAssessDate,parentId,agentMobile,agentName,
+(select distinct cohort,childId,mathAssessDate,parentId,agentMobile,agentName,
 lag(date(mathAssessDate)) over (partition by childId order by mathAssessDate asc)mathLagDate,
 
 from
@@ -60,13 +65,14 @@ from mathData
 order by childId asc,mathrounds asc)
 
 
-, hindiMath as (select md.*, hd.*Except(childId,parentid,agentMobile,agentName)
+, hindiMath as (select md.*, hd.*Except(childId,parentid,agentMobile,agentName,cohort)
 from hindi hd
 inner join
 math md
 on md.childId = hd.childId
 and md.mathrounds = hd.hindirounds
 and md.agentMobile = hd.agentMobile
+and md.cohort = hd.cohort
 )
 ,
 -- opt_in as (
@@ -90,7 +96,7 @@ opted_out as (
 )
 
 
-select hindirounds as rounds_since_april_2025,
+select cohort, hindirounds as rounds_since_april_2025,
 --  distinct hindiAssessDate as date,agentMobile,agentName,
 -- count(distinct if(o.parentId is not null,o.parentId,Null))opted_out,
 -- count(distinct if(oi.rosterparentId is not null,oi.rosterparentId,Null))opted_in,
@@ -122,4 +128,4 @@ on hm.parentId = o.parentid
 where hindiAssessDate < current_date("Asia/Kolkata") 
 -- >>>>>>> refs/heads/main
 group by all
-order by 1 desc
+order by 2 desc
