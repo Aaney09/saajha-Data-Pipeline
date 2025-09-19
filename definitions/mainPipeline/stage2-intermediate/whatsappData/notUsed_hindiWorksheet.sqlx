@@ -1,0 +1,356 @@
+config {
+    type : "table",
+    tags: "not_used"
+    }
+
+
+with  component1 as ( 
+    select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[2],"=")[1] link,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+-- 
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+null as  monthNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+
+FROM
+   ${ref("template-sent")}
+  where 
+  ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
+  and template_name  = "hfln_comic_2_with_button"
+-- and last_message_status <> "failed"
+
+)
+
+,array_3_assessment_and_month_media as (
+  select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[2],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+
+null as  monthNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+
+
+FROM
+   ${ref("template-sent")}
+  where 
+  ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
+  and template_name  = "hfln_comic_2_with_button"
+--   and last_message_status <> "failed"
+
+)
+,array_5_assessment_and_month_media as (
+  select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+    SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[3],"=")[1] hindi_assessment_name,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+  FROM
+     ${ref("template-sent")}
+    where 
+    ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
+    and template_name  = "hfln_comic_2_with_button"
+    -- and last_message_status <> "failed"
+
+)
+,newHindiWorksheetFLowWithVideo as (
+select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+ifnull(safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64),1) monthNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[3],"=")[1] hindi_assessment_name,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+  FROM
+    ${ref("template-sent")}
+   where template_name = "hfln_worksheet_with_video"
+--    and last_message_status <> "failed"
+
+)
+
+,component2 as (
+    select *
+    from newHindiWorksheetFLowWithVideo
+    union distinct
+    select*
+    from array_3_assessment_and_month_media
+    union distinct
+    select *
+    from array_5_assessment_and_month_media
+) ,
+
+level0component1 as (select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'), "&")[2],"=")[1] link,
+-- -- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+-- --     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+null as  monthNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+
+FROM ${ref("template-sent")}
+where template_name = "hfln_comic_2_with_link_and_button_level0" 
+and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),"&"))) =3
+-- and last_message_status <> "failed"
+)
+
+
+, level0compontent2_array_len_5 as (
+  -- hfln_comic_2_with_link_and_button_level0
+
+select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] hindi_assessment_name,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+
+
+  FROM ${ref("template-sent")}
+  where template_name = "hfln_comic_2_with_link_and_button_level0" 
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =5
+--   and last_message_status <> "failed"
+)
+, level0component2_array_len_3 as (
+  select 
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[2],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+null as  monthNumber,
+safe_cast(null as string) mathAssessmentname,
+safe_cast(null as string) hindiAssessmentName,
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date,
+
+
+  FROM ${ref("template-sent")}
+  where template_name = "hfln_comic_2_with_link_and_button_level0" 
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) =3
+--   and last_message_status <> "failed"
+)
+, level0 as (
+    select *
+from level0component1 
+union distinct
+select * 
+from level0component2_array_len_3
+union distinct
+select *
+from level0compontent2_array_len_5
+)
+
+, hindiFLNContentV3_level2and3 as (
+    select
+distinct phone_number,id,chat_id,template_name,sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'), "&")[4],"=")[1] link,
+-- SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[1],"=")[1] content_id,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")[3],"=")[1] hindi_assessment_name,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[2],"=")[1],'[0-9]+') as int64 )as mathAssessmentNumber,
+-- safe_cast(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+--     "&")[3],"=")[1],'[0-9]+') as int64 ) as hindiAssessmentNumber
+datetime(null) as hindi_assessment_date,
+datetime(null) as math_assessment_date
+FROM
+  ${ref("template-sent")}
+  where 
+  template_name  = "hfln_worksheet_v3"
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=5
+--   and last_message_status <> "failed"
+)
+
+,v4HindiRedirector_with_dateTime as (
+select distinct
+phone_number,id,chat_id,template_name,
+sent_at,
+last_message_status,
+error_code,
+error_reason,
+ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&"))) lengthOfSplitedArray,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(W[a-zA-Z]+[0-9]+)'),'([0-9]+)') as int64) worksheetNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'(h[a-zA-Z]+[0-4])'),'([0-4])') as int64) LevelNumber,
+safe_cast(regexp_extract(regexp_extract(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[1],"=")[1],'([M][0-9]+)'),'([0-9]+)') as int64) monthNumber,
+        SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[2],"=")[1] math_assessment_name,
+SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[3],"=")[1] hindi_assessment_name,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),","," ")))math_assessment_date ,
+datetime(parse_datetime("%d %b %Y %I:%M %p",replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),","," ")))hindi_assessment_date ,
+
+FROM
+   ${ref("template-sent")}
+where 
+template_name in ("hfln_comic_2_with_button"
+ ,"hfln_worksheet_with_video"
+, "hfln_worksheet_v3")
+  and ARRAY_LENGTH((SPLIT(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),"&")))=7
+  and last_message_status <> "failed"
+  and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[5],"=")[1],"%20"," "),",","")  != ""
+  and replace(replace(SPLIT(split(JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text'),
+    "&")[4],"=")[1],"%20"," "),",","")  != ""
+--   and last_message_status <> "failed"
+
+) 
+,aug_2024_version as (
+    select *
+    from ${ref("hindiworksheetAUG24Version")}
+)
+
+,may_2025_version as (
+    select *
+    from ${ref("hindi_worksheet_may_2025")}
+    
+)
+
+select *
+from ${ref("hindi_worksheet_utility_july_2025")}
+union distinct 
+select * 
+from may_2025_version
+UNION distinct 
+select *,null,null,null,null,null
+from v4HindiRedirector_with_dateTime
+where phone_number not in (918527647594,919915539829)
+union distinct
+select *,null,null,null,null,null
+from hindiFLNContentV3_level2and3
+where phone_number not in (918527647594,919915539829)
+union distinct
+SELECT *,null,null,null,null,null
+FROM component1
+where phone_number not in (918527647594,919915539829)
+UNION distinct 
+SELECT * ,null,null,null,null,null
+FROM component2
+where phone_number not in (918527647594,919915539829)
+UNion distinct
+select *,null,null,null,null,null
+from level0
+where phone_number not in (918527647594,919915539829)
+UNION distinct 
+select *,null,null,null,null,null
+from aug_2024_version
+UNION distinct 
+select *,null,null,null,null,null
+from ${ref("mtp_v2_hindi")}
+union distinct
+select *,null,null,null,null,null
+from ${ref("hindi_mtp_utility_20Feb2025")} 
+where phone_number not in (918527647594,919915539829)
+
+
+
+
