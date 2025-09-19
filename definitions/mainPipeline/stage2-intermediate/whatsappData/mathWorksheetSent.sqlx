@@ -1,36 +1,98 @@
 config {
-    type:"table",
+    type : "table",
     tags: "wa_daily"
     }
+WITH base AS (
+  SELECT
+    phone_number,
+    id,
+    chat_id,
+    template_name,
+    sent_at,
+    last_message_status,
+    error_code,
+    error_reason,
+    saajha_whatsapp_number,
+    uuid,
+    -- Extract full param string once
+    JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text') AS param_text
+  FROM ${ref("template-sent")}
+  WHERE template_name in("mfln_worksheet_v2",
+  "rmfln_not_completed","mfln_worksheet_v2",
+  "rmfln_not_completed",
+  "mfln_worksheet_v2_mtp_v2",
+  "mfln_worksheet_mtp_utility",
+  "fln_math_worksheet_v1")
+OR  template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" 
+or lower(template_name) like "%rmfln%"
 
-Select *
-from ${ref("math_worksheet_utility_july_2025")}
-union distinct
-select *
-from ${ref("mathWorksheetJan2025ChildId")}
-UNION distinct 
-select *,null,null,null,null,null
-from ${ref("mathMediaWorksheetSent")}
-where phone_number not in (918527647594,919915539829)
-UNION DISTINCT
-select *,null,null,null,null,null
-from ${ref("mathNoMediaWorksheetSent")}
-where phone_number not in (918527647594,919915539829)
-union distinct
-select *,null,null,null,null,null
-from ${ref("math_aug_2024_version")}
-where phone_number not in (918527647594,919915539829)
-union distinct
-select *,null,null,null,null,null
-from ${ref("mathWorksheet29thNov")}
-where phone_number not in (918527647594,919915539829)
-union distinct
-select *,null,null,null,null,null
-from ${ref("mtp_v2_math")}
-where phone_number not in (918527647594,919915539829)
-union distinct
-select *,null,null,null,null,null
-from ${ref("math_mtp_utility_20Feb2025")}
-where phone_number not in (918527647594,919915539829)
+),
+
+-- Split param string into array
+parts AS (
+  SELECT
+    b.*,
+    SPLIT(param_text,"&") AS arr
+  FROM base b
+),
+
+-- Convert array into key/value map (so we avoid multiple SPLITs later)
+kv AS (
+  SELECT
+    p.*,
+    ARRAY_LENGTH(arr) AS lengthOfSplitedArray,
+    (SELECT AS STRUCT
+    SPLIT(arr[SAFE_OFFSET(1)],"=")[SAFE_OFFSET(1)] AS worksheet_id,
+    SPLIT(arr[SAFE_OFFSET(2)],"=")[SAFE_OFFSET(1)] AS math_assessment_name,
+    SPLIT(arr[SAFE_OFFSET(3)],"=")[SAFE_OFFSET(1)] AS hindi_assessment_name,
+    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(4)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_math_date,
+    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(5)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_hindi_date,
+    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)] END AS parentid,
+    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(7)],"=")[SAFE_OFFSET(1)] END AS childid,
+    CASE 
+      WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(8)],"=")[SAFE_OFFSET(1)]
+      WHEN ARRAY_LENGTH(arr) = 7 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)]
+    END AS worksheet_link
+) AS kv_struct
+
+  FROM parts p
+),
+
+final AS (
+  SELECT
+    phone_number, id, chat_id, template_name, sent_at,
+    last_message_status, error_code, error_reason,
+    lengthOfSplitedArray,
+    kv_struct.worksheet_id,
+    SAFE_CAST(REGEXP_EXTRACT(kv_struct.worksheet_id, r'(?i)W[a-z]+([0-9]+)') AS INT64) AS worksheetNumber,
+    SAFE_CAST(REGEXP_EXTRACT(kv_struct.worksheet_id, r'(?i)L(?:evel)?([0-4])') AS INT64) AS LevelNumber,
+    SAFE_CAST(REGEXP_EXTRACT(kv_struct.worksheet_id, r'(?i)M([0-9]+)') AS INT64) AS monthNumber,
+
+    kv_struct.math_assessment_name,
+    kv_struct.hindi_assessment_name,
+
+    COALESCE(
+      SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p', kv_struct.raw_math_date),
+      SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p', kv_struct.raw_math_date),
+      SAFE.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', kv_struct.raw_math_date)
+    ) AS math_assessment_date,
+
+    COALESCE(
+      SAFE.PARSE_DATETIME('%d %b %Y, %I:%M %p', kv_struct.raw_hindi_date),
+      SAFE.PARSE_DATETIME('%d %b %Y %I:%M %p', kv_struct.raw_hindi_date),
+      SAFE.PARSE_DATETIME('%m/%d/%Y %H:%M:%S', kv_struct.raw_hindi_date)
+    ) AS hindi_assessment_date,
+
+    SAFE_CAST(kv_struct.parentid AS INT64) AS parentid,
+    SAFE_CAST(kv_struct.childid AS INT64) AS childid,
+    kv_struct.worksheet_link,
+    saajha_whatsapp_number,
+    uuid
+  FROM kv
+  -- WHERE lengthOfSplitedArray >=7
+)
+
+SELECT DISTINCT *
+FROM final
 
 
