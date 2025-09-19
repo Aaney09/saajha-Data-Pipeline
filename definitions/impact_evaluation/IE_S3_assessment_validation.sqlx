@@ -1,0 +1,100 @@
+
+
+config {
+    type: "view",
+    tags: ["IE"],
+    description: "used for validating the assessments"
+}
+
+
+
+with hindiAss as (
+    select distinct 
+            AssesseeActorId,
+            date(AssessmentTakenOn)hindiAssessDate,
+                if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,
+                safe_cast(agentMobile as int64)agentMobile,
+                agentName,
+                cohort,
+                parentid,
+                
+    from ${ref("assessment")}
+    Inner join ${ref("impact_evaluation_main_data")}
+    on assesseeActorID = childid
+    where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+    qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
+
+,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from hindiAss
+)
+
+,
+hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25
+)
+
+
+, mathAss as (
+select 
+    distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
+    if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,
+    safe_cast(agentMobile as int64)agentMobile,AgentName,cohort,parentid
+    
+from ${ref("assessment")}
+Inner join ${ref("impact_evaluation_main_data")}
+on assesseeActorID = childid
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,mathLevel,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from
+mathAss
+)
+
+, mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=25)
+
+
+
+, hindiMathBothSubjectAssessed as (select md.*, hd.*Except(assesseeActorId)
+from hindiData hd
+inner join
+mathData md
+on md.assesseeActorId = hd.assesseeactorId
+and md.mathrounds = hd.hindirounds
+)
+
+,dials as (select cohort,DATE(CallStartDateTime)calledDate,r.AgentMobile,childid,parentId
+
+from ${ref("called" )}r -- inner join user
+Inner join ${ref("impact_evaluation_main_data")}
+using(parentid,childid)
+where CallstartDatetime < CallEndDatetime
+)
+
+,assessed as (SELECT h.* except(hindiAssessDate) ,ifnull(hindiAssessDate,mathAssessDate) as dateOfAssessment,m.mathLevel,if(mathLevel is not null,True,False) as math_assessed,
+if(hindiLevel is not null,True,False) as hindi_assessed
+FROM 
+   MathAss m
+full outer join 
+ hindiAss  h
+on  
+    h.assesseeActorId = m.assesseeActorID
+and 
+    h.hindiAssessDate = m.mathAssessDate)
+
+select distinct a.*,
+if(calledDate is not null, True,False)CalledOnSameDay
+from assessed a
+left join dials d
+on a.dateOfAssessment= d.calledDate
+and a.parentId= d.parentId
+and a.assesseeActorId = d.childid 
+and a.agentMobile = d.AgentMobile

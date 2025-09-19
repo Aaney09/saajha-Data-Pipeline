@@ -14,11 +14,11 @@ INSERT INTO ${ref("911171279787_contacts")}
 -- `saajhadata.Archive.911171279787_contacts`
 SELECT *
 FROM ${ref("911171279787","contacts")}
-where datetime_add(updated_at, INTERVAL 330 minute) < current_date("Asia/Kolkata");
+where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
 -- Step 2: Delete from main/metadata table
 DELETE FROM ${ref("911171279787","contacts")}
-where datetime_add(updated_at, INTERVAL 330 minute) < current_date("Asia/Kolkata");
+where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
 COMMIT TRANSACTION;
 
