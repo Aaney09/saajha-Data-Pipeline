@@ -3,6 +3,7 @@
 config {
     type: "view",
     tags: ["IE"],
+    description: "used for validating the assessments"
 }
 
 
