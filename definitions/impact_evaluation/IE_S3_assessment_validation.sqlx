@@ -13,7 +13,7 @@ with hindiAss as (
             AssesseeActorId,
             date(AssessmentTakenOn)hindiAssessDate,
                 if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,
-                safe_cast(agentMobile as int64)agentMobile,
+                safe_cast(concat("91",agentMobile) as int64)agentMobile,
                 agentName,
                 cohort,
                 parentid,
@@ -41,7 +41,8 @@ where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDa
 select 
     distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
     if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,
-    safe_cast(agentMobile as int64)agentMobile,AgentName,cohort,parentid
+    safe_cast(concat("91",agentMobile) as int64)agentMobile,
+    AgentName,cohort,parentid
     
 from ${ref("assessment")}
 Inner join ${ref("impact_evaluation_main_data")}
