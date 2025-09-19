@@ -80,8 +80,17 @@ using(parentid,childid)
 where CallstartDatetime < CallEndDatetime
 )
 
-,assessed as (SELECT h.* except(hindiAssessDate) ,ifnull(hindiAssessDate,mathAssessDate) as dateOfAssessment,m.mathLevel,if(mathLevel is not null,True,False) as math_assessed,
-if(hindiLevel is not null,True,False) as hindi_assessed
+,assessed as (SELECT distinct 
+COALESCE(h.assesseeActorId,m.assesseeActorId) as AssesseeActorId,
+COALESCE(h.parentid,m.parentid) as parentid,
+COALESCE(h.agentMobile,m.agentMobile) as agentMobile,
+COALESCE(hindiAssessDate,mathAssessDate) as dateOfAssessment,
+COALESCE(h.agentName,m.agentName) as agentName,
+COALESCE(h.cohort,m.cohort) as cohort,
+hindiLevel,
+m.mathLevel,
+if(mathAssessDate is not null,True,False) as math_assessed,
+if(hindiAssessDate is not null,True,False) as hindi_assessed
 FROM 
    MathAss m
 full outer join 
