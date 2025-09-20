@@ -18,8 +18,8 @@ group by all )
   select distinct *, row_number()over(partition by parentid,childid order by roundOfCall Asc) as callrounds
   from rosters
 )
-,agents as (select distinct cohort,parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
-from ${ref("roster")}
+,agents as (select distinct cohort,parentid,childId,r.AgentMobile,round roundoFCall,r.AgentName,date(CallStartDateTime)callDate
+from ${ref("roster")}r
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 -- where projectid=1103912
@@ -50,7 +50,7 @@ using(parentid,childid,calldate,roundoFCall,cohort))
 from resolved
 group by all)
 
-,dials as (select cohort,CallDate,AgentMobile,
+,dials as (select cohort,CallDate,r.AgentMobile,
 -- If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 count(distinct ParentId)unique_scheduledParents,
   count(distinct if(CallStartDateTime is not null,parentid,null))uniqueParentsDialed,

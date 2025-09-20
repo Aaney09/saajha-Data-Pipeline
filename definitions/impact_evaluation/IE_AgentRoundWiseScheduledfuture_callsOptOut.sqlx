@@ -4,20 +4,20 @@ config {
     tags: "IE"
 }
  
-with future_roster as (select distinct safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round,cohort,
+with future_roster as (select distinct safe_cast(concat("91",fr.AgentMobile) as int64)agentMobile,Round,cohort,
 -- max(AgentName)agentName,
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
-from ${ref("futureRoster")}
-Inner join ${ref("impact_evaluation_main_data")}
+from ${ref("futureRoster")} fr
+Inner join ${ref("impact_evaluation_main_data")} m
 using(parentid,childid)
 where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) and date(CallDate) >= current_date("Asia/Kolkata") 
 
 group by all)
 
 ,scheduled as (
-    select safe_cast(concat("91",AgentMobile) as int64)agentMobile, max(AgentName)agentName,Round,cohort , count(distinct ParentId)overall_parents_scheduled_current_ay,
+    select safe_cast(concat("91",f.AgentMobile) as int64)agentMobile, max(f.AgentName)agentName,Round,cohort , count(distinct ParentId)overall_parents_scheduled_current_ay,
     -- If(u.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
 from ${ref("futureRoster")} f -- inner join here on user
 Inner join ${ref("impact_evaluation_main_data")}
@@ -25,7 +25,7 @@ using(parentid,childid)
 where date(ExtractionDate) >="2025-03-31"
 group by all
 )
-,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",AgentMobile) as int64)agentMobile,Round
+,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",c.AgentMobile) as int64)agentMobile,Round
 from ${ref("opted_out")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
@@ -38,7 +38,7 @@ group by all)
 
 
 -- with /
-,opt_out_parents as (select distinct o.parentId,agentMobile,agentName,round, date(last_opted_out) opted_out_date
+,opt_out_parents as (select distinct o.parentId,c.agentMobile,c.agentName,round, date(last_opted_out) opted_out_date
 from ${ref("opted_out")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)

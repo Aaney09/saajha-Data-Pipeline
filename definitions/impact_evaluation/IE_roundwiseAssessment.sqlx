@@ -4,8 +4,8 @@ config {
 }
 
 
-with hindiAss as (select distinct cohort,childId,date(assessmentDate)hindiAssessDate,parentId,agentMobile,agentName
-from ${ref("assessment_data")}
+with hindiAss as (select distinct cohort,childId,date(assessmentDate)hindiAssessDate,parentId,f.agentMobile,f.agentName
+from ${ref("assessment_data")} f
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where lower(assessmentName) like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
@@ -34,9 +34,9 @@ from hindiData
 order by childId asc,hindirounds asc)
 
 
-, mathAss as (select distinct cohort,childId,date(assessmentDate)mathAssessDate,parentId,agentMobile,agentName
+, mathAss as (select distinct cohort,childId,date(assessmentDate)mathAssessDate,parentId,f.agentMobile,f.agentName
 
-from ${ref("assessment_data")}
+from ${ref("assessment_data")}f
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where lower(assessmentName) not like "%hindi%" and date(assessmentDate) between "2025-04-01" and "2026-03-31")
