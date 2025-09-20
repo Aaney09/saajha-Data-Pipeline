@@ -23,8 +23,9 @@ WITH base AS (
   "mfln_worksheet_v2_mtp_v2",
   "mfln_worksheet_mtp_utility",
   "fln_math_worksheet_v1")
-OR  template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" 
-or lower(template_name) like "%rmfln%"
+OR  (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
+or (lower(template_name) like "%rmfln%")
+OR (lower(template_name) like "%mfln%")
 
 ),
 
