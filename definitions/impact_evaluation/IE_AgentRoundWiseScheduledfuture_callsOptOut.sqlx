@@ -25,7 +25,7 @@ using(parentid,childid)
 where date(ExtractionDate) >="2025-03-31"
 group by all
 )
-,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",c.AgentMobile) as int64)agentMobile,Round
+,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",c.AgentMobile) as int64)agentMobile,Round,cohort
 from ${ref("opted_out")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
@@ -38,7 +38,7 @@ group by all)
 
 
 -- with /
-,opt_out_parents as (select distinct o.parentId,c.agentMobile,c.agentName,round, date(last_opted_out) opted_out_date
+,opt_out_parents as (select distinct o.parentId,c.agentMobile,c.agentName,round, date(last_opted_out) opted_out_date,cohort
 from ${ref("opted_out")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
@@ -48,7 +48,7 @@ where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(Extrac
 -- and c.projectid=1103912
 )
 , overalldials as (
-    select distinct c.agentMobile,c.parentid,callingRound,
+    select distinct c.agentMobile,c.parentid,callingRound,cohort,
 count(distinct CallstartDatetime) overalltotalDials,
 count(distinct date(CallstartDatetime))overall_number_of_days_called
 from ${ref("called")} c 
@@ -59,7 +59,7 @@ and c.callingRound= o.round
 group by all)
 
 , average_call_attempts_before_opt_out as (
-    select agentMobile,callinground as round,
+    select agentMobile,callinground as round,cohort,
     avg(overalltotalDials)avg_calls_attempted_before_opted_out,
      avg(overall_number_of_days_called)avg_days_called_before_opted_out
     from overalldials
@@ -79,9 +79,9 @@ left join
  future_roster
 using(AgentMobile,round,cohort)
 left join opted_out
-using(AgentMobile,round)
+using(AgentMobile,round,cohort)
 left join average_call_attempts_before_opt_out
-using(AgentMobile,round)
+using(AgentMobile,round,cohort)
 
 
 
