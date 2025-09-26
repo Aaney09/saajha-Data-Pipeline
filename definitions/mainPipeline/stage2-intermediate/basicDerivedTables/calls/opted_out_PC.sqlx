@@ -2,8 +2,21 @@ config {
     type: "table",
     tags : "call_daily"
 }
+select distinct userId as parentid,
+c.childid,
+OptedOutStatus, 
+OptedOutDateTime,
+feedbackreason as opt_out_reason
+from ${ref("User")} u
+left join ( select parentid,callstartdatetime,childid,Feedbackreason 
+from ${ref("called")} where feedbacktype like '%OPTED_OUT%'
+qualify row_number() over(partition by childid, date(callstartdatetime) order by callstartdatetime desc)=1
 
-
-select distinct userId as parentid,OptedOutStatus, OptedOutDateTime
-from ${ref("User")}
+) c
+on u.userid=c.parentid
+and date(optedoutdatetime)=date(c.CallstartDatetime)
 where OptedOutDateTime is not null and userrolescode like "%saajha.parent%"
+
+-- select distinct userId as parentid,OptedOutStatus, OptedOutDateTime
+-- from ${ref("User")}
+-- where OptedOutDateTime is not null and userrolescode like "%saajha.parent%"
