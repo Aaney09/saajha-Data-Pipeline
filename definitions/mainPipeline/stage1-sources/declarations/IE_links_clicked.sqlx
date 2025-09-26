@@ -1,0 +1,7 @@
+config {
+    type:"declaration",
+    database:"saajhadata",
+    schema:"impact_evaluation",
+    name:"IE_links"
+}
+

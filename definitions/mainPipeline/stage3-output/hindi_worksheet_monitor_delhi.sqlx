@@ -10,6 +10,7 @@ with hindiProfile as (
     safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
     json_value(details,"$.opted_in")opted_in_status,
     json_value(details, "$.contentflowhindi")hindiContentProfile,
+    json_value(details, "$.hindilevel")hindilevel,
     json_value(details,"$.lastworksheetsubject")lastsubject,
     json_value(details, "$.lastmathworksheetsent")lastsent,			
     datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
@@ -23,7 +24,7 @@ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interva
 
 ,ongoing_opt_in as (select *
 from hindiProfile
-where (hindiContentProfile = "inprocess" or hindiContentProfile = "running" or hindiContentProfile="highestLevel"  or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "maths")
+where (hindiContentProfile = "inprocess" or hindiContentProfile = "running" or hindiContentProfile="highestLevel" or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "maths" and (hindilevel = "4"))
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 

@@ -1,0 +1,212 @@
+
+config {
+    type: "table",
+    tags: ["IE"]
+}
+
+
+
+
+with hindiMath as (select *
+from ${ref("valid_Assessed_2025_2026")}
+)
+,
+assessmentDetails as 
+(select *
+-- r1.* except(m1,h1),
+-- r2.Round_2_Assessment,
+-- r3.Round_3_Assessment,
+-- r4.Round_4_Assessment,
+-- r5.Round_5_Assessment,
+-- r6.Round_6_Assessment,
+-- r7.Round_7_Assessment,
+-- r8.Round_8_Assessment,
+-- r9.Round_9_Assessment,
+-- r10.Round_10_Assessment,
+-- r11.Round_11_Assessment,
+-- r12.Round_12_Assessment
+
+from
+(select distinct assesseeActorid,mathassessdate m1,hindiAssessDate h1,greatest(hindiAssessDate,mathAssessDate)Round_1_assessment,hindiLevel as r1_hindiLevel,mathLevel
+as r1_mathlevel 
+from hindimath
+where hindiRounds=1)r1
+
+
+left join
+(select distinct  assesseeActorid,
+mathAssessDate m2,hindiAssessDate h2,
+greatest(mathassessdate,hindiAssessDate)Round_2_Assessment,hindiLevel as r2_hindiLevel,mathLevel as r2_mathlevel
+from hindiMath
+where hindiRounds=2)r2
+using(assesseeActorid)
+
+Left join(select assesseeActorid,
+mathAssessDate m3,hindiAssessdate h3,
+greatest(mathassessdate,hindiAssessDate)Round_3_Assessment,hindiLevel as r3_hindiLevel,mathLevel as r3_mathlevel
+from hindiMath
+where mathRounds=3)r3
+using(assesseeActorid)
+
+left join
+(select assesseeActorid,
+mathAssessDate m4,hindiAssessdate h4,
+greatest(mathassessdate,hindiAssessDate)Round_4_Assessment,hindiLevel as r4_hindiLevel,mathLevel as r4_mathlevel
+from hindimath
+where mathRounds=4)r4
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m5,hindiAssessdate h5,
+greatest(mathassessdate,hindiAssessDate) Round_5_Assessment,hindiLevel as r5_hindiLevel,mathLevel as r5_mathlevel
+from hindiMath
+where mathRounds=5)r5
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m6,hindiAssessdate h6,
+greatest(mathassessdate,hindiAssessDate)Round_6_Assessment,hindiLevel as r6_hindiLevel,mathLevel as r6_mathlevel
+from hindiMath
+where mathRounds=6)r6
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m7,hindiAssessdate h7,
+greatest(mathassessdate,hindiAssessDate)Round_7_Assessment,hindiLevel as r7_hindiLevel,mathLevel as r7_mathlevel
+from hindiMath
+where hindiRounds = 7)r7
+using(assesseeActorid)
+
+)
+-- left join(select assesseeActorid,
+-- mathAssessDate m8,hindiAssessdate h8,
+-- greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hindiLevel,mathLevel as r8_mathlevel
+-- from hindiMath
+-- where hindiRounds = 8)r8
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m9,hindiAssessdate h9,
+-- greatest(mathassessdate,hindiAssessDate) Round_9_Assessment,hindiLevel as r9_hindiLevel,mathLevel as r9_mathlevel
+-- from hindiMath
+-- where hindiRounds = 9)r9
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m10,hindiAssessdate h10,
+-- greatest(mathassessdate,hindiAssessDate)  Round_10_Assessment,hindiLevel as r10_hindiLevel,mathLevel as r10_mathlevel
+-- from hindiMath
+-- where hindiRounds = 10)r10
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m11,hindiAssessdate h11,
+-- greatest(mathassessdate,hindiAssessDate) Round_11_Assessment,hindiLevel as r11_hindiLevel,mathLevel as r11_mathlevel
+-- from hindiMath
+-- where hindiRounds = 11)r11
+-- using(assesseeActorid)
+
+-- left join(select assesseeActorid,
+-- mathAssessDate m12,hindiAssessdate h12,
+-- greatest(mathassessdate,hindiAssessDate) Round_12_Assessment,hindiLevel as r12_hindiLevel,mathLevel as r12_mathlevel
+-- from hindiMath
+-- where hindiRounds = 12)r12
+-- using(assesseeActorid))
+
+,
+
+all_opt_ins as (
+  -- select distinct phone_number,min(firstopted_in_on_bau)firstopted_in_on
+  -- from(select distinct phone_number,date(min(timestamp))firstopted_in_on_bau
+  -- from ${ref("opt_in_records","opt_in_users")}
+  -- group by 1
+  -- union distinct
+  -- select distinct phone_number,date(min(timestamp))firstopted_in_onPI,
+  -- from ${ref("process_improvement","opt_in_users")}
+  -- group by 1)
+  -- group by 1
+  select *
+  from ${ref("ie_profiles")}
+  )
+
+
+,
+opt_in as (
+  select distinct rosterparentId,min(opted_in_at) as opted_in_on
+  from all_opt_ins
+  inner join ${ref("allPhoneNumberWithPid")}
+  on phone_number = number
+  group by all
+)
+
+,fln as (
+select parentid,childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
+from ${ref("FLNAchieved")}
+)
+,
+firstAttemp as (select ParentId,
+  date(min(CallStartDateTime))firstCallAttemptedOn
+  from 
+      (select distinct ParentId,CallStartDateTime
+      from ${ref("roster")}
+      where  date(CallStartDateTime) <> "1970-01-01"
+      union distinct 
+      select ParentId,CallStartDateTime
+      from ${ref("incoming")}
+      where  date(CallStartDateTime) <> "1970-01-01"
+      )
+  
+  group by ParentId
+),
+opted_out as (
+  select distinct parentId,date(OptedOutDateTime) as opted_out_on,null as opted_out_reason
+  from ${ref("opted_out_PC")}
+),
+lastAssessed as  (
+
+  select distinct ParentId,childid,childClass,
+  alternateMObileNumber,parentMobileNumber as parentNumber,
+  Projectid,parentname,childName,
+  AgentName,
+  agentMobile as agentNumber,
+
+  from ${ref("assessment_data")}
+ qualify row_number() over(partition by childid order by assessmentdate desc)=1
+)
+
+, schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId,
+-- If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
+from ${ref("IE")}
+)
+
+
+
+select assessmentDetails.*,schoolId.school_id,
+la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
+opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
+if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
+if(opted_out.opted_out_on<Round_1_assessment or
+opted_out.opted_out_on<Round_2_assessment or
+opted_out.opted_out_on<Round_3_assessment or
+opted_out.opted_out_on<Round_4_assessment or
+opted_out.opted_out_on<Round_5_assessment or
+opted_out.opted_out_on<Round_6_assessment  or 
+opted_out.opted_out_on<Round_7_assessment
+,"Yes","No") returnedParent
+from assessmentDetails
+Inner join
+lastAssessed la
+on assesseeActorId = la.childid
+left join
+opt_in 
+on la.parentid = opt_in.rosterParentid
+left join
+firstAttemp
+on la.parentId = firstAttemp.parentId
+left join opted_out
+on la.parentId = opted_out.parentId
+left join fln
+on la.childid = fln.childid
+left join schoolId
+on la.parentId = schoolId.parentId
+

@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "wa_daily"
+    tags: "IE"
 }
 
 
