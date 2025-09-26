@@ -1,0 +1,20 @@
+config {
+    type: "table",
+    tags: "IE"
+}
+
+select  DISTINCT phone_number,
+    inserted_at as worksheet_completed_time,
+    form_id as worksheet_id,
+    SAFE_CAST(regexp_extract(form_id,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+   SAFE_CAST(regexp_extract(form_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(form_id,r'M([0-9]+)') as int64)monthNumber,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid,
+    platform as worksheet_submitted_source
+
+from ${ref("maths_worksheets_submission")} 
+where date(inserted_at) < current_date("Asia/Kolkata")

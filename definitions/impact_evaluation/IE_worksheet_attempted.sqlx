@@ -1,0 +1,20 @@
+config {
+    type: "table",
+    tags: "IE"
+}
+
+
+select  DISTINCT SAFE_CAST(RIGHT(phoneNumber,12) AS int64)phone_number,
+    insertedAt as worksheet_attempted_time,
+    formId as worksheet_id,
+    SAFE_CAST(regexp_extract(formId,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+   SAFE_CAST(regexp_extract(formId,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(formId,r'M([0-9]+)') as int64)monthNumber,
+    if(lower(formId) like "%hindi%","hindi","math")subject,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid,
+    platform as worksheet_submitted_source
+from ${ref("attemptrate")}

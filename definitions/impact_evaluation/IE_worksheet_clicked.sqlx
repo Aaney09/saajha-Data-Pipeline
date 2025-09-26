@@ -1,0 +1,30 @@
+config {
+    type: "table",
+    tags: "IE"
+}
+
+
+select  DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
+    link_clicked,
+    datetime(time)clicked_time,
+    content_id as worksheet_id,
+    SAFE_CAST(regexp_extract(content_id,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+   SAFE_CAST(regexp_extract(content_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(content_id,r'M([0-9]+)') as int64)monthNumber,
+    maths_assessment,
+    hindi_assessment,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid,
+    if(lower(content_id) like "%hindi%","hindi","math")subject,
+    if(
+  lower(link_clicked)  like "%platform%",
+  regexp_extract( lower(link_clicked),r'platform=([a-z]+)')
+  ,"whatsapp") worksheet_clicked_link_source
+from ${ref("IE_links")}
+where  1=1  
+and 
+  lower(link_clicked)  not like "%origin%"
+  and date(time) < current_date("Asia/Kolkata")

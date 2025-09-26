@@ -1,23 +1,31 @@
 config {
     type: "table",
-    tags: "call_daily"
+    tags: "IE"
 }
 
-with worksheet as (
-    select s.*,c.clicked_time,co.submitted_time
+with 
+hindi_worksheet_clicked as (
+    select *
+    from ${ref("IE_worksheet_clicked")}
+    where subject = "math"
+)
+,
+worksheet as (
+    select s.*,c.clicked_time,co.worksheet_completed_time
  from ${ref("IE_math_worksheet_sent")} s
-left join
-`dataform.mathWorksheetClicked` c
-on s.childid = c.childid and s.math_assessment_date = c.maths_assessment_date and s.LevelNumber = c.LevelNumber and s.worksheetNumber= c.worksheetNumber
-left join `dataform.mathWorksheetCompleted` co 
-on c.childid = co.childid and c.maths_assessment_date=co.maths_assessment_date and c.LevelNumber = co.LevelNumber 
-and c.worksheetNumber= co.worksheetNumber
+left join hindi_worksheet_clicked c
+on s.childid = c.childid and 
+s.hindi_assessment_date = c.hindi_assessment_date and s.worksheet_id = c.worksheet_id
+-- s.LevelNumber = c.LevelNumber and s.worksheetNumber= c.worksheetNumber
+left join ${ref("IE_math_worksheet_completed")} co 
+on c.childid = co.childid and c.hindi_assessment_date=co.hindi_assessment_date and c.worksheet_id= co.worksheet_id
+-- c.LevelNumber = co.LevelNumber and c.worksheetNumber= co.worksheetNumber
 where s.childid is not null and last_message_status<>"failed"
 )
 
 
 ,childid_wise_worksheet_count as (select 
-assesseeActorid as childid, 
+assesseeActorId as childid, 
 case 
     when Round_2_Assessment is null then count(distinct if(date(sent_at)>Round_1_Assessment,worksheetNumber,null))
     else count(distinct if(date(sent_at) between Round_1_Assessment and Round_2_Assessment,worksheetNumber,null ))
@@ -31,8 +39,8 @@ End round_1_worksheet_clicked,
 -- attempted
 
 case 
-    when Round_2_Assessment is null then count(distinct if(date(submitted_time)>Round_1_Assessment,worksheetNumber,null))
-    else count(distinct if(date(submitted_time) between Round_1_Assessment and Round_2_Assessment,worksheetNumber,null ))
+    when Round_2_Assessment is null then count(distinct if(date(worksheet_completed_time)>Round_1_Assessment,worksheetNumber,null))
+    else count(distinct if(date(worksheet_completed_time) between Round_1_Assessment and Round_2_Assessment,worksheetNumber,null ))
 End round_1_worksheet_completed,
 
 
@@ -49,8 +57,8 @@ End round_2_worksheet_clicked,
 -- attempted
 
 case 
-    when Round_3_Assessment is null then count(distinct if(date(submitted_time)>Round_2_Assessment,worksheetNumber,null))
-    else count(distinct if(date(submitted_time) between Round_2_Assessment and Round_3_Assessment,worksheetNumber,null ))
+    when Round_3_Assessment is null then count(distinct if(date(worksheet_completed_time)>Round_2_Assessment,worksheetNumber,null))
+    else count(distinct if(date(worksheet_completed_time) between Round_2_Assessment and Round_3_Assessment,worksheetNumber,null ))
 End round_2_worksheet_completed,
 
 
@@ -68,8 +76,8 @@ End round_3_worksheet_clicked,
 -- attempted
 
 case 
-    when Round_4_Assessment is null then count(distinct if(date(submitted_time)>Round_3_Assessment,worksheetNumber,null))
-    else count(distinct if(date(submitted_time) between Round_3_Assessment and Round_4_Assessment,worksheetNumber,null ))
+    when Round_4_Assessment is null then count(distinct if(date(worksheet_completed_time)>Round_3_Assessment,worksheetNumber,null))
+    else count(distinct if(date(worksheet_completed_time) between Round_3_Assessment and Round_4_Assessment,worksheetNumber,null ))
 End round_3_worksheet_completed,
 
 
@@ -87,8 +95,8 @@ End round_4_worksheet_clicked,
 -- attempted
 
 case 
-    when Round_5_Assessment is null then count(distinct if(date(submitted_time)>Round_4_Assessment,worksheetNumber,null))
-    else count(distinct if(date(submitted_time) between Round_4_Assessment and Round_5_Assessment,worksheetNumber,null ))
+    when Round_5_Assessment is null then count(distinct if(date(worksheet_completed_time)>Round_4_Assessment,worksheetNumber,null))
+    else count(distinct if(date(worksheet_completed_time) between Round_4_Assessment and Round_5_Assessment,worksheetNumber,null ))
 End round_4_worksheet_completed,
 
 
@@ -107,15 +115,15 @@ End round_6_worksheet_sent,
 
 
 
-from `dataform.parent_journey_2025_2026`  pj
+from ${ref("IE_parent_journey")} py
 left join worksheet s
-on assesseeActorid = s.childid 
+on assesseeActorId = childid
+-- where put project id filter
 
 
-group by assesseeActorid, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
+group by assesseeActorId, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
 select *
-from `dataform.parent_journey_2025_2026`
+from ${ref("IE_parent_journey")} 
 left join childid_wise_worksheet_count
-on assesseeActorid = childid
--- where agentNumber in (9555489577,7303046353,9582377226)
+on assesseeActorId = childid
