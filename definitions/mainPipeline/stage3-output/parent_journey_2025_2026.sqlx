@@ -158,7 +158,7 @@ firstAttemp as (select ParentId,
   group by ParentId
 ),
 opted_out as (
-  select distinct parentId,date(OptedOutDateTime) as opted_out_on,null as opted_out_reason
+  select distinct parentId,date(OptedOutDateTime) as opted_out_on,opt_out_reason as opted_out_reason
   from ${ref("opted_out_PC")}
 ),
 lastAssessed as  (
