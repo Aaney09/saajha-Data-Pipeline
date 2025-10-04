@@ -41,7 +41,7 @@ qualify row_number() over(partition by parentid order by sent_at desc)=1
 )
 ,hindi_worksheet_completed as (
   select parentId,count(distinct form_id)hindiworksheetsSubmittedLastWeek,max(inserted_at) last_hindi_worksheet_Submitted_on_last_Week
-  from `whatsapp_tools.hindi_fln_forms`
+  from ${ref("whatsapp_tools","hindi_fln_forms")}
   where date(inserted_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
   group by 1
 )
@@ -73,7 +73,7 @@ qualify row_number() over(partition by parentid order by sent_at desc)=1
 )
 ,math_worksheet_completed as (
   select parentId,count(distinct form_id)mathWorksheetsSubmittedLastWeek,max(inserted_at) last_math_worksheet_Submitted_on_last_Week
-  from whatsapp_tools.maths_react_forms
+  from ${ref("whatsapp_tools","maths_react_forms")}
   where date(inserted_at) between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1 
   group by 1
 )
@@ -89,7 +89,7 @@ group by all )
 ,incomingCalls as (
  select parentid,sum(no_incoming_attempts)no_incoming_attempts
  from ( select parentid,IncomingCallId,max(TotalRequestCount)no_incoming_attempts
-  from platform_commons.incoming
+  from ${ref("incoming")}
   where datetime(InitialRequestDateTime)  between current_date("Asia/Kolkata")-8 and current_date("Asia/Kolkata")-1
   group by all)
   group by 1

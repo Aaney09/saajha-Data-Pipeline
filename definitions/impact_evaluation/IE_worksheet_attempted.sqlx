@@ -17,4 +17,4 @@ select  DISTINCT SAFE_CAST(RIGHT(phoneNumber,12) AS int64)phone_number,
     childid,
     parentid,
     platform as worksheet_submitted_source
-from ${ref("attemptrate")}
+from ${ref("impact_evaluation","attemptrate")}

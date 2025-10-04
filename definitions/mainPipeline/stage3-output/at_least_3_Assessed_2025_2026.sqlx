@@ -14,5 +14,6 @@ select distinct OnBoardedUserId as parentid,
 from ${ref("valid_Assessed_2025_2026")}
 inner join ${ref("IE")}
 on assesseeActorId = ieid
-where mathrounds>=3 and ProjectId<>1103908
+where mathrounds>=3 and ProjectId<>1103908 
+and projectid<>1103912
 

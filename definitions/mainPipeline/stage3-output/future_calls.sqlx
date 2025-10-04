@@ -7,6 +7,7 @@ If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
-from `platform_commons.futureRoster`
+from ${ref("futureRoster")}
 where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) and date(CallDate) >= current_date("Asia/Kolkata") AND ProjectId <> 1102996 and AgentName <>"Aashish" 
+and projectid<>1103912
 group by all
