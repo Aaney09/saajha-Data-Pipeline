@@ -8,14 +8,14 @@ with
 
 actvities_sent as (
   select  distinct template_name activityTemplate_name,phone_number,sent_at activitysentAt,
-  from `dataform.template-sent`
+  from ${ref("template-sent")}
   where (template_name like "%pe_theme%" and template_name like "%act%") 
   and lower(wa_number_purpose) like "%noida%"
 )
 
 , activitiesResponded as(
  select  distinct template_button_template_name activityTemplate_name,phone_number,responded_at activityClickeON,"yes"completed
- from `dataform.template-response`
+ from ${ref("template-response")}
   where (template_button_template_name like "%pe_theme%" and template_button_template_name like "%act%")
   and lower(wa_number_purpose) like "%noida%" 
 )

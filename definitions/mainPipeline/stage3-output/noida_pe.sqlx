@@ -22,7 +22,7 @@ with
 
 /** theme1 baseline **/
 theme1_baseline_template_sent as (select  distinct template_name,phone_number,sent_at theme1_baselineTemplateSentAt
-from `dataform.template-sent`
+from ${ref("template-sent")}
 where 
 ( template_name like "%pe_baseline_t1%" 
  or template_name like "%pe_baseline_reminder_t1%" )  and wa_number_purpose like "%Noida%"
@@ -31,7 +31,7 @@ where
 )
 , theme1_baseline_templ_responded as (
   select  distinct template_button_template_name as template_name,phone_number,responded_at theme1_baselineTemplateClickedAt,
-from `dataform.template-response`
+from ${ref("template-response")}
 where 
 ( template_button_template_name like "%pe_baseline_t1%" 
  or template_button_template_name like "%pe_baseline_reminder_t1%" ) and wa_number_purpose like "%Noida%"
@@ -39,7 +39,7 @@ where
 
 ,theme1_baseline_completed as (
   select  distinct flow_name,phone_number,sent_at , "yes" theme1_baselineCompleted
-from `dataform.otherMessagesSent`
+from ${ref("otherMessagesSent")}
  where 
  flow_name like "%PE Baseline Theme1%" 
  and 
@@ -58,14 +58,14 @@ using(phone_number)
 ,
 /** theme1 endline **/
 theme1_endline_template_sent as (select  distinct template_name,phone_number,sent_at theme1_endlineTemplateSentAt
-from `dataform.template-sent`
+from ${ref("template-sent")}
 where 
 ( template_name like "%pe_endline_t1%" or  template_name like  "%pe_endline_reminder_t1%") and wa_number_purpose like "%Noida%" 
 )
 
 , theme1_endline_templ_responded as (
   select  distinct template_button_template_name as template_name,phone_number,responded_at theme1_endlineTemplateClickedAt,
-from `dataform.template-response`
+from ${ref("template-response")}
 where 
  (template_button_template_name like "%pe_endline_t1%" or template_button_template_name like"%pe_endline_reminder_t1%") and wa_number_purpose like "%Noida%"
 
@@ -73,7 +73,7 @@ where
 
 ,theme1_endline_completed as (
   select  distinct flow_name,phone_number,sent_at theme1_endlineflowCompetedAt, "yes" theme1_EndlineCompleted,
-from `dataform.otherMessagesSent`
+from ${ref("otherMessagesSent")}
  where 
  flow_name like "%PE Endline Theme1%" 
  and 
@@ -95,7 +95,7 @@ using(phone_number)
 ,
 /** theme2 baseline **/
 theme2_baseline_template_sent as (select  distinct template_name,phone_number,sent_at theme2_baselineTemplateSentAt
-from `dataform.template-sent`
+from ${ref("template-sent")}
 where 
 ( template_name like "%pe_baseline_t2%" 
  or template_name like "%pe_baseline_reminder_t2%" )and wa_number_purpose like "%Noida%" 
@@ -104,7 +104,7 @@ where
 )
 , theme2_baseline_templ_responded as (
   select  distinct template_button_template_name as template_name,phone_number,responded_at theme2_baselineTemplateClickedAt,
-from `dataform.template-response`
+from ${ref("template-response")}
 where 
 ( template_button_template_name like "%pe_baseline_t2%" 
  or template_button_template_name like "%pe_baseline_reminder_t2%" )and wa_number_purpose like "%Noida%"
@@ -112,7 +112,7 @@ where
 
 ,theme2_baseline_completed as (
   select  distinct flow_name,phone_number,sent_at theme2_baselineflowCompetedAt, "yes" theme2_baselineCompleted
-from `dataform.otherMessagesSent`
+from ${ref("otherMessagesSent")}
  where 
  flow_name like "%PE Baseline Theme2%" 
  and 
@@ -132,7 +132,7 @@ using(phone_number)
 
 /** theme 2 endline**/
 ,theme2_endline_template_sent as (select  distinct template_name,phone_number,sent_at theme2_endlineTemplateSentAt
-from `dataform.template-sent`
+from ${ref("template-sent")}
 where 
 ( template_name like "%pe_endline_t2%" or  template_name like  "%pe_endline_reminder_t2%") and wa_number_purpose like "%Noida%" 
 
@@ -140,7 +140,7 @@ where
 
 , theme2_endline_templ_responded as (
   select  distinct template_button_template_name as template_name,phone_number,responded_at theme2_endlineTemplateClickedAt,
-from `dataform.template-response`
+from ${ref("template-response")}
 where 
  (template_button_template_name like "%pe_endline_t2%" or template_button_template_name like"%pe_endline_reminder_t2%") and wa_number_purpose like "%Noida%"
 
@@ -148,7 +148,7 @@ where
 
 ,theme2_endline_completed as (
   select  distinct flow_name,phone_number,sent_at theme2_endlineflowCompetedAt, "yes" theme2_EndlineCompleted,
-from `dataform.otherMessagesSent`
+from ${ref("otherMessagesSent")}
  where 
  flow_name like "%PE Endline Theme2%" 
  and 
@@ -166,13 +166,13 @@ using(phone_number)
 /** ACTIVITIES **/
 ,actvities_sent as (
   select  distinct template_name activityTemplate_name,phone_number,date(sent_at) activitysentAt,
-  from `dataform.template-sent`
+  from ${ref("template-sent")}
   where (template_name like "pe_theme%" and template_name like "%act%") and wa_number_purpose like "%Noida%"
 )
 
 , activitiesResponded as(
  select  distinct template_button_template_name activityTemplate_name,phone_number,date(responded_at)clickeON,"yes"completed
- from `dataform.template-response`
+ from ${ref("template-response")}
   where (template_button_template_name like "pe_theme%" and template_button_template_name like "%act%") and wa_number_purpose like "%Noida%"
 )
 , peActivity as (select distinct activityTemplate_name,phone_number,activitysentAt,clickeON,completed
@@ -212,7 +212,7 @@ select safe_cast(regexp_extract(urn,'[0-9]+') as int64) as number,
        date(datetime_add(timestamp(json_value(details, "$.opted_in_at")),interval 330 minute)) as opt_in_date,
        json_value(details, "$.childclass") as child_class,
        json_value(details, "$.schoolid") as school_id,
-   from `911171817073.contacts`
+   from ${ref("911171817073","contacts")}
 )
 ,opt as (
 select distinct * from all_nums

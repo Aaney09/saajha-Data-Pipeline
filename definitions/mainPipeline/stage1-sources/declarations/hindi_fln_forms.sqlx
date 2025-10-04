@@ -1,0 +1,7 @@
+
+config {
+    type:"declaration",
+    database: "saajhadata",
+    schema : "whatsapp_tools",
+    name: "hindi_fln_forms"
+}

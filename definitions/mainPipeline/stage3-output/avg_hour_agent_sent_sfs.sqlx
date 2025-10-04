@@ -12,9 +12,10 @@ FROM (
     COUNT(DISTINCT DATE(CallStartDateTime)) workedDays,
     ROUND((SUM(TIMESTAMP_DIFF(CallEndDateTime,CallStartDateTime,second)))/3600,3) hour
   FROM
-    `platform_commons.roster`
+    ${ref("roster")}
   WHERE
     ProjectId <> 1103233
+    and projectid<>1103912
     AND CallStartDateTime < CallEndDateTime
     AND CallStartDateTime IS NOT NULL
     AND DATE(callstartDatetime) BETWEEN DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 6 DAY)

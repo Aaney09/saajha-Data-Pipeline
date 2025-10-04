@@ -9,14 +9,14 @@ config {
 -- CREATE or REPLACE TABLE `dataform.bain_2` as (
   with assessedDec as (select distinct AssesseeActorID,
 -- date
-from `platform_commons.assessment`
+from ${ref("assessment")}
 where date(AssessmentTakenOn) between "2024-12-01" and "2024-12-31"
 )
 -- ORDER BY RAND()
 -- LIMIT 10
 
 ,r1CallDec as (select distinct childId
-from `dataform.called`
+from ${ref("called")}
 where date(CallstartDatetime) between "2024-12-01" and "2024-12-31" and callingRound = 1)
 
 ,approx1000 as (select distinct assesseeActorId,ABS(FARM_FINGERPRINT(CAST(assesseeActorId AS STRING))) / 9223372036854775807 AS hash_value

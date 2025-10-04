@@ -11,7 +11,10 @@ with
 mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
 if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
 from ${ref("assessment")}
+inner join ${ref("IE")}
+on ieid=assesseeactorid
 where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+and projectid<>1103912
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
 
