@@ -1,0 +1,75 @@
+-- create  or replace table `dataform.donor_allocation`
+--  as (
+-- FIRST TO RUN
+config {
+  type: "incremental",
+  tags:"Donor"
+}
+with 
+both_sub_3_assessed as (SELECT *
+ FROM 
+ ${ref("parent_journey_2025_2026")}
+   where
+    -- Round_3_Assessment is not null and --  removed to allocate 1 assessed children
+    ProjectId not in (1103908,1103912)
+),
+ total_pids_never_allocated as (
+  SELECT distinct parentid
+   FROM both_sub_3_assessed
+  left join  ${self()}
+ a
+  using(parentid)
+  where a.parentid is null
+)
+,total_pids_never_allocated_counts AS (
+  SELECT COUNT(*) AS total FROM both_sub_3_assessed
+  left join ${self()}
+ a
+  using(parentid)
+  where a.parentid is null
+),
+
+
+group_targets AS (
+  SELECT 
+    d.donor_name,
+    -- support_3_Assessment,
+    -- improvement,
+    proportion,
+    CAST(d.proportion * t.total AS INT64) AS target_count
+  FROM `adhoc.donor_proportion` d
+  CROSS JOIN total_pids_never_allocated_counts t
+),
+ranked_pids AS (
+  SELECT 
+    parentid,
+    ROW_NUMBER() OVER (ORDER BY RAND()) AS rn
+  FROM total_pids_never_allocated
+),
+group_ranges AS (
+  SELECT 
+    donor_name,
+    target_count,
+    -- support_3_Assessment,
+    -- improvement,
+    -- proportion,
+    SUM(target_count) OVER (ORDER BY donor_name ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS cumulative,
+    SUM(target_count) OVER (ORDER BY donor_name ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) 
+      - target_count + 1 AS start_rn
+  FROM group_targets
+)
+
+SELECT 
+current_datetime("Asia/Kolkata")as allocated_on,
+  p.parentid,
+  g.donor_name,target_count,
+    -- dp.support_3_Assessment,
+    -- dp.improvement,
+    -- dp.proportion
+FROM ranked_pids p
+JOIN group_ranges g
+  ON p.rn BETWEEN g.start_rn AND g.cumulative
+JOIN `adhoc.donor_proportion` dp
+on g.donor_name  =dp.donor_name
+ 
+-- )

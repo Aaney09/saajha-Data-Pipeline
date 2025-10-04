@@ -1,0 +1,31 @@
+-- fourth
+config {
+  type: "table",
+  tags:"Donor"
+}
+with callduration as (select distinct 
+extract(month from date(callstartdatetime ))Month,parentid,
+childid,FORMAT_DATE('%b %Y',date(callstartdatetime )) monthYear,
+callstartdatetime,callEndDatetime
+-- round(
+--   sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+-- /3600,2)totalCallDurationInHour
+from ${ref("called")}
+where Recording is not null and 
+date(CallstartDatetime) between "2025-04-01" and "2026-03-31" 
+and CallstartDatetime<CallEndDatetime
+and ProjectId in (1103005,1103213,1103233)
+group by all)
+
+,call_duration_donorwise as (select childid, donor_name, monthYear,Month,
+round(
+  sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+/60,2)totalCallDurationInminute
+from callduration
+inner join  ${ref("all_donor_data_2025_2026")}
+on childid=assesseeactorid
+group by all
+ )
+ select childid, donor_name, round(sum(totalCallDurationInminute),0) as total_calling_minutes
+  from call_duration_donorwise
+group by 1,2
