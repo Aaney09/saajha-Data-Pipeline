@@ -1,0 +1,27 @@
+
+-- Create or replace table ${ref("all_donor_data_2025_2026` as (
+-- SECOND TO RUN
+config {
+  type: "table",
+  tags:"Donor"
+}
+
+with all_donor_data as (select distinct *
+from `adhoc.donor_proportion` 
+inner join ${ref("donor_allocation")} 
+using(donor_name)
+inner join ${ref("parent_journey_2025_2026")} pj
+using(parentid)
+inner join ${ref("current_academic_hindi_assessment_status_of_child")} h 
+using(assesseeActorid)
+inner join ${ref("current_academic_math_assessment_status_of_child")} m
+using(assesseeActorid)
+
+
+)
+select *
+from all_donor_data
+ 
+
+-- )
+-- where donor_name = "GESCO"

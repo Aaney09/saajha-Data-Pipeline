@@ -1,0 +1,66 @@
+-- THIRD TO RUN
+config {
+  type: "table",
+  tags:"Donor"
+}
+with callduration as (select distinct 
+extract(month from date(callstartdatetime ))Month,childid,
+FORMAT_DATE('%b %Y',date(callstartdatetime )) monthYear,
+callstartdatetime,callEndDatetime
+-- round(
+--   sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+-- /3600,2)totalCallDurationInHour
+from ${ref("called")}
+where Recording is not null and 
+date(CallstartDatetime) between "2025-04-01" and "2026-03-31" 
+and CallstartDatetime<CallEndDatetime
+and ProjectId <>1103908
+group by all)
+
+,call_duration_donorwise as (select  monthYear,Month,
+round(
+  sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+/3600,2)totalCallDurationInHour
+from callduration
+-- inner join  `adhoc.all_donor_data_2025_2026`
+-- using(parentid)
+group by all
+ )
+
+ ,onboarding_number_msg as(SELECT distinct 
+    EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
+    COUNT(DISTINCT uuid) AS MessageCount_87,
+  FROM
+    ${ref("911171279787","messages")}
+
+  WHERE
+    DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE)) between "2025-04-01" and "2026-03-31"
+    AND last_status NOT LIKE '%failed%'
+    and direction="outbound"
+  GROUP BY 
+    Month)
+
+   ,fln_number as ( SELECT distinct 
+    EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
+    COUNT(DISTINCT uuid) AS MessageCount_58,
+  FROM
+    ${ref("912250555658","messages")}
+
+  WHERE
+    DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE)) between "2025-04-01" and "2026-03-31"
+    AND last_status NOT LIKE '%failed%'
+    and direction="outbound"
+  GROUP BY 
+    Month)
+  
+,MsgSentCountsWithoutfail as (select distinct month,ifNull(MessageCount_87,0)+ifnull(MessageCount_58,0)MessageSentCountForNonefailed,
+from onboarding_number_msg
+inner join fln_number
+using(month)
+)
+
+select *
+from MsgSentCountsWithoutfail
+inner join call_duration_donorwise
+using(month)
+order by Month

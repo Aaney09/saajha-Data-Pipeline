@@ -1,0 +1,76 @@
+-- fifth
+config {
+  type: "table",
+  tags:"Donor"
+}
+with callduration as (select distinct 
+extract(month from date(callstartdatetime ))Month,parentid,
+childid,FORMAT_DATE('%b %Y',date(callstartdatetime )) monthYear,
+callstartdatetime,callEndDatetime
+-- round(
+--   sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+-- /3600,2)totalCallDurationInHour
+from ${ref("called")}
+where Recording is not null and 
+date(CallstartDatetime) between "2025-04-01" and "2026-03-31" 
+and CallstartDatetime<CallEndDatetime
+and ProjectId in (1103005,1103213,1103233)
+group by all)
+
+,call_duration_donorwise as (select donor_name, monthYear,Month,
+round(
+  sum(datetime_diff(callEndDatetime,callstartdatetime,second))
+/3600,2)totalCallDurationInHour
+from callduration
+inner join  ${ref("all_donor_data_2025_2026")}
+on childid=assesseeactorid
+group by all
+ )
+
+ ,onboarding_number_msg as(SELECT distinct donor_name,
+    EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
+    COUNT(DISTINCT uuid) AS MessageCount_87,
+    -- parentid,
+    -- uuid,
+  FROM
+    ${ref("911171279787","messages")}
+    Inner join ${ref("allPhoneNumberWithPid")}
+    on safe_cast(regexp_extract(addressees,r'\d+') as int64) = number
+    inner join ${ref("all_donor_data_2025_2026")}
+    on rosterParentid = parentid
+  WHERE
+    DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE)) between "2025-04-01" and "2026-03-31"
+    AND last_status NOT LIKE '%failed%'
+    and direction="outbound"
+  GROUP BY 
+    donor_name,Month)
+
+   ,fln_number as ( SELECT distinct donor_name,
+    EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
+    COUNT(DISTINCT uuid) AS MessageCount_58,
+    -- parentid,
+    -- uuid, 
+  FROM
+    ${ref("912250555658","messages")}
+    Inner join ${ref("allPhoneNumberWithPid")}
+    on safe_cast(regexp_extract(addressees,r'\d+') as int64) = number
+    inner join ${ref("all_donor_data_2025_2026")}
+    on rosterParentid = parentid
+  WHERE
+    DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE)) between "2025-04-01" and "2026-03-31"
+    AND last_status NOT LIKE '%failed%'
+    and direction="outbound"
+  GROUP BY 
+    donor_name,Month)
+  
+,MsgSentCountsWithoutfail as (select distinct donor_name,month,ifNull(MessageCount_87,0)+ifnull(MessageCount_58,0)MessageExchanged,
+from onboarding_number_msg
+inner join fln_number
+using(month,donor_name)
+)
+
+select *
+from MsgSentCountsWithoutfail
+inner join call_duration_donorwise
+using(month,donor_name)
+order by donor_name,Month
