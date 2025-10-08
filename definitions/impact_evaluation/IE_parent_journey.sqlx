@@ -8,7 +8,7 @@ config {
 
 
 with hindiMath as (select *
-from ${ref("valid_Assessed_2025_2026")}
+from ${ref("ie_valid_Assessed_2025_2026")}
 )
 ,
 assessmentDetails as 

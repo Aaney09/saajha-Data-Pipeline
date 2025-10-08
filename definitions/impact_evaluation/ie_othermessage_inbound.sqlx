@@ -1,0 +1,18 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    message_type, 
+    content message_content, 
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    911171817034 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
+    context_id
+from `911171817034.messages`
+where message_type not in ("interactive","button") and direction="inbound" 
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")

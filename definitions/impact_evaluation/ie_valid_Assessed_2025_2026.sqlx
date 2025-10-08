@@ -1,0 +1,64 @@
+
+
+config {
+    type: "view",
+    tags: ["call_daily"],
+    description: "unique parentids from april 2025 till march 31st 2026 whose one child has done at 3 assessment"
+}
+
+
+
+with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
+from ${ref("assessment")}
+inner join ${ref("IE")}
+on ieid=assesseeactorid
+where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+and projectid=1103912
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
+
+,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from hindiAss
+)
+
+,
+hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25
+)
+
+
+, mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
+from ${ref("assessment")}
+inner join ${ref("IE")}
+on ieid=assesseeactorid
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+and projectid=1103912
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,mathLevel,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from
+mathAss
+)
+
+, mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=25)
+
+
+
+, hindiMath as (select md.*, hd.*Except(assesseeActorId)
+from hindiData hd
+inner join
+mathData md
+on md.assesseeActorId = hd.assesseeactorId
+and md.mathrounds = hd.hindirounds
+)
+
+
+SELECT * FROM hindiMath
