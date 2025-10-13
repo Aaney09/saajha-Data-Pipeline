@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "not_used"
+    tags: "wa_daily"
 }
 
 WITH base AS (
@@ -19,8 +19,10 @@ WITH base AS (
     JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text') AS param_text
   -- FROM ${ref("template-sent")}
    FROM ${ref("template-sent")}
-  WHERE template_name in ("hfln_worksheet_mtp_utility","hfln_worksheet_v6_mtp_v2")
+  WHERE (template_name in ("hfln_worksheet_mtp_utility","hfln_worksheet_v6_mtp_v2")
   or lower(template_name) like "%hfln%"
+  or lower(template_name) like '%rhfln%'
+  )
     AND phone_number NOT IN (918888727876,919971478794,918527647594,919915539829)
     
 ),
@@ -87,6 +89,7 @@ final AS (
     uuid
   FROM kv
 --   WHERE lengthOfSplitedArray >=7
+where template_name not like 'hfln_no_worksheet'
 )
 
 SELECT DISTINCT *
