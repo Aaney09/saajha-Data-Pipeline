@@ -76,7 +76,7 @@ where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
   from assessments r
   inner join hindi_first_worksheet_Sent m
   using(childid)
-  where hindi_content_to_send_on=hindi_worksheet1_sent_on
+  where hindi_worksheet1_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on,interval 1 day)
   -- datetime_diff(m.hindi_worksheet1_sent_on,sent_at,day)= 2
 )
 
@@ -88,12 +88,13 @@ left join sent_hindi_first_content mfc
 -- using(parentid,childid)
 on mhrs.parentid=mfc.parentid
 and mhrs.childid=mfc.childid
-and mhrs.hindi_content_to_send_on=mfc.hindi_worksheet1_sent_on
+and mfc.hindi_worksheet1_sent_on between mhrs.hindi_content_to_send_on and date_Add(mhrs.hindi_content_to_send_on, interval 1 day)
 
 )
 
 select dateOfAssessment,
 hindi_content_to_send_on,
+ie_main.cohort,
 count(distinct m.parentid)ParentIdAssessed,
     count(distinct m.childid)ChildiAssessed,
 
@@ -133,7 +134,10 @@ using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,mathlevel)
 
 left join hindi_first_worksheet_success ws
 on m.parentid=ws.parentid and m.childid= ws.childid
-and date(m.hindi_content_to_send_on) = date(ws.hindi_worksheet1_sent_on)
+and  date(ws.hindi_worksheet1_sent_on) between date(m.hindi_content_to_send_on) and date_add(date(m.hindi_content_to_send_on),interval 1 day)
+
+left join   ${ref("impact_evaluation_main_data")} ie_main
+on m.parentid=ie_main.parentid
 
 group by all
 order by 1 desc

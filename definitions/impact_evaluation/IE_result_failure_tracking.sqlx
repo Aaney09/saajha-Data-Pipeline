@@ -72,26 +72,32 @@ on assesseeActorID=childid
   select distinct a.*,m.*except(parentid),
 from assessments a
 left join combinedResult m
-on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
+on a.parentid = m.parentid and
+date(combined_Result_sent_on) BETWEEN dateOfAssessment AND DATE_ADD(dateOfAssessment,INTERVAL 1 DAY)
 
 )
 ,result_success as (
-  select distinct parentid as success_pid
+  select distinct parentid as success_pid,
+  combined_Result_sent_on
   from result_sent_for_assessed ra
   where combined_Result_msg_status <> 'failed'
 )
 
 ,assessed_result_sent_and_success_result as (
-  select distinct ra.*,success_pid
+  select distinct ra.*,success_pid,m.cohort
   from result_sent_for_assessed ra
-  left join result_success
+  left join result_success RS
   on ra.parentid = success_pid 
-
+  AND DATE(RS.combined_Result_sent_on) BETWEEN DATEOFASSESSMENT AND DATE_ADD(dateOfAssessment,INTERVAL 1 DAY)
+  left join   ${ref("impact_evaluation_main_data")} m
+  on ra.parentid=m.parentid
 )
 
 
 
+
 select  dateOfAssessment,
+m.cohort,
 count(distinct m.parentid)ParentIdAssessed,
     count(distinct m.childid)ChildiAssessed,
     count(distinct m.parentid) as result_tobe_processed,
