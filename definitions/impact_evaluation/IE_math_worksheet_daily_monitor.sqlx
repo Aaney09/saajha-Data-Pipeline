@@ -71,7 +71,9 @@ where lastmathsWorksheetSentOn<assessmentDate
 ,overall_worksheet_status as 
 (select 
 distinct profile_updated_date,
+ifnull(safe_cast(ie_main.cohort as string),"unknown") as cohort,
       count(distinct p_num)whommathWorksheetHasToProcessFromTurn,
+      count(distinct if(phone_number is not null,p_num,null)) as whom_math_worksheet_has_processed_from_turn,
       count(distinct if(phone_number is null	,p_num,null)) whom_math_worksheet_has_not_processed_from_turn,
       round(
       count(distinct if(phone_number is null	,p_num,null))/count(distinct p_num)*100
@@ -89,8 +91,21 @@ distinct profile_updated_date,
       count(distinct if(error_code="130472",p_num,null)) as mathWorksheetError_130472_User_number_is_part_of_an_experiment,
 from whom_worksheet_should_go_overall s	
 left join worksheetTemp w	
-on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
-group by 1
+on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date
+
+
+left join `impact_evaluation.GENERAL_ACTIVITY_DASHBOARD_PILOT` ie_gen
+on ie_gen.phone_numbers_to_be_sent=s.p_num
+and date(ie_gen.general_activity_date)=s.profile_updated_date
+
+left join   ${ref("impact_evaluation_main_data")} ie_main
+on ie_main.ParentMobileMain=s.p_num
+
+
+where ie_gen.phone_numbers_to_be_sent is null
+and p_num <>918527647594
+
+group by 1,2
 
 )
 

@@ -19,10 +19,12 @@ qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) o
 
 , childDetails as (select 
 distinct 
-IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+ie.IEId as childid, ie.OnBoardedUserId as parentid,m.cohort,ie.ProjectId as ProjectId,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
-from ${ref("IE")}
-where  projectid=1103912
+from ${ref("IE")} ie
+left join   ${ref("impact_evaluation_main_data")} m
+on m.parentid=ie.OnBoardedUserId
+where  ie.projectid=1103912
 )
 
 , assessments as (
@@ -50,17 +52,20 @@ where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
 select
 distinct 
 a.dateOfAssessment,
-rf.* except(dateOfAssessment),
-mw.* except(dateOfAssessment,ChildiAssessed,ParentIdAssessed),
-hw.* except(dateOfAssessment,ChildiAssessed,ParentIdAssessed)
+a.cohort,
+rf.* except(dateOfAssessment,cohort),
+mw.* except(dateOfAssessment,ChildiAssessed,ParentIdAssessed,cohort),
+hw.* except(dateOfAssessment,ChildiAssessed,ParentIdAssessed,cohort)
 from assessments a
 left join ${ref("IE_result_failure_tracking")} rf
 on a.dateOfAssessment=rf.dateOfAssessment
+and a.cohort=rf.cohort
 
 left join ${ref("IE_math_assessment_to_first_worksheet")} mw
 on a.dateOfAssessment=mw.dateOfAssessment
+and a.cohort=mw.cohort
 
 left join ${ref("IE_hindi_assessment_to_first_worksheet")} hw
 on a.dateOfAssessment=hw.dateOfAssessment
-
+and a.cohort=hw.cohort
 order by 1 desc
