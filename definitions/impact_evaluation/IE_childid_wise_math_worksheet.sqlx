@@ -4,7 +4,7 @@ config {
 }
 
 with 
-hindi_worksheet_clicked as (
+math_worksheet_clicked as (
     select *
     from ${ref("IE_worksheet_clicked")}
     where subject = "math"
@@ -13,7 +13,7 @@ hindi_worksheet_clicked as (
 worksheet as (
     select s.*,c.clicked_time,co.worksheet_completed_time
  from ${ref("IE_math_worksheet_sent")} s
-left join hindi_worksheet_clicked c
+left join math_worksheet_clicked c
 on s.childid = c.childid and 
 s.hindi_assessment_date = c.hindi_assessment_date and s.worksheet_id = c.worksheet_id
 -- s.LevelNumber = c.LevelNumber and s.worksheetNumber= c.worksheetNumber
