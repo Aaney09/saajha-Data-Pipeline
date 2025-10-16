@@ -63,7 +63,45 @@ where lasthindiWorksheetSentOn<assessmentDate
   select *
   from _2nd_Set
 )
+, failed_numbers as (
+  select
+  profile_updated_date,
+  -- ifnull(safe_cast(ie_main.cohort as string),"unknown") as cohort,
+  s.p_num
 
+  from whom_worksheet_should_go_overall s
+  left join worksheetTemp w	
+on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
+left join `impact_evaluation.GENERAL_ACTIVITY_DASHBOARD_PILOT` ie_gen
+on ie_gen.phone_numbers_to_be_sent=s.p_num
+and date(ie_gen.general_activity_date)=s.profile_updated_date
+-- left join   `saajhadata.dataform.impact_evaluation_main_data` ie_main
+-- on ie_main.ParentMobileMain=s.p_num
+
+  where  (phone_number is null
+  or last_message_status ="failed")
+  and ie_gen.phone_numbers_to_be_sent is null and p_num <>918527647594
+  
+)
+,prev_dates as (
+  select
+  profile_updated_date,
+  -- cohort,
+  p_num,
+  LAG(profile_updated_date, 1) OVER (PARTITION BY p_num ORDER BY profile_updated_date) AS prev_day,
+  -- LAG(profile_updated_date, 2) OVER (PARTITION BY p_num ORDER BY profile_updated_date) AS prev2_day
+  from failed_numbers
+)
+, three_failures as (
+  select
+  profile_updated_date as second_failure_Date,
+  -- cohort,
+  p_num as phone_number_two_failures
+  from prev_dates
+  WHERE 
+  DATE_DIFF(profile_updated_date, prev_day, DAY) = 1
+  -- AND DATE_DIFF(prev_day, prev2_day, DAY) = 1
+)
 
 ,overall_worksheet_status as 
 (select 
@@ -71,6 +109,7 @@ distinct profile_updated_date,ifnull(safe_cast(ie_main.cohort as string),"unknow
       count(distinct p_num)whomHindiWorksheetHasToProcessFromTurn,
       count(distinct if(phone_number is not null,p_num,null)) as whom_hindi_worksheet_has_processed_from_turn,
       count(distinct if(phone_number is null	,p_num,null)) whom_hindi_worksheet_has_not_processed_from_turn,
+       count(distinct phone_number_two_failures ) as two_failures_hindi,
       round(
       count(distinct if(phone_number is null	,p_num,null))/count(distinct p_num)*100
         ,2
@@ -96,6 +135,10 @@ and date(ie_gen.general_activity_date)=s.profile_updated_date
 left join   ${ref("impact_evaluation_main_data")} ie_main
 on ie_main.ParentMobileMain=s.p_num
 
+
+left join three_failures three_f
+on three_f.second_failure_Date=s.profile_updated_date 
+and three_f.phone_number_two_failures=s.p_num
 
 where ie_gen.phone_numbers_to_be_sent is null
 and p_num <>918527647594
