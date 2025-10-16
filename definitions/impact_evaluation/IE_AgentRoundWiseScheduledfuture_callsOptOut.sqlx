@@ -8,7 +8,9 @@ with future_roster as (select distinct safe_cast(concat("91",fr.AgentMobile) as 
 -- max(AgentName)agentName,
 count(distinct if(date(calldate)= current_date("Asia/Kolkata"),ParentId,null))today_scheduled_call,
 count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))day_aftertomorrow_and_future_calls,
-count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
+count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards,
+count(distinct if(date(calldate)>= current_date("Asia/Kolkata") and IsRescheduledCall is null,ParentId,null))overallCallsFromTodayOnwardsPending,
+count(distinct if(date(calldate)>= current_date("Asia/Kolkata") and IsRescheduledCall is True ,ParentId,null))overallCallsFromTodayOnwardsRescheduled,
 from ${ref("futureRoster")} fr
 Inner join ${ref("impact_evaluation_main_data")} m
 using(parentid,childid)
