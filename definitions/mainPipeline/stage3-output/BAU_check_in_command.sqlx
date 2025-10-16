@@ -1,0 +1,91 @@
+config {
+    type:"table",
+    tags:["call_daily"]
+}
+
+
+with children_assessed as (select distinct assesseeActorid ,parentid
+from ${ref("parent_journey_2025_2026")}
+)
+
+,hindi_last_assessed as (select distinct AssesseeActorId,level as last_hindi_level,date(AssessmentTakenOn)date_of_last_hindi_assessment
+from ${ref("assessment")}
+where QuestionText like "%Ask%" 
+qualify row_number()over(partition by AssesseeActorId order by AssessmentTakenOn desc)=1)
+
+,math_last_assessed as (select distinct AssesseeActorId,level as last_math_level,date(AssessmentTakenOn)date_of_last_math_assessment
+from ${ref("assessment")}
+where QuestionText not like "%Ask%" 
+qualify row_number()over(partition by AssesseeActorId order by AssessmentTakenOn desc)=1)
+
+, hindi_worksheet as (
+    select s.*,c.clicked_time,co.submitted_time
+ from ${ref("hindiWorksheetSent")} s
+left join
+${ref("hindiWorksheetClicked")} c
+on s.childid = c.childid
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber 
+and s.monthNumber= c.monthNumber
+left join ${ref("hindiWorksheetCompleted")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date = co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+where s.childid is not null and last_message_status<>"failed"
+)
+
+,math_worksheet as (
+select s.*,c.clicked_time,co.submitted_time
+ from ${ref("mathWorksheetSent")} s
+left join
+${ref("mathWorksheetClicked")} c
+on s.childid = c.childid 
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber
+and s.monthNumber= c.monthNumber
+left join ${ref("mathWorksheetCompleted")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date=co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+where 
+s.childid is not null and 
+last_message_status<>"failed"
+)
+
+, children_assessment as (select *
+from children_assessed
+left join hindi_last_assessed
+using(assesseeActorid)
+left join math_last_assessed
+using(assesseeActorid)
+
+-- where date_of_last_math_assessment>"2025-06-01" or date_of_last_hindi_assessment>"2025-06-01"
+)
+select c.*
+    ,count(distinct if(date(h.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,h.worksheetNumber,null))hindi_worksheet_sent_in_last_30_Days
+    ,count(distinct if(date(h.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,h.worksheetNUmber,null))hindi_worksheet_clicked_in_last_30_Days
+    ,count(distinct if(date(h.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,h.worksheetNUmber,null))hindi_worksheet_submitted_in_last_30_Days
+    ,count(distinct if(date(m.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,m.worksheetNumber,null))math_worksheet_sent_in_last_30_Days
+    ,count(distinct if(date(m.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,m.worksheetNUmber,null))math_worksheet_clicked_in_last_30_Days
+    ,count(distinct if(date(m.submitted_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,m.worksheetNUmber,null))math_worksheet_submitted_in_last_30_Days
+
+from children_assessment c
+left join hindi_worksheet h
+on c.parentid = h.parentid
+left join math_worksheet m
+on c.parentid = m.parentid
+-- where assesseeActorid = 103230442263472651
+-- where assesseeActorid = 103241243387172779
+-- where
+group by all
+
