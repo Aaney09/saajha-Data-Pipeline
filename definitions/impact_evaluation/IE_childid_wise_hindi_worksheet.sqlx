@@ -22,7 +22,12 @@ on c.childid = co.childid and c.hindi_assessment_date=co.hindi_assessment_date a
 -- c.LevelNumber = co.LevelNumber and c.worksheetNumber= co.worksheetNumber
 where s.childid is not null and last_message_status<>"failed"
 )
-
+,cohort_data as (
+    select 
+    childid,
+    cohort
+    from ${ref("impact_evaluation_main_data")}
+)
 
 ,childid_wise_worksheet_count as (select 
 assesseeActorId as childid, 
@@ -123,7 +128,9 @@ on assesseeActorId = childid
 
 group by assesseeActorId, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
-select *
-from ${ref("IE_parent_journey")}
-left join childid_wise_worksheet_count
+select ie.*,cww.*,cd.cohort 
+from ${ref("IE_parent_journey")} ie
+left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
+left join cohort_data cd
+on assesseeActorId=cd.childid
