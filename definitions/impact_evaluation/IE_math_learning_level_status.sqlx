@@ -1,0 +1,63 @@
+
+config {
+    type: "table",
+    tags: ["IE"],
+    description: "Hindi assessment first and last level of a child from april 2025 till march 31st 2026"
+    }
+
+
+with 
+
+mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
+from ${ref("assessment")}
+inner join ${ref("IE")}
+on ieid=assesseeactorid
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+and projectid=1103912
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,mathLevel,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from
+mathAss
+)
+
+, mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=25)
+
+
+
+
+,highestMathAssessment as (select assesseeActorId,
+count(distinct mathRounds)highestMathRound
+from mathData
+group by 1
+)
+
+,mfirstlevel as (select distinct assesseeActorId,mathAssessDate as first_math_assessment_date,mathLevel as firstmathLevel,
+from mathAss
+qualify row_number()over(partition by assesseeActorid order by mathAssessDate asc)=1)
+
+,mLastLevel as (
+  select distinct AssesseeActorId,mathAssessDate as last_math_assessment_date,mathLevel as lastmathLevel,
+  from mathAss
+  qualify row_number()over(partition by assesseeActorid order by mathAssessDate desc)=1
+)
+
+
+,math_improvement_status as (
+   select distinct *,lastmathLevel-firstmathLevel as shift_in_math_level
+from mfirstlevel
+Inner join mlastLevel
+using(assesseeActorId)
+inner join highestMathAssessment
+using(assesseeActorId)
+)
+
+
+select *
+from math_improvement_status
