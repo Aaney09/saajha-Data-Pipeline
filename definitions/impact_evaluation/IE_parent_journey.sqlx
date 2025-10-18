@@ -181,7 +181,7 @@ from ${ref("IE")}
 
 
 
-select assessmentDetails.*,schoolId.school_id,
+,final as (select assessmentDetails.*,schoolId.school_id,
 la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
 opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
 if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
@@ -210,3 +210,9 @@ on la.childid = fln.childid
 left join schoolId
 on la.parentId = schoolId.parentId
 
+)
+
+select f.*,m.cohort
+from final  f
+left join   ${ref("impact_evaluation_main_data")} m
+on assesseeActorId=childid
