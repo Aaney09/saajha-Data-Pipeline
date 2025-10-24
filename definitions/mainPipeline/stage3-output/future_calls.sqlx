@@ -9,5 +9,5 @@ count(distinct if(date(calldate)> current_date("Asia/Kolkata"),ParentId,null))da
 count(distinct if(date(calldate)>= current_date("Asia/Kolkata"),ParentId,null))overallCallsFromTodayOnwards
 from ${ref("futureRoster")}
 where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) and date(CallDate) >= current_date("Asia/Kolkata") AND ProjectId <> 1102996 and AgentName <>"Aashish" 
-and projectid<>1103912
+-- and projectid<>1103912
 group by all

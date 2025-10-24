@@ -8,7 +8,7 @@ config {
 with incom as (  SELECT
     DATE(LastRequestDateTime) AS lastCallReceivedDate,
     AgentMobile,
-    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+    If(Projectid = 12345  /*1103912*/,'Impact Evaluation','Other Projects') AS project_name,
     COUNT(DISTINCT parentid)as uniqueIncomingCalls,
 
   FROM
@@ -25,7 +25,7 @@ with incom as (  SELECT
   SELECT
     DATE(CallStartDateTime)CallDate,
     AgentMobile,
-    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+    If(Projectid = 12345  /*1103912*/,'Impact Evaluation','Other Projects') AS project_name,
     COUNT(parentid)totalDials,
     COUNT(DISTINCT parentid)uniqueDial,
     count(distinct if(FeedbackType like "%RESOLVED%",parentid,NULL)) totalResolvedCalls
@@ -36,7 +36,7 @@ with incom as (  SELECT
 )
 
 , agent_names as (
-  select AgentMobile,    If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+  select AgentMobile,    If(Projectid =12345 /*1103912*/,'Impact Evaluation','Other Projects') AS project_name,
   max(AgentName)agent_name,
   
   from ${ref("incoming")}
