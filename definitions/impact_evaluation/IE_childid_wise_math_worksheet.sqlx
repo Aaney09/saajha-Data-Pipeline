@@ -129,9 +129,9 @@ on assesseeActorId = childid
 
 group by assesseeActorId, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
-select ie.*,cww.*,cd.cohort
+select ie.*,cww.* --,cd.cohort
 from ${ref("IE_parent_journey")} ie
 left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
-left join cohort_data cd
-on assesseeActorId=cd.childid
+-- left join cohort_data cd
+-- on assesseeActorId=cd.childid

@@ -14,7 +14,8 @@ select  DISTINCT phone_number,
     hindi_assessment_date,
     childid,
     parentid,
-    platform as worksheet_submitted_source
+    platform as worksheet_submitted_source,
+    origin
 
 from ${ref("maths_worksheets_submission")} 
 where date(inserted_at) < current_date("Asia/Kolkata")

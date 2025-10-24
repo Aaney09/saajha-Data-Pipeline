@@ -22,9 +22,10 @@ select  DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
     if(
   lower(link_clicked)  like "%platform%",
   regexp_extract( lower(link_clicked),r'platform=([a-z]+)')
-  ,"whatsapp") worksheet_clicked_link_source
+  ,"whatsapp") worksheet_clicked_link_source,
+  IFNULL(REGEXP_EXTRACT(link_clicked, r'origin=([^&]+)'), 'whatsapp') AS origin
 from ${ref("IE_links")}
 where  1=1  
 and 
-  lower(link_clicked)  not like "%origin%"
+  lower(link_clicked)   like "%saajhaworksheet%"
   and date(time) < current_date("Asia/Kolkata")
