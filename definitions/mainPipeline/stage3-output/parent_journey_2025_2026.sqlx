@@ -168,7 +168,7 @@ lastAssessed as  (
   Projectid,parentname,childName,
   AgentName,
   agentMobile as agentNumber,
-  If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name
+  If(Projectid =12345 /*1103912*/,'Impact Evaluation','Other Projects') AS project_name
 
   from ${ref("prelim")}
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
