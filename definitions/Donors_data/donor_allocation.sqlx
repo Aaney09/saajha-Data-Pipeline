@@ -11,7 +11,7 @@ both_sub_3_assessed as (SELECT *
  ${ref("parent_journey_2025_2026")}
    where
     -- Round_3_Assessment is not null and --  removed to allocate 1 assessed children
-    ProjectId not in (1103908,1103912)
+    ProjectId not in (1103908)
 ),
  total_pids_never_allocated as (
   SELECT distinct parentid
