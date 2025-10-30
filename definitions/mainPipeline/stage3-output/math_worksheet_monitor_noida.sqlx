@@ -37,7 +37,7 @@ when childClass >=2 and hindi_Level>=4 then TRUE
 Else false
 end hindiFLnAchievedClassWise
 from mathProfile
-where (/*mathContentProfile = "inprocess" or*/ mathContentProfile = "running" or mathContentProfile='ongoing' ) and opted_in_status = "true" and lastsubject = "maths" )
+where (mathContentProfile = "inprocess" or mathContentProfile = "running" or mathContentProfile='ongoing' ) and opted_in_status = "true" and lastsubject = "maths" )
 
 ,whom_math_Worksheet_should_not_go as (
   select *
