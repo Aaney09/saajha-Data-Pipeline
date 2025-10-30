@@ -1,0 +1,93 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+
+
+with hindiProfile as (
+  SELECT distinct 
+    safe_cast(trim(urn, '+') as int64) as p_num, 
+    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    json_value(details,"$.opted_in")opted_in_status,
+    json_value(details, "$.contentflowhindi")hindiContentProfile,
+    json_value(details, "$.hindilevel")hindilevel,
+    json_value(details,"$.lastworksheetsubject")lastsubject,
+    json_value(details, "$.lastmathworksheetsent")lastsent,			
+    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    json_value(details, "$.hindilevel")hindi_level,
+    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
+FROM ${ref("911171817073_contacts")}  		
+qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+)	
+
+,ongoing_opt_in as (select *
+from hindiProfile
+where (/*hindiContentProfile = "inprocess" or*/ hindiContentProfile = "running" or hindiContentProfile='ongoing' or hindiContentProfile="highestLevel" or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "hindi" and (hindilevel <> "4"))
+
+,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
+
+-- `dataform.hindiWorksheetSent`
+from ${ref("template-sent")}
+where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
+-- and flow_name like "%HFLN Worksheet [Apr2025]%"
+)
+
+, assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
+from ${ref("prelim")})
+
+,whom_worksheet_should_go as (
+select distinct o.p_num,profile_updated_date,o.parentid,
+from ongoing_opt_in o
+left join assessment a
+on o.parentid = a.parentid and o.profile_updated_date= a.date_assessment
+where a.parentid is null)
+
+,_2nd_Set as (
+  select distinct o.p_num,profile_updated_date,o.parentid
+from ongoing_opt_in o
+inner join assessment a
+on o.parentid = a.parentid and o.profile_updated_date= a.date_assessment
+where lasthindiWorksheetSentOn<assessmentDate
+)
+
+,whom_worksheet_should_go_overall as (
+  select *
+  from whom_worksheet_should_go
+  union distinct
+  select *
+  from _2nd_Set
+)
+
+
+,overall_worksheet_status as 
+(select 
+distinct profile_updated_date,
+      count(distinct p_num)whomHindiWorksheetHasToProcessFromTurn,
+      count(distinct if(phone_number is null	,p_num,null)) whom_hindi_worksheet_has_not_processed_from_turn,
+      round(
+      count(distinct if(phone_number is null	,p_num,null))/count(distinct p_num)*100
+        ,2
+      ) hindi_turn_failure_rate,
+      count(distinct if(last_message_status ="failed",p_num,null)) as hindi_worksheet_meta_failed,
+      if(count(distinct if(phone_number is not null	,p_num,null))<>0,
+      round(count(distinct if(last_message_status ="failed",p_num,null))/count(distinct if(phone_number is not null	,p_num,null)) * 100
+      ,2)
+      ,null) hindi_meta_failure_rate,
+      count(distinct if(error_code="131050",p_num,null)) as hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(error_code="131049",p_num,null)) as hindiWorksheetError_131049_Meta_chose_not_to_deliver,
+      count(distinct if(error_code="131026",p_num,null)) as hindiWorksheetError_131026_Message_Undeliverable,
+      count(distinct if(error_code="131000",p_num,null)) as hindiWorksheetError_131000_Something_went_wrong,
+      count(distinct if(error_code="130472",p_num,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
+from whom_worksheet_should_go_overall s	
+left join worksheetTemp w	
+on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
+group by 1
+order by s.profile_updated_date desc
+)
+
+
+select * 
+from overall_worksheet_status
+order by 1 desc
