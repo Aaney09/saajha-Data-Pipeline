@@ -1,0 +1,188 @@
+-- NEED TO UPDATE
+with  math_or_hindi_option_click as (
+  select distinct
+  ie.phoneNumber as phone_number ,
+  ie.parentId,
+  ie.inserted_at as link_clicked_ist,
+  ie.subject as subject_clicked,
+  ie.childId
+
+
+from `impact_evaluation.subject_click` ie
+-- where lower(link_clicked) like '%platform=website%' -- not kam command iske aage origin add kar dene aditya tab malum padega kam command h ki nhi
+)
+, kam_command_temp_click as (
+
+  select
+  link_clicked,
+  phone_number,
+  DATETIME(
+  TIMESTAMP_ADD(TIMESTAMP(ie.time), INTERVAL 330 MINUTE)) AS template_link_clicked_ist
+ from `impact_evaluation.IE_links` ie
+  where lower(link_clicked) like "%origin=cmd%"
+)
+, kam_command_use_HINDI as (
+select
+hw.whomHindiWorksheetHasToProcessFromTurn as hindi_failure_number,
+hw.hindi_failed_Date,
+hw.subject,
+hw.whomHindiWorksheetHasToProcessFromTurn,
+m.phone_number as kam_command_number,
+m.message_sent_at
+from `impact_evaluation.hindi_worksheet_failure_numbers` hw
+left join (select phone_number,
+message_content,
+sent_At as message_sent_at,
+from `dataform.ie_othermessage_inbound` 
+where lower(message_content) in ("kaam","kam","km","come","caam","cam","काम")
+) m
+on hw.whomHindiWorksheetHasToProcessFromTurn=m.phone_number
+and  date(m.message_sent_at) between date(hw.hindi_failed_Date) and date_add(date(hw.hindi_failed_Date), interval 30 day)
+)
+, template_shared_for_hindi_failure as (
+select
+hindi_failure_number,
+kam_command_number,
+message_sent_at,
+hindi_failed_date,
+subject,
+-- message,
+ts.last_message_status,
+ts.sent_at,
+ts.phone_number as template_Sent_number,
+if(kmu.kam_command_number is not null and ts.phone_number is null,kam_command_number,null) as turn_failure_kam_command,
+if((kmu.kam_command_number is not null and ts.phone_number is null) or (kmu.kam_command_number is not null and ts.last_message_status like 'failed'),kam_command_number,null ) as failed_template_numbers,
+if(kmu.kam_command_number is not null and ts.last_message_status not like 'failed',kmu.kam_command_number,null) as successfully_shared_template_numbers
+from kam_command_use_hindi kmu
+left join (select * from `dataform.IE_template_sent` where flow_name like 'Kam Command')ts
+on kmu.kam_command_number=ts.phone_number
+and ts.sent_at BETWEEN kmu.message_Sent_at AND TIMESTAMP_ADD(kmu.message_Sent_at, INTERVAL 1 MINUTE)
+)
+-- select * from template_shared
+
+, cte_hindi as (
+select 
+distinct
+hindi_failure_number as worksheet_failure_numbers,
+ts.kam_command_number,
+if(kam_command_number is not null ,
+if(date_diff(date(message_sent_at),hindi_failed_date,day)<=7,"with in 7 days","after 7 days"),null) as kam_command_used_in_days,
+-- ts.template_Sent_number,
+failed_template_numbers,
+successfully_shared_template_numbers,
+ts.message_sent_at as user_sent_kam_message_At,
+ts.hindi_failed_date as worksheet_failure_date,
+ts.subject as subject_failed,
+ts.last_message_status,
+ts.sent_at as template_sent_at,
+ts.template_Sent_number,
+ktc.phone_number as kam_command_template_clicked,
+if( successfully_shared_template_numbers is not null,
+ if(lc.subject_Clicked=ts.subject,"correct","incorrect"),null) as correct_subject_clicked
+from template_shared_for_hindi_failure ts
+
+left join kam_command_temp_click ktc
+on ts.successfully_shared_template_numbers=safe_Cast(ktc.phone_number as int64) 
+and date(ktc.template_link_clicked_ist) between ts.hindi_failed_date and date_Add(ts.hindi_failed_date, interval 30 day)
+
+left join math_or_hindi_option_click lc
+on ts.successfully_shared_template_numbers=safe_Cast(lc.phone_number as int64) ----- joining only numbers where tempalte was shared
+and date(lc.link_clicked_ist) between ts.hindi_failed_date and date_Add(ts.hindi_failed_date, interval 30 day)
+)
+-- select * from cte
+-- select
+-- hindi_failed_date,
+-- kam_command_used_in_days,
+-- subject,
+-- count(distinct cte.hindi_failure_number) as worksheet_failed_numbers,
+-- count(distinct kam_command_number) as user_used_kam_command,
+-- count(distinct user_sent_kam_message_At) as total_kam_message_sent_by_user,
+-- count(distinct failed_template_numbers ) as total_failed_numbers,
+-- count(distinct case when failed_template_numbers is not null then user_sent_kam_message_At end) total_failed_templates_count,
+-- count(distinct successfully_shared_template_numbers) as total_success_template_numbers,
+-- count(distinct case when successfully_shared_template_numbers is not null then user_Sent_kam_message_At end) as total_successfully_shared_templates_count
+-- from cte
+-- group by all
+-------------------------------------------------------------------------------------------------
+-- MATH
+-------------------------------------------------------------------------------------------------
+, kam_command_use_math as (
+select
+mw.whommathWorksheetHasToProcessFromTurn as math_failure_number,
+mw.math_failed_Date,
+mw.subject,
+mw.whommathWorksheetHasToProcessFromTurn,
+m.phone_number as kam_command_number,
+m.message_sent_at
+from `impact_evaluation.math_worksheet_failure_numbers` mw
+left join (select phone_number,
+message_content,
+sent_At as message_sent_at,
+from `dataform.ie_othermessage_inbound` 
+where lower(message_content) in ("kaam","kam","km","come","caam","cam","काम")
+) m
+on mw.whommathWorksheetHasToProcessFromTurn=m.phone_number
+and  date(m.message_sent_at) between date(mw.math_failed_Date) and date_add(date(mw.math_failed_Date), interval 30 day)
+)
+, template_shared_for_math_failure as (
+select
+math_failure_number,
+kam_command_number,
+message_sent_at,
+math_failed_date,
+subject,
+-- message,
+ts.last_message_status,
+ts.sent_at,
+ts.phone_number as template_Sent_number,
+if((kmu.kam_command_number is not null and ts.phone_number is null) or (kmu.kam_command_number is not null and ts.last_message_status like 'failed'),kam_command_number,null ) as failed_template_numbers,
+if(kmu.kam_command_number is not null and ts.last_message_status not like 'failed',kmu.kam_command_number,null) as successfully_shared_template_numbers
+from kam_command_use_math kmu
+left join (select * from `dataform.IE_template_sent` where flow_name like 'Kam Command')ts
+on kmu.kam_command_number=ts.phone_number
+and ts.sent_at BETWEEN kmu.message_Sent_at AND TIMESTAMP_ADD(kmu.message_Sent_at, INTERVAL 1 MINUTE)
+)
+-- select * from template_shared
+
+, cte_math as (
+select 
+distinct
+math_failure_number as worksheet_failure_numbers,
+ts.kam_command_number,
+if(kam_command_number is not null ,
+if(date_diff(date(message_sent_at),math_failed_date,day)<=7,"with in 7 days","after 7 days"),null) as kam_command_used_in_days,
+-- ts.template_Sent_number,
+failed_template_numbers,
+successfully_shared_template_numbers,
+ts.message_sent_at as user_sent_kam_message_At,
+ts.math_failed_date as worksheet_failure_date,
+ts.subject as subject_failed,
+ts.last_message_status,
+ts.sent_at,
+ts.template_Sent_number,
+ktc.phone_number as kam_command_number_clicked,
+if( successfully_shared_template_numbers is not null,
+ if(lc.subject_Clicked=ts.subject,"correct subject clicked","incorrect subject clicked"),null) as correct_subject_clicked
+from template_shared_for_math_failure ts
+
+left join kam_command_temp_click ktc
+on ts.successfully_shared_template_numbers=safe_Cast(ktc.phone_number as int64) 
+and date(ktc.template_link_clicked_ist) between ts.math_failed_date and date_Add(ts.math_failed_date, interval 30 day)
+
+
+
+left join math_or_hindi_option_click lc
+on ts.successfully_shared_template_numbers=safe_Cast(lc.phone_number as int64) ----- joining only numbers where tempalte was shared
+and date(lc.link_clicked_ist) between ts.math_failed_date and date_Add(ts.math_failed_date, interval 30 day)
+)
+
+select *
+from cte_hindi
+union all
+select *
+from cte_math
+
+
+
+
+
