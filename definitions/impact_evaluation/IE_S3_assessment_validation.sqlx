@@ -107,7 +107,8 @@ left join dials d
 on a.dateOfAssessment= d.calledDate
 and a.parentId= d.parentId
 and a.assesseeActorId = d.childid 
-and a.agentMobile = d.AgentMobile)
+-- and a.agentMobile = d.AgentMobile
+)
 
 select 
     cohort,
