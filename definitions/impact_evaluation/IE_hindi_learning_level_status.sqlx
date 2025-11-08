@@ -9,7 +9,7 @@ from ${ref("assessment")}
 inner join ${ref("IE")}
 on ieid=assesseeactorid
 where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
-and projectid=1103912
+and projectid=1103935
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
 
 ,

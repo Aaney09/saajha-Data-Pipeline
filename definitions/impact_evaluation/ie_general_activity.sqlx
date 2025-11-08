@@ -1,0 +1,144 @@
+config {
+    type: "table",
+    tags: ["IE"]
+}
+
+with template_sent as (
+  select *
+  from ${ref("IE_template_sent")}
+)
+, ie_pilot_table as (
+  select *
+  -- activity_date
+  from `impact_evaluation.IE_pilot` -- change to main
+  left join unnest(
+    case when cohort=1 then ['2025-09-06','2025-10-06','2025-11-06']
+    when cohort=2 then ['2025-09-12','2025-10-12']
+
+    else []
+    end) as activity_date 
+  
+  where phoneno not in (917979058086,919315661819,918218140968  )
+)
+
+, first_status as (
+  select ts.*
+  from template_sent ts
+  where template_name='ie_onb_activity_v2'
+
+  qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At asc)=1
+)
+,
+last_status as (
+  select *
+  from  template_sent ts
+  where template_name='ie_onb_activity_v2'
+  qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At desc)=1
+)
+
+, first_message_full_status as (
+select
+iep.Cohort,
+iep.group,
+iep.phoneNo as phone_numbers_to_be_sent,
+iep.activity_date as general_activity_date,
+fs.sent_at as first_sent_at,
+
+
+if(fs.phone_number is not null,fs.phone_number,null) as phone_numbers_actually_sent,
+if(fs.phone_number is not null and fs.last_message_status not like 'failed',fs.phone_number,null) as phone_numbers_successfully_sent,
+if( fs.last_message_status  like 'failed',fs.phone_number,null) as meta_failure_numbers,
+if(fs.phone_number is null,iep.phoneno,null) as turn_failure_number,
+if(fs.error_code='131050',fs.phone_number,null) as code_050_User_has_stopped_reciept_of_marketing_messages,
+if(fs.error_code='131049',fs.phone_number,null) as code_049_Meta_chose_not_to_deliver,
+if(fs.error_code='131026',fs.phone_number,null) as code_026_Message_Undeliverable,
+if(fs.error_code='131000',fs.phone_number,null) as code_000_Something_went_wrong,
+if(fs.error_code='130472',fs.phone_number,null) as code_472_User_number_is_part_of_an_experiment
+-- if(fs.error_code='131050',fs.phone_number,null) as
+
+
+from ie_pilot_table iep
+left join first_status fs
+on fs.phone_number=iep.phoneno
+and date(fs.sent_at)=date(iep.activity_date)
+where date(iep.activity_date)<current_date("Asia/Kolkata")+1
+
+)
+, second_message_full_status as (
+select
+fmfs.phone_numbers_to_be_sent as numbers_to_be_triggered_again,
+fmfs.general_Activity_date,
+ts.sent_at as second_sent_time,
+-- ts.phone_number,
+if(ts.phone_number is null,fmfs.phone_numbers_to_be_sent,null) as turn_failed_second_time,
+if(ts.last_message_status like 'failed',fmfs.phone_numbers_to_be_sent,null) as meta_failed_second_time,
+if(ts.last_message_status not like 'failed',fmfs.phone_numbers_to_be_sent,null) as sent_successfully_second_time
+
+
+
+from  first_message_full_status fmfs
+left join  last_status ts  -- yaha pe last status use karlo
+on fmfs.phone_numbers_to_be_sent =ts.phone_number
+and  date(fmfs.first_sent_at)=date(ts.sent_at)
+and fmfs.first_sent_at<ts.sent_at --- joined here on date also to taken only that day status
+where 1=1
+--  and fmfs.first_sent_at<ts.sent_at
+and (
+fmfs.turn_failure_number is not null
+or fmfs.code_049_Meta_chose_not_to_deliver is not null
+)
+)
+
+-- select * from second_message_full_status
+select
+distinct
+fsfp.phone_numbers_to_be_sent,
+fsfp.Cohort,
+fsfp.group,
+fsfp.general_activity_date,
+date(fsfp.first_sent_at) as template_sent_on,
+fsfp.phone_numbers_successfully_sent,
+fsfp.meta_failure_numbers,
+fsfp.turn_failure_number,
+fsfp.code_050_User_has_stopped_reciept_of_marketing_messages,
+fsfp.code_049_Meta_chose_not_to_deliver,
+fsfp.code_026_Message_Undeliverable,
+fsfp.code_000_Something_went_wrong,
+fsfp.code_472_User_number_is_part_of_an_experiment,
+--------------------------------------------------------------------
+-- TRIGGERED AGAIN
+-----------------------------------------------------------------------
+smfs.numbers_to_be_triggered_again,
+smfs.turn_failed_second_time,
+smfs.meta_failed_second_time,
+smfs.sent_successfully_second_time
+
+
+
+
+from first_message_full_status fsfp
+
+left join second_message_full_status smfs
+on fsfp.phone_numbers_to_be_sent=smfs.numbers_to_be_triggered_again
+and fsfp.general_activity_date=smfs.general_activity_date
+
+
+-- left join last_status ls
+-- on fsfp.phone_numbers_to_be_sent=ls.phone_number
+
+
+-- on iep.phoneno=fsfp.phone_numbers_to_be_sent
+
+
+
+-- on ts.phone_number=iep.phoneno
+-- where template_name='ie_onb_activity_v2' 
+
+
+
+
+
+
+
+
+

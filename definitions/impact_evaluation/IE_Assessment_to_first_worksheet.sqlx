@@ -24,7 +24,7 @@ safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from ${ref("IE")} ie
 left join   ${ref("impact_evaluation_main_data")} m
 on m.parentid=ie.OnBoardedUserId
-where  ie.projectid=1103912
+where  ie.projectid=1103935
 )
 
 , assessments as (
