@@ -8,17 +8,23 @@ with template_sent as (
   from ${ref("IE_template_sent")}
 )
 , ie_pilot_table as (
-  select *
+  select 
+  null as cohort,
+  null as phoneno,
+  "2028-10-10" as activity_date,
+  3 AS `GROUP`
+
+  -- *
   -- activity_date
   from `impact_evaluation.IE_pilot` -- change to main
-  left join unnest(
-    case when cohort=1 then ['2025-09-06','2025-10-06','2025-11-06']
-    when cohort=2 then ['2025-09-12','2025-10-12']
+  -- left join unnest( -- UNCOMMENT THIS
+  --   case when cohort=1 then ['2025-09-06','2025-10-06','2025-11-06']
+  --   when cohort=2 then ['2025-09-12','2025-10-12']
 
-    else []
-    end) as activity_date 
+  --   else []
+  --   end) as activity_date 
   
-  where phoneno not in (917979058086,919315661819,918218140968  )
+  -- where phoneno not in (917979058086,919315661819,918218140968  ) -- UNCOMMENT THIS
 )
 
 , first_status as (
