@@ -1,4 +1,7 @@
--- NEED TO UPDATE
+config {
+    type:"table",
+    tags: "IE"
+}
 with  math_or_hindi_option_click as (
   select distinct
   ie.phoneNumber as phone_number ,
@@ -8,8 +11,9 @@ with  math_or_hindi_option_click as (
   ie.childId
 
 
-from `impact_evaluation.subject_click` ie
--- where lower(link_clicked) like '%platform=website%' -- not kam command iske aage origin add kar dene aditya tab malum padega kam command h ki nhi
+from ${ref("subject_click")} ie
+ where origin="CMD"
+
 )
 , kam_command_temp_click as (
 
@@ -18,7 +22,7 @@ from `impact_evaluation.subject_click` ie
   phone_number,
   DATETIME(
   TIMESTAMP_ADD(TIMESTAMP(ie.time), INTERVAL 330 MINUTE)) AS template_link_clicked_ist
- from `impact_evaluation.IE_links` ie
+ from ${ref("IE_links")} ie
   where lower(link_clicked) like "%origin=cmd%"
 )
 , kam_command_use_HINDI as (
@@ -29,11 +33,11 @@ hw.subject,
 hw.whomHindiWorksheetHasToProcessFromTurn,
 m.phone_number as kam_command_number,
 m.message_sent_at
-from `impact_evaluation.hindi_worksheet_failure_numbers` hw
+from ${ref("ie_hindi_worksheet_failure_numbers")} hw
 left join (select phone_number,
 message_content,
 sent_At as message_sent_at,
-from `dataform.ie_othermessage_inbound` 
+from ${ref("ie_othermessage_inbound")} 
 where lower(message_content) in ("kaam","kam","km","come","caam","cam","काम")
 ) m
 on hw.whomHindiWorksheetHasToProcessFromTurn=m.phone_number
@@ -54,7 +58,7 @@ if(kmu.kam_command_number is not null and ts.phone_number is null,kam_command_nu
 if((kmu.kam_command_number is not null and ts.phone_number is null) or (kmu.kam_command_number is not null and ts.last_message_status like 'failed'),kam_command_number,null ) as failed_template_numbers,
 if(kmu.kam_command_number is not null and ts.last_message_status not like 'failed',kmu.kam_command_number,null) as successfully_shared_template_numbers
 from kam_command_use_hindi kmu
-left join (select * from `dataform.IE_template_sent` where flow_name like 'Kam Command')ts
+left join (select * from ${ref("IE_template_sent")} where flow_name like 'Kam Command')ts
 on kmu.kam_command_number=ts.phone_number
 and ts.sent_at BETWEEN kmu.message_Sent_at AND TIMESTAMP_ADD(kmu.message_Sent_at, INTERVAL 1 MINUTE)
 )
@@ -114,11 +118,11 @@ mw.subject,
 mw.whommathWorksheetHasToProcessFromTurn,
 m.phone_number as kam_command_number,
 m.message_sent_at
-from `impact_evaluation.math_worksheet_failure_numbers` mw
+from ${ref("ie_math_worksheet_failure_numbers")} mw
 left join (select phone_number,
 message_content,
 sent_At as message_sent_at,
-from `dataform.ie_othermessage_inbound` 
+from ${ref("ie_othermessage_inbound")} 
 where lower(message_content) in ("kaam","kam","km","come","caam","cam","काम")
 ) m
 on mw.whommathWorksheetHasToProcessFromTurn=m.phone_number
@@ -138,7 +142,7 @@ ts.phone_number as template_Sent_number,
 if((kmu.kam_command_number is not null and ts.phone_number is null) or (kmu.kam_command_number is not null and ts.last_message_status like 'failed'),kam_command_number,null ) as failed_template_numbers,
 if(kmu.kam_command_number is not null and ts.last_message_status not like 'failed',kmu.kam_command_number,null) as successfully_shared_template_numbers
 from kam_command_use_math kmu
-left join (select * from `dataform.IE_template_sent` where flow_name like 'Kam Command')ts
+left join (select * from ${ref("IE_template_sent")} where flow_name like 'Kam Command')ts
 on kmu.kam_command_number=ts.phone_number
 and ts.sent_at BETWEEN kmu.message_Sent_at AND TIMESTAMP_ADD(kmu.message_Sent_at, INTERVAL 1 MINUTE)
 )
