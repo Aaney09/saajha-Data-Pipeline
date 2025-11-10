@@ -74,7 +74,7 @@ where lasthindiWorksheetSentOn<assessmentDate
   from whom_worksheet_should_go_overall s
   left join worksheetTemp w	
 on p_num=phone_number and s.profile_updated_date = w.worksheet_sent_date	
-left join `impact_evaluation.GENERAL_ACTIVITY_DASHBOARD_PILOT` ie_gen
+left join ${ref("ie_general_activity")} ie_gen
 on ie_gen.phone_numbers_to_be_sent=s.p_num
 and date(ie_gen.general_activity_date)=s.profile_updated_date
 -- left join   `saajhadata.dataform.impact_evaluation_main_data` ie_main
@@ -136,8 +136,12 @@ left join ${ref("ie_general_activity")} ie_gen
 on ie_gen.phone_numbers_to_be_sent=s.p_num
 and date(ie_gen.general_activity_date)=s.profile_updated_date
 
-left join   ${ref("impact_evaluation_main_data")} ie_main
-on ie_main.ParentMobileMain=s.p_num
+left join ${ref("User")} u
+on safe_cast(concat("91",UserLogin) as int64) =s.p_num
+
+inner join   ${ref("impact_evaluation_main_data")} ie_main
+on ie_main.parentid=u.userid
+
 
 
 left join three_failures three_f
