@@ -83,6 +83,13 @@ left join ${ref("ie_general_activity")} ie_gen
 on ie_gen.phone_numbers_to_be_sent=s.p_num
 and date(ie_gen.general_activity_date)=s.profile_updated_date
 
+
+left join ${ref("User")} u
+on safe_cast(concat("91",UserLogin) as int64) =s.p_num
+
+inner join   ${ref("impact_evaluation_main_data")} ie_main
+on ie_main.parentid=u.userid
+
 where ie_gen.phone_numbers_to_be_sent is null
 and p_num <>918527647594
 -- group by 1
