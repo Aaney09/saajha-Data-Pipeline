@@ -338,7 +338,7 @@ order by parentid  desc)
 
  ,result_mtp as (select *, row_number() over(partition by parentid order by dateOfAssessment asc)rn
 from resultData_mtp
-order by parentid asc,rn asc)
+order by parentid asc,rn asc) -- using for the assessment data also
 
 
 
@@ -363,6 +363,7 @@ MAX(IF(rn = 1, dateOfAssessment, NULL)) AS assessment_1,
 from result_mtp
 group by 1
 )
+
 ,mtp_final as (
 select
 maw.parentid,
@@ -402,6 +403,28 @@ left join ${ref("impact_evaluation_main_data")} ie_main
 on maw.parentid=ie_main.parentid
 group by 1,2
 )
+
+------------------------------------------
+-- ASSESSMENT TAKEN
+-------------------------------------------
+
+,assessment_taken as(
+  select 
+cohort,
+"Assessment Taken" as sourcetab,
+count(distinct if(rn=1,rm.parentid,null)) as round_1_assessment,
+count(distinct if(rn=2,rm.parentid,null)) as round_2_assessment,
+count(distinct if(rn=3,rm.parentid,null)) as round_3_assessment,
+count(distinct if(rn=4,rm.parentid,null)) as round_4_assessment,
+count(distinct if(rn=5,rm.parentid,null)) as round_5_assessment,
+count(distinct if(rn=6,rm.parentid,null)) as round_6_assessment
+
+from result_mtp rm
+left join `dataform.impact_evaluation_main_data` ie_main
+on rm.parentid=ie_main.parentid
+group by 1
+)
+
 , pulse_mtp as (
 select
 cohort,
@@ -423,18 +446,22 @@ select *, 2 as ordernum
 from pulse_call_reslove
 union all
 
-select *, 3 as ordernum
+SELECT *, 3 AS ORDERNUM
+FROM assessment_taken
+UNION ALL
+
+select *, 4 as ordernum
 from pulse_result_shared
 union all
 
-select *, 4 as ordernum
+select *, 5 as ordernum
 from pulse_hindi
 union all
 
-select *, 5 as ordernum
+select *, 6 as ordernum
 from pulse_math
 union all
 
-select *, 6 as ordernum
+select *, 7 as ordernum
 from pulse_mtp
 order by ordernum
