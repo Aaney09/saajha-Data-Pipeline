@@ -28,10 +28,56 @@ where s.childid is not null and last_message_status<>"failed"
     cohort
     from ${ref("impact_evaluation_main_data")}
 )
+, general_activity as (
+    select 
+    phone_numbers_to_be_sent,
+    userid as parentid,
+    ieid as childid,
+    general_activity_date
+    from `dataform.ie_general_activity`  gen
+    left join ${ref("User")} u
+    on gen.phone_numbers_to_be_sent=safe_cast(concat("91",u.UserLogin) as int64)
+    left join ${ref("IE")} ie
+    on ie.OnBoardedUserId = u.userid
+    -- where `group` = "Treatment"
+)
+, turn_profile as (  SELECT distinct 
+    safe_cast(trim(urn, '+') as int64) as p_num,
+
+    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    json_value(details,"$.opted_in")opted_in_status,
+    json_value(details, "$.contentflowmaths")mathContentProfile,
+    json_value(details, "$.contentflowhindi")hindiContentProfile,
+    json_value(details,"$.lastworksheetsubject")lastsubject,
+    json_value(details, "$.lastmathworksheetsent")lastsent,			
+    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    json_value(details, "$.hindilevel")hindi_level,
+    json_value(details, "$.mathslevel")math_level,
+    if(json_value(details, "$.lastmathworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
+    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
+FROM ${ref("911171817034_contacts")} c 
+
+qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+
+ )
+,general_Activity_profile_update as (
+    select
+    ga.parentid,
+    ga.general_activity_date,
+    tp.profile_updated_date,
+    tp.lastsubject 
+    from general_activity ga
+    left join turn_profile tp
+    on ga.parentid=tp.parentid
+    and date(ga.general_Activity_date)=tp.profile_updated_Date
+)
 
 
 ,childid_wise_worksheet_count as (select 
-assesseeActorId as childid, 
+assesseeActorId as childid, ga.lastsubject,
 case 
     when Round_2_Assessment is null then count(distinct if(date(sent_at)>Round_1_Assessment,worksheetNumber,null))
     else count(distinct if(date(sent_at) between Round_1_Assessment and Round_2_Assessment,worksheetNumber,null ))
@@ -120,18 +166,165 @@ case
 End round_6_worksheet_sent,
 
 
+-------------------------------
+-- day difference calculation
+----------------------------------
+ max(DATE_DIFF( IFNULL(Round_2_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_1_assessment,DAY)) as round_1_2_days,
+ max(DATE_DIFF( IFNULL(Round_3_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_2_Assessment,DAY)) AS round_2_3_days,
+ max(DATE_DIFF( IFNULL(Round_4_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_3_Assessment,DAY)) AS round_3_4_days,
+ max(DATE_DIFF( IFNULL(Round_5_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_4_Assessment,DAY)) AS round_4_5_days, 
+ max(DATE_DIFF( IFNULL(Round_6_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_5_Assessment,DAY)) AS round_5_6_days,
+ mAX(DATE_DIFF( IFNULL(Round_7_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_6_Assessment,DAY)) AS round_6_7_days,
+    
+ max(if(DATE(general_activity_date) BETWEEN Round_1_assessment AND IFNULL(Round_2_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_1_2_general_activity,
+ max(if(DATE(general_activity_date) BETWEEN Round_2_assessment AND IFNULL(Round_3_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_2_3_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_3_assessment AND IFNULL(Round_4_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_3_4_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_4_assessment AND IFNULL(Round_5_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_4_5_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_5_assessment AND IFNULL(Round_6_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_5_6_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_6_assessment AND IFNULL(Round_7_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_6_7_general_activity
+    
+
 
 from ${ref("IE_parent_journey")} py
 left join worksheet s
 on assesseeActorId = childid
 -- where put project id filter
 
+left join general_Activity_profile_update ga
+on PY.parentid=ga.parentid
 
-group by assesseeActorId, Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment)
 
-select ie.*,cww.* --,cd.cohort
-from ${ref("IE_parent_journey")} ie
+
+
+group by assesseeActorId, Round_1_assessment,Round_2_Assessment,Round_3_Assessment,Round_4_Assessment,Round_5_Assessment,Round_6_Assessment,Round_7_Assessment,lastsubject)
+
+select ie.*,cww.*, --,cd.cohort 
+
+  CASE
+    WHEN r1_mathlevel < 4 THEN
+      CASE
+        WHEN round_1_2_days > 45 THEN
+          CASE 
+            WHEN round_1_2_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_1_2_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_1_2_days / 2) - 1
+            ELSE FLOOR(round_1_2_days / 2)
+          END
+      END
+    ELSE 0
+end as round_1_worksheet_to_Sent,
+
+CASE
+    WHEN r2_mathlevel < 4 THEN
+      CASE
+        WHEN round_2_3_days > 45 THEN
+          CASE 
+            WHEN round_2_3_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_2_3_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_2_3_days / 2) - 1
+            ELSE FLOOR(round_2_3_days / 2)
+          END
+      END
+    ELSE 0
+end as round_2_worksheet_to_Sent,
+
+CASE
+    WHEN r3_mathlevel < 4 THEN
+      CASE
+        WHEN round_3_4_days > 45 THEN
+          CASE 
+            WHEN round_3_4_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_3_4_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_3_4_days / 2) - 1
+            ELSE FLOOR(round_3_4_days / 2)
+          END
+      END
+    ELSE 0
+end as round_3_worksheet_to_Sent,
+
+CASE
+    WHEN r4_mathlevel < 4 THEN
+      CASE
+        WHEN round_4_5_days > 45 THEN
+          CASE 
+            WHEN round_4_5_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_4_5_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_4_5_days / 2) - 1
+            ELSE FLOOR(round_4_5_days / 2)
+          END
+      END
+    ELSE 0
+end as round_4_worksheet_to_Sent,
+
+CASE
+    WHEN r5_mathlevel < 4 THEN
+      CASE
+        WHEN round_5_6_days > 45 THEN
+          CASE 
+            WHEN round_5_6_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_5_6_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_5_6_days / 2) - 1
+            ELSE FLOOR(round_5_6_days / 2)
+          END
+      END
+    ELSE 0
+end as round_5_worksheet_to_Sent,
+
+
+CASE
+    WHEN r6_mathlevel < 4 THEN
+      CASE
+        WHEN round_6_7_days > 45 THEN
+          CASE 
+            WHEN round_6_7_general_activity=1 AND lastsubject = "math" THEN 21 
+            ELSE 22 
+          END
+
+        ELSE
+          CASE 
+            WHEN round_6_7_general_activity=1 AND lastsubject = "math" 
+              THEN FLOOR(round_6_7_days / 2) - 1
+            ELSE FLOOR(round_6_7_days / 2)
+          END
+      END
+    ELSE 0
+end as round_6_worksheet_to_Sent
+
+
+
+
+
+from `saajhadata.dataform.IE_parent_journey` ie
 left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
--- left join cohort_data cd
--- on assesseeActorId=cd.childid
+
+
+
+
+
+
