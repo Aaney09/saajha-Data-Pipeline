@@ -2,6 +2,11 @@ config {
     type:"table",
     tags: ["IE"]
 }
+
+with _7034_status as (
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
+    from ${ref('911171817034_statuses')}
+)
 SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
     id,
@@ -12,14 +17,17 @@ SELECT distinct
     json_value(author,"$.name")flow_name,
     json_value(author,"$.type")flow_type, 
     content message_content, 
-    last_value(last_status) over(partition by uuid order by updated_at asc 
-    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    -- last_value(last_status) over(partition by uuid order by updated_at asc 
+    -- ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    last_message_status,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
     911171817034 as saajha_whatsapp_number, 
     "onboarding" as wa_number_purpose,
     external_id
 from ${ref("911171817034","messages")}
+left join _7034_status
+on uuid = message_uuid
 -- ${when(incremental(), 
 -- `WHERE 
 -- (datetime_add(inserted_at, Interval 330 minute) > (SELECT MAX(sent_at) FROM ${self()})
