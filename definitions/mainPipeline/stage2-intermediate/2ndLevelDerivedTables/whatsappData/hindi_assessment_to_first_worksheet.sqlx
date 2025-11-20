@@ -24,6 +24,7 @@ case when projectid=1103908 then 'Noida'
 -- if(projectid=1103908,'Noida','Delhi') as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
+where ProjectId not in (1103908,1103935)
 )
 
 , assessments as (
@@ -66,6 +67,15 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   where number is not null
   and date(sent_at)>="2025-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
+
+  union all
+  
+ select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("IE_template_sent")}
+  on number = phone_number
+  where number is not null
+  and date(sent_at)>="2025-04-01"
 )
 
 ,hindi_video as (
@@ -74,7 +84,7 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   date(sent_at)hindi_1st_video_sent_on,last_message_status as hindi_1st_video_msg_status,error_code as hindi_1st_video_error_code,error_reason as hindi_1st_video_error_reason,location
   from allNumbersPIDtemplatesent
   where (
-(template_name = "hfln_video_template_v2"))
+(template_name  in ( "hfln_video_template_v2","hfln_no_worksheet")))
   -- and last_message_status <> "failed"
 )
 
@@ -85,6 +95,14 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
   from ${ref("hindiWorksheetSent")}
   where worksheetNumber =1 
+  
+union all
+
+select distinct parentid,childid,
+  phone_number as hindi_1st_worksheet_sent_to,
+  date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
+  from ${ref("IE_hindi_worksheet_sent")}
+  where worksheetNumber =1
 )
 ,hindi_first_worksheet_success as (
   select distinct parentid,childid,hindi_worksheet1_sent_on
@@ -100,7 +118,7 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   from assessments r
   inner join hindi_first_worksheet_Sent h
   using(parentid)
-  where hindi_content_to_send_on=hindi_worksheet1_sent_on
+  where hindi_worksheet1_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on,interval 1 day)
   -- datetime_diff(c.hindi_worksheet1_sent_on,sent_at,day)=1
 )
 
@@ -119,7 +137,7 @@ and a.hindi_content_to_send_on=hw.hindi_worksheet1_sent_on
 left join hindi_video hv 
 -- using(parentid)
 on a.parentid=hv.parentid
-and a.hindi_content_to_send_on =hv.hindi_1st_video_sent_on
+and hv.hindi_1st_video_sent_on between a.hindi_content_to_send_on and date_Add(a.hindi_content_to_send_on, interval 1 day)
 
 )
 
@@ -162,10 +180,10 @@ count(distinct m.parentid)ParentIdAssessed,
       count(distinct if((hindi_1st_worksheet_error_code="130472" or hindi_1st_video_error_reason="130472"  and hs.parentid is  null),m.parentid,null)) as hindiWorksheetError_130472_User_number_is_part_of_an_experiment,
 from main_ m
 left join whom_hindi_worksheet_should_not_go g
-using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
+using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,hindilevel)
 left join hindi_first_worksheet_success hs
 on m.parentid=hs.parentid and m.childid= hs.childid
-and  date(m.hindi_content_to_send_on) = date(hs.hindi_worksheet1_sent_on)
+and   date(hs.hindi_worksheet1_sent_on) between date(m.hindi_content_to_send_on) and date_add(m.hindi_content_to_send_on, interval 1 day)
 
 group by all
 order by 1 desc

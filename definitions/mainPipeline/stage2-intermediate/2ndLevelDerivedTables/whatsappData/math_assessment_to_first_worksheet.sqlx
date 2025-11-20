@@ -23,6 +23,7 @@ case when projectid=1103908 then 'Noida'
     else 'Delhi' end as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
+where ProjectId not in (1103908,1103935)
 )
 
 , assessments as (
@@ -65,6 +66,16 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   where number is not null
   and date(sent_at)>="2025-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
+
+  union all
+  
+ select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("IE_template_sent")}
+  on number = phone_number
+  where number is not null
+  and date(sent_at)>="2025-04-01"
+
 )
 
 , math_first_worksheet_sent as (
@@ -73,6 +84,13 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   date(sent_at) as math_worksheet1_sent_on,last_message_status as math_1st_worksheet_msg_status,error_code as math_1st_worksheet_error_code,error_reason as math_1st_worksheet_error_reason,
   from ${ref("mathWorksheetSent")} -- mfln_worksheet_v2
   where worksheetNumber =1 
+  union all
+  select distinct parentid,childid,
+  phone_number as math_1st_worksheet_sent_to,
+  date(sent_at) as math_worksheet1_sent_on,last_message_status as math_1st_worksheet_msg_status,error_code as math_1st_worksheet_error_code,error_reason as math_1st_worksheet_error_reason,
+  from ${ref("IE_math_worksheet_sent")} -- mfln_worksheet_v2
+  where worksheetNumber =1 
+
 )
 
 ,math_first_worksheet_success as (
@@ -89,7 +107,7 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   from assessments r
   inner join math_first_worksheet_Sent m
   using(childid)
-  where math_content_to_send_on=math_worksheet1_sent_on
+  where math_worksheet1_sent_on between math_content_to_send_on and date_add(math_content_to_send_on, interval 1 day)
   -- datetime_diff(m.math_worksheet1_sent_on,sent_at,day)= 2
 )
 
@@ -101,7 +119,7 @@ left join sent_math_first_content mfc
 -- using(parentid,childid)
 on mhrs.parentid=mfc.parentid
 and mhrs.childid=mfc.childid
-and mhrs.math_content_to_send_on=mfc.math_worksheet1_sent_on
+and mfc.math_worksheet1_sent_on between mhrs.math_content_to_send_on and date_add(mhrs.math_content_to_send_on,interval 1 day)
 
 )
 
@@ -148,7 +166,7 @@ using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
 
 left join math_first_worksheet_success ws
 on m.parentid=ws.parentid and m.childid= ws.childid
-and date(m.math_content_to_send_on) = date(ws.math_worksheet1_sent_on)
+and  date(ws.math_worksheet1_sent_on) between date(m.math_content_to_send_on) and date_Add(m.math_content_to_send_on,interval 1 day)
 
 group by all
 order by 1 desc
