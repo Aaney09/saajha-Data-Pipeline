@@ -25,6 +25,7 @@ case when projectid=1103908 then 'Noida'
     else 'Delhi' end as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
+where ProjectId not in (1103908,1103935)
 )
 
 , assessments as (
@@ -58,6 +59,15 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   where number is not null
   and date(sent_at)>="2025-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
+  
+  union all
+  
+ select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  from ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("IE_template_sent")}
+  on number = phone_number
+  where number is not null
+  and date(sent_at)>="2025-04-01"
 
 
 )
@@ -72,7 +82,7 @@ where m.dateOfAssessment between "2025-05-01" and current_date("Asia/Kolkata")-3
   or template_name like "%fln_maths_achieved_result%" 
   or template_name like "%fln_hindi_achieved_result%"
    or template_name like "%fln_both_level_achieved_v2%"
-    or template_name like "fln_result_v2" or template_name like "fln_highest_level_v2"
+    or template_name like "%fln_result_v2%" or template_name like "%fln_highest_level_v2%"
 )
 
 
@@ -83,7 +93,8 @@ from assessments a
 -- left join BothSubjectFLNAchievedTemplateSent b 
 -- on a.parentid = b.parentid and dateOfAssessment=date(flnAchieved_Result_sent_on)
 left join combinedResult m
-on a.parentid = m.parentid and dateOfAssessment=date(combined_Result_sent_on)
+on a.parentid = m.parentid 
+and date(combined_Result_sent_on) between dateOfAssessment and date_Add(dateOfAssessment, interval 1 day)
 
 )
 ,result_success as (
@@ -131,7 +142,7 @@ count(distinct m.parentid)ParentIdAssessed,
 from math_hindiResultSent m
 left join result_success rs
 on m.parentid=rs.parentid
-and date(m.dateOfAssessment)=date(rs.combined_Result_sent_on)
+and date(rs.combined_Result_sent_on) between date(m.dateOfAssessment) and date_add(date(m.dateOfAssessment),interval 1 day)
 group by all
 order by dateOfAssessment desc
 -- -- left join whom_math_worksheet_should_not_go g
