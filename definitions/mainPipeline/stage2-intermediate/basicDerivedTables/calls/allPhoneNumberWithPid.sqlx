@@ -32,7 +32,7 @@ SELECT
   FROM
     ${ref("User")}
   WHERE
-    UserRolesCode LIKE "%parent%"
+    UserRolesCode LIKE "%parent%" and FamilyMemberContact is not null
 
   UNION DISTINCT
 
@@ -58,7 +58,7 @@ SELECT
   FROM
     ${ref("prelim")}
   WHERE
-    ParentId IS NOT NULL and ProjectId is not null
+    ParentId IS NOT NULL and ProjectId is not null and alternateMobileNumber<>""
   UNION DISTINCT
   SELECT
     DISTINCT ParentId,
