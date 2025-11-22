@@ -11,7 +11,9 @@ SELECT
     ${ref("User")}
   WHERE
     UserRolesCode LIKE "%parent%"
+
 UNION DISTINCT 
+
 SELECT
     DISTINCT
   IF
@@ -21,7 +23,19 @@ SELECT
     ${ref("User")}
   WHERE
     UserRolesCode LIKE "%parent%"
+UNION DISTINCT
+SELECT
+    DISTINCT
+  IF
+    (userRolesCode LIKE "%linked%",reportingUserId,userid)rosterparentId,
+    SAFE_CAST(CONCAT("91",FamilyMemberContact) AS int64)number, ProjectId
+  FROM
+    ${ref("User")}
+  WHERE
+    UserRolesCode LIKE "%parent%"
+
   UNION DISTINCT
+
   SELECT
     DISTINCT ParentId,
     SAFE_CAST(CONCAT("91",ParentMobile) AS int64)number,
@@ -62,7 +76,10 @@ SELECT
     SAFE_CAST(CONCAT("91",ParentMobile) AS int64)number,
      ProjectId
   FROM
-    ${ref("futureRoster")} 
+    ${ref("futureRoster")}
+
+
+
 
 
 
