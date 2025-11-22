@@ -4,9 +4,14 @@ config {
 }
 
 select distinct userId as parentid,IEId as childid,Cohort,safe_cast(concat("91",UserLogin) as int64)ParentMobileMain,u.projectId,reportingUserloginname As agentMobile, reportingUserDisplayName as agentName
-from (select null as cohort,
-1 as phoneno,
-null as group_arm) q
+from (select  cohort,
+phone_lookup as  phoneno,
+Assignment
+from saajhadata.impact_evaluation.ie_main_randomized_data
+
+
+) q
+
 -- `impact_evaluation.IE_pilot` -- change to main table once we main experiment starts
 
 inner join ${ref("User")} u
@@ -14,4 +19,4 @@ on safe_cast(concat("91",UserLogin) as int64) = phoneNo
 
 Inner join  ${ref("IE")}
 on OnBoardedUserId = userid
--- where group_arm = "Treatment" -- UNCOMMENT THIS WHEN YOU CHANGE THE PILOT TABLE TO MAIN TABLE 
+where Assignment = "Treatment" -- UNCOMMENT THIS WHEN YOU CHANGE THE PILOT TABLE TO MAIN TABLE 
