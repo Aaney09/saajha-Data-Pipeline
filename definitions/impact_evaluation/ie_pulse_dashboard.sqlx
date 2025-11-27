@@ -6,6 +6,7 @@ WITH general_activity_raw  AS (
   SELECT 
     COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) AS successfully_general_activity_numbers,
     general_activity_date,
+    `group` as arm,
     Cohort,
     ROW_NUMBER() OVER (
       PARTITION BY COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) 
@@ -13,10 +14,10 @@ WITH general_activity_raw  AS (
     ) AS rn
   FROM ${ref("ie_general_activity")}
 )
-, pulse_general_activity as (
+, pulse_general_activity_treatment as (
 select 
 cohort,
-"General Activity" as source_table,
+"General Activity (Treatment)" as source_table,
 count(distinct if(rn=1,successfully_general_activity_numbers,null)) as interaction_1,
 count(distinct if(rn=2,successfully_general_activity_numbers,null)) as interaction_2,
 count(distinct if(rn=3,successfully_general_activity_numbers,null)) as interaction_3,
@@ -24,6 +25,22 @@ count(distinct if(rn=4,successfully_general_activity_numbers,null)) as interacti
 count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_5,
 count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_6
 from general_activity_raw
+where lower(arm)='treatment'
+group by 1
+)
+
+, pulse_general_activity_control as (
+select 
+cohort,
+"General Activity (Control)" as source_table,
+count(distinct if(rn=1,successfully_general_activity_numbers,null)) as interaction_1,
+count(distinct if(rn=2,successfully_general_activity_numbers,null)) as interaction_2,
+count(distinct if(rn=3,successfully_general_activity_numbers,null)) as interaction_3,
+count(distinct if(rn=4,successfully_general_activity_numbers,null)) as interaction_4,
+count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_5,
+count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_6
+from general_activity_raw
+where lower(arm)='control'
 group by 1
 )
 -------------------------------------------------------------------------------------------
@@ -438,30 +455,166 @@ count(distinct iteration_6) as r6_mtp
 from mtp_final
 group by 1
 )
+
+------------------------------------------------------------------------------------------------------
+-- FLN ACHIEVED
+------------------------------------------------------------------------------------------------------
+
+, users as (
+  select
+  parentid,
+  ie.ieid as childid,
+  cohort,
+  OptedOutStatus,
+  ie.FLNStatus,
+  date(ie.FLNAchievedDate) as fln_achieve_date,
+  date(OptedOutDateTime) as opt_out_date
+  from `dataform.impact_evaluation_main_data` ie_main
+  inner join ${ref("User")} u
+  on u.userid=ie_main.parentid
+  inner join ${ref("IE")}  ie
+  on ie.OnBoardedUserId=u.userid
+)
+, FLN_ACHIEVE AS (
+  SELECT 
+  cohort,
+  if(maw.assessment_1 is not null and  maw.assessment_1 =u.fln_achieve_date,u.parentid,null) as itr_1,
+  if(maw.assessment_2 is not null and maw.assessment_2 =u.fln_achieve_date,u.parentid,null) as itr_2,
+  if(maw.assessment_3 is not null and maw.assessment_3 =u.fln_achieve_date,u.parentid,null) as itr_3,
+  if(maw.assessment_4 is not null and maw.assessment_4 =u.fln_achieve_date,u.parentid,null) as itr_4,
+  if(maw.assessment_5 is not null and maw.assessment_5 =u.fln_achieve_date,u.parentid,null) as itr_5,
+  if(maw.assessment_6 is not null and maw.assessment_6 =u.fln_achieve_date,u.parentid,null) as itr_6
+  FROM users u
+  left join mtp_assessement_wise maw
+  on u.parentid=maw.parentid
+  where u.fln_achieve_date is not null
+)
+, pulse_fln_achieve as (
+  select
+  cohort, 
+  "FLN Achieved" as source_table,
+  count(distinct itr_1) as iteration_1,
+  count(distinct itr_2) as iteration_2,
+  count(distinct itr_3) as iteration_3,
+  count(distinct itr_4) as iteration_4,
+  count(distinct itr_5) as iteration_5,
+  count(distinct itr_6) as iteration_6
+  from fln_achieve
+  group by 1
+)
+---------------------------------------------------------------------------------
+-- OPT OUT
+---------------------------------------------------------------------------------
+
+,opt_out as (
+select 
+cohort,
+if(opt_out_date  <= ifnull(maw.assessment_1,'2027-01-01'),u.parentid,null ) as itr_1,
+if(maw.assessment_1 is not null   and opt_out_date>maw.assessment_1 and opt_out_date <= ifnull(maw.assessment_2,'2027-01-01'),u.parentid,null ) as itr_2,
+if(maw.assessment_2 is not null   and opt_out_date>maw.assessment_2 and opt_out_date <= ifnull(maw.assessment_3,'2027-01-01'),u.parentid,null ) as itr_3,
+if(maw.assessment_3 is not null   and opt_out_date>maw.assessment_3 and opt_out_date <= ifnull(maw.assessment_4,'2027-01-01'),u.parentid,null ) as itr_4,
+if(maw.assessment_4 is not null   and opt_out_date>maw.assessment_4 and opt_out_date <= ifnull(maw.assessment_5,'2027-01-01'),u.parentid,null ) as itr_5,
+if(maw.assessment_5 is not null   and opt_out_date>maw.assessment_5 and opt_out_date <= ifnull(maw.assessment_6,'2027-01-01'),u.parentid,null ) as itr_6
+
+
+
+from users u
+left join mtp_assessement_wise maw
+on u.parentid=maw.parentid
+
+where opt_out_date is not null
+
+
+)
+, pulse_opt_out as (
+  select
+  cohort,
+  "Opt Out" as source_table,
+  count(distinct itr_1) as iteration_1,
+  count(distinct itr_2) as iteration_2,
+  count(distinct itr_3) as iteration_3,
+  count(distinct itr_4) as iteration_4,
+  count(distinct itr_5) as iteration_5,
+  count(distinct itr_6) as iteration_6
+  
+  from opt_out 
+  group by 1
+)
+
+----------------------------------------------------------------------------
+-- 19th day message template
+----------------------------------------------------------------------------
+, pulse_message_template as (
+
+  select 
+  cohort,
+  "19th Day message" as source_Table,
+  count(distinct ie_main.parentid) as template_sent_1,
+  0 as temp2,
+  0 as temp3,
+  0 as temp4,
+  0 as temp5,
+  0 as temp6
+  from ${ref("allPhoneNumberWithPid")} p
+  inner join `dataform.impact_evaluation_main_data` ie_main
+  on ie_main.parentid=p.rosterparentid
+  inner join (select * from ${ref("IE_template_sent")}  where template_name in ('ie_calling_number_info2','ie_calling_number_info4')   and last_message_status not like 'failed'    )ts
+  on ts.phone_number=p.number
+group by 1
+
+
+
+)
+
+
+
+
+
+
+
+
 select *, 1 as ordernum
-from pulse_general_activity
+from pulse_general_activity_treatment
+
+
 union all
 
 select *, 2 as ordernum
+from pulse_general_activity_control
+union all
+select *,3 as ordernum
+from pulse_message_template
+union all
+select *, 4 as ordernum
 from pulse_call_reslove
 union all
 
-SELECT *, 3 AS ORDERNUM
+SELECT *, 5 AS ORDERNUM
 FROM assessment_taken
 UNION ALL
 
-select *, 4 as ordernum
+select *, 6 as ordernum
 from pulse_result_shared
 union all
 
-select *, 5 as ordernum
+select * ,7 as ordernum
+from pulse_fln_achieve
+union all
+
+select *,8 as ordernum 
+from pulse_opt_out
+union all
+
+
+
+select *, 9 as ordernum
 from pulse_hindi
 union all
 
-select *, 6 as ordernum
+select *, 10 as ordernum
 from pulse_math
 union all
 
-select *, 7 as ordernum
+select *, 11 as ordernum
 from pulse_mtp
 order by ordernum
