@@ -14,7 +14,7 @@ from ${ref("called")}
 where Recording is not null and 
 date(CallstartDatetime) between "2025-04-01" and "2026-03-31" 
 and CallstartDatetime<CallEndDatetime
-and ProjectId <>1103908
+and ProjectId not in (1103908,1103935)
 group by all)
 
 ,call_duration_donorwise as (select  monthYear,Month,
