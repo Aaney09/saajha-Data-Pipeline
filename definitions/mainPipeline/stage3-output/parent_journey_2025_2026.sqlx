@@ -168,7 +168,7 @@ lastAssessed as  (
   Projectid,parentname,childName,
   AgentName,
   agentMobile as agentNumber,
-  If(Projectid =12345 /*1103912*/,'Impact Evaluation','Other Projects') AS project_name
+  If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name
 
   from ${ref("prelim")}
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
@@ -177,6 +177,7 @@ lastAssessed as  (
 , schoolId as (select distinct safe_cast(Institution as int64)school_id, OnBoardedUserId as parentId,
 -- If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
 from ${ref("IE")}
+where projectid<>1103935
 )
 
 

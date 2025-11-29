@@ -10,4 +10,4 @@ on ieid=assesseeactorid
 where QuestionText NOT LIKE "%Ask%"
     AND DATE(assessmentTakenOn) >= "2023-04-10"
     and AssessmentId<>6
-    -- and projectid<>1103912
+    and projectid<>1103935
