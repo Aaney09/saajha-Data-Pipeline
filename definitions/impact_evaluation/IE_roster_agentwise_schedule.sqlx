@@ -10,7 +10,7 @@ with rosters as (select distinct cohort,ParentId,childId,Round roundoFCall, min(
 from ${ref("roster")}
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
-where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
 -- and projectid=1103912
 group by all )
 
@@ -58,7 +58,7 @@ count(distinct ParentId)unique_scheduledParents,
 from ${ref("roster" )}r -- inner join user
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
-where CallDate  between "2025-04-01" and "2026-03-31" 
+where CallDate  between "2025-04-01" and "2026-12-31" 
 -- and r.ProjectId=1103912
 group by all)
 
