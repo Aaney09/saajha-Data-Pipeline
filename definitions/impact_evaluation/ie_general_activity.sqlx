@@ -18,7 +18,7 @@ with template_sent as (
   activity_date
   from `impact_evaluation.ie_main_randomized_data` -- change to main
   left join unnest( -- UNCOMMENT THIS
-    case when cohort=1 then ['2025-12-19','2026-01-19','2026-02-19','2026-03-19','2026-04-19','2026-05-19','2026-06-19']
+    case when cohort=1 then ['2025-12-09','2026-01-09','2026-02-09','2026-03-09','2026-04-09','2026-05-09','2026-06-09']
     when cohort=2 then ['2025-12-14','2026-01-14','2026-02-14','2026-03-14','2026-04-14','2026-05-14']
 
   --   else []
