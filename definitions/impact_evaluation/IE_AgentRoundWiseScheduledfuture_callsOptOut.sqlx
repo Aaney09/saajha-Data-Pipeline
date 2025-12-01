@@ -34,7 +34,7 @@ using(parentid,childid)
 inner join ${ref("futureRoster")} c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
 
-where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
+where date(last_opted_out) between "2025-04-01" and "2026-12-31" and date(ExtractionDate) >="2025-03-31"
 -- and c.projectid=1103912
 group by all)
 
@@ -46,7 +46,7 @@ Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 inner join ${ref("futureRoster")} c
 on o.parentid=c.parentid and date(last_opted_out) = calldate
-where date(last_opted_out) between "2025-04-01" and "2026-03-31" and date(ExtractionDate) >="2025-03-31"
+where date(last_opted_out) between "2025-04-01" and "2026-12-31" and date(ExtractionDate) >="2025-03-31"
 -- and c.projectid=1103912
 )
 , overalldials as (

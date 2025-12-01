@@ -21,7 +21,7 @@ with hindiAss as (
     from ${ref("assessment")}
     Inner join ${ref("impact_evaluation_main_data")}
     on assesseeActorID = childid
-    where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+    where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-12-31"
     qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
 
 -- ,
@@ -47,7 +47,7 @@ select
 from ${ref("assessment")}
 Inner join ${ref("impact_evaluation_main_data")}
 on assesseeActorID = childid
-where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-12-31"
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
 
