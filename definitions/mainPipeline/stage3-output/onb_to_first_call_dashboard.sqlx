@@ -1,0 +1,348 @@
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+with bigquery_optins as (
+  select distinct phone_number,
+  date(timestamp) as timestamp,
+  "Delhi" as city
+  from ${ref("opt_in_records","opt_in_users")}
+  union distinct
+  select distinct phone_number,
+  date(timestamp),
+  "Delhi" as city
+  from ${ref("process_improvement","opt_in_users")}
+  union distinct
+  select phone_number,date(opted_in_at),
+  "Noida" as city
+  from ${ref("noida_profiles")}
+)
+,star_parent as (
+select phone_number as numbers, date(Sent_at) as star_temp_sent
+from ${ref("template-sent")}
+where template_name in ('missed_call_reminder_v2','missed_call_reminder_v15')
+union all
+select numbers, current_date()
+from `adhoc.star_parent_tanu_data`
+
+)
+,first_optin as (
+  select 
+  phone_number,
+  numbers,star_temp_sent,
+  date(opt.timestamp) as date_optin,
+  city
+  from bigquery_optins opt
+  left join star_parent sp
+  on opt.phone_number=sp.numbers
+  where sp.numbers is null
+  --where date(opt.timestamp) between '2024-04-01' and '2024-04-24' --sharing only april data
+  qualify row_number() over(partition by phone_number order by opt.timestamp ) =1 -- taking first opt in 
+)
+-- select * from first_optin where date_optin='2025-10-03'
+
+
+, first_temp_click as (
+  select
+  ts.phone_number,
+  fo.date_optin,
+  city
+  from first_optin fo
+  inner join ${ref("template-sent")} ts
+  on ts.phone_number=fo.phone_number
+  and date(ts.sent_at)=date_add(date_optin, interval 1 day)
+  inner join ${ref("template-response")} tr
+  on ts.external_id=tr.context_id
+  and tr.responded_at between ts.sent_at AND DATETIME_ADD(ts.sent_at, INTERVAL 24 HOUR)
+
+  where template_name in ('onb_intro_msg')
+
+)
+,first_call as (
+  select ParentMobile, date(min(CallstartDatetime)) as first_Call_date
+  from ${ref("roster")}
+  where date(CallStartDateTime)>='2025-09-30'
+  group by 1
+)
+, first_template_schedule as(
+  select
+  date_add(date_optin, interval 1 day) as expected_date,
+  'onb_intro_msg' as template_name,
+   phone_number  as users_to_receive,
+   city,
+   1 as day_number
+  from first_optin  es
+  left join first_call fc
+  on es.phone_number=safe_cast(concat("91",fc.ParentMobile) as int64)
+  and date_add(date_optin, interval 1 day)>=fc.first_Call_date
+  where fc.ParentMobile is null
+
+  and date_optin>='2025-10-01'
+  group by all
+)
+-- select *
+-- from first_template_schedule
+-- where users_to_receive=917011518100
+
+
+
+
+,normal_flow_templates AS (
+  -- SELECT 'onb_intro_msg' AS template_name, 1 AS day_number
+  --  UNION ALL
+  SELECT 'onb_week1_day3' AS template_name, 2 AS day_number UNION ALL
+  SELECT 'onb_week1_day4' AS template_name, 3 AS day_number UNION ALL
+  SELECT 'onb_week1_day5' AS template_name, 4 AS day_number UNION ALL 
+  SELECT 'onb_week2_day8' AS template_name, 5 AS day_number UNION ALL  
+  SELECT 'onb_week2_day11' AS template_name, 8 AS day_number UNION ALL 
+  SELECT 'onb_week2_day14' AS template_name, 11 AS day_number UNION ALL 
+
+  SELECT 'onb_week3_day17' AS template_name, 14 AS day_number UNION ALL 
+
+  SELECT 'onb_week3_day20' AS template_name, 17 AS day_number UNION ALL 
+
+  SELECT 'onb_week3_day23' AS template_name, 20 AS day_number UNION ALL 
+
+  SELECT 'onb_week4_day26' AS template_name, 23 AS day_number UNION ALL 
+
+  SELECT 'onb_week4_day29' AS template_name, 26 AS day_number UNION ALL
+
+  SELECT 'onb_week4_day32' AS template_name, 29 AS day_number UNION ALL 
+
+  SELECT 'onb_week5_day3' AS template_name, 32 AS day_number UNION ALL 
+
+  SELECT 'onb_week5_day4' AS template_name, 35 AS day_number UNION ALL 
+
+  SELECT 'onb_week5_day5' AS template_name, 38 AS day_number UNION ALL 
+
+  SELECT 'onb_week6_day3' AS template_name, 41 AS day_number UNION ALL 
+
+  SELECT 'onb_week6_day4' AS template_name, 44 AS day_number UNION ALL 
+
+  SELECT 'onb_week6_day5' AS template_name, 47 AS day_number UNION ALL
+
+  SELECT 'onb_week7_day3' AS template_name, 50 AS day_number UNION ALL   
+
+  SELECT 'onb_week7_day4' AS template_name, 53 AS day_number UNION ALL  
+
+  SELECT 'onb_week7_day5' AS template_name, 56 AS day_number UNION ALL   
+
+  SELECT 'onb_week8_day3' AS template_name, 59 AS day_number UNION ALL   
+
+  SELECT 'onb_week8_day4' AS template_name, 62 AS day_number UNION ALL   
+
+  SELECT 'onb_week8_day5' AS template_name, 65 AS day_number UNION ALL  
+
+  SELECT 'onb_week9_day3' AS template_name, 68 AS day_number UNION ALL  
+
+  SELECT 'onb_week9_day4' AS template_name, 71 AS day_number UNION ALL  
+
+  SELECT 'onb_week9_day5' AS template_name, 74 AS day_number UNION ALL 
+
+  SELECT 'onb_week10_day3' AS template_name, 77 AS day_number UNION ALL 
+
+  SELECT 'onb_week10_day4' AS template_name, 80 AS day_number UNION ALL
+
+  SELECT 'onb_week10_day5' AS template_name, 83 AS day_number UNION ALL 
+
+  SELECT 'onb_week11_day3' AS template_name, 86 AS day_number UNION ALL 
+
+  SELECT 'onb_week11_day4' AS template_name, 89 AS day_number UNION ALL 
+
+  SELECT 'onb_week11_day5' AS template_name, 92 AS day_number 
+  -- SELECT 'onb_week3_day23' AS template_name, 20 AS day_number UNION ALL 
+  -- SELECT 'onb_week3_day23' AS template_name, 20 AS day_number UNION ALL 
+
+)
+
+
+
+
+,reminder_flow_templates AS (
+  SELECT 'onb_intro_reminder' AS template_name, 2 AS day_number
+   UNION ALL
+  SELECT
+  template_name,
+  day_number+1 as day_number
+  FROM normal_flow_templates
+  -- add more templates here...
+) 
+
+
+-- 2) For every user, compute on which calendar date they are supposed
+  --  to receive each template based on opt-in date + day_number
+,expected_sents AS (
+  SELECT
+    o.phone_number,
+    ts.template_name,
+    city,
+    day_number,
+
+    DATE_ADD(Date_optin,  interval  ts.day_number DAY) AS expected_date
+  FROM first_temp_click o
+
+  CROSS JOIN normal_flow_templates ts ---  MAIN TEMPLATES
+  where Date_optin>='2025-10-01' 
+
+  union all
+    SELECT
+    o.phone_number,
+    ts.template_name,
+    city,
+    day_number,
+    DATE_ADD(Date_optin,  interval  ts.day_number DAY) AS expected_date
+  FROM (select fo.phone_number,
+              fo.date_optin,
+              fo.city
+          from first_optin fo 
+          left join first_temp_click  fc
+          on fo.phone_number=fc.phone_number where fc.phone_number is null) o
+    
+
+  CROSS JOIN reminder_flow_templates ts -- REMINDER TEMPLATES
+  where Date_optin>='2025-10-01'
+
+
+
+
+),
+expected_agg as (
+  select 
+   expected_date ,
+    template_name,
+    city,
+    day_number,
+     phone_number AS users_to_receive,
+     parentmobile
+  from expected_sents es
+  left join first_call fc
+  on es.phone_number=safe_cast(concat("91",fc.ParentMobile) as int64)
+  and expected_date>=fc.first_Call_date
+  where fc.ParentMobile is null
+)
+-- select * from expected_agg
+-- where users_to_receive=917011518100
+-- 3) Aggregate expected sends
+-- ,expected_agg AS (
+--   SELECT
+--     expected_date ,
+--     template_name,
+--      phone_number AS users_to_receive
+--   FROM expected
+  -- GROUP BY expected_date, template_name
+-- )
+
+-- 4) Aggregate actual sends from your logs
+,actual_agg AS (
+  SELECT
+    DATE(sent_at) AS send_date,
+    template_name,
+     ts.phone_number AS users_received_numbers,
+     last_message_status,
+     error_code,
+     tr.phone_number as users_reponded_numbers
+  
+  FROM ${ref("template-sent")} ts
+  left join ${ref("template-response")} tr
+  on ts.external_id=tr.context_id
+  -- inner join first_temp_click ftc
+  -- on ts.phone_number=ftc.phone_number
+  where template_name like '%onb_week%'
+  or template_name like 'onb_intro_reminder'
+  -- and saajha_whatsapp_number=911171279787
+  -- GROUP BY send_date, template_name
+)
+, first_temp_actual_agg as (
+  select
+  date(sent_at) as send_date,
+  template_name,
+  ts.phone_number as users_received_numbers,
+  last_message_status,
+  error_code,
+  tr.phone_number as users_reponded_numbers
+  from ${ref("template-sent")} ts
+  left join ${ref("template-response")} tr
+  on ts.external_id=tr.context_id
+  where date(sent_at)>='2025-10-01'
+  and template_name='onb_intro_msg'
+
+
+)
+-- 5) Join expected vs actual
+
+
+
+, first_template_final_logic as (
+  SELECT
+  e.expected_date,
+  e.template_name,
+  city,
+  day_number,
+ count(distinct   users_to_receive) tobesent,
+
+  count(distinct  if(last_message_status not like 'failed', users_received_numbers,null )) as userreceived_successfully,
+  count(distinct users_reponded_numbers) as users_reponded,
+
+  count(distinct  if(last_message_status  like 'failed', users_received_numbers,null )) as meta_failures,
+  count(distinct if(users_received_numbers is null,users_to_receive,null)) as turn_failure,
+  -------------------------------------------------------------------------------------------------------------
+  count(distinct if(error_code="131050",users_received_numbers,null)) as error_131050,
+  count(distinct if(error_code="131049",users_received_numbers,null)) as error_131049,
+  count(distinct if(error_code="131026",users_received_numbers,null)) as error_131026,
+  count(distinct if(error_code="131000",users_received_numbers,null)) as error_131000,
+  count(distinct if(error_code="130472",users_received_numbers,null)) as error_130472,
+  -- count(distinct if(error_code="131050",users_received_numbers,null)) as error_131050,
+
+FROM first_template_schedule e
+LEFT JOIN first_temp_actual_agg a
+on e.template_name=a.template_name
+and e.users_to_receive=a.users_received_numbers
+and a.send_date between e.expected_date and date_add(e.expected_date,interval 1 Day)
+
+  group by all
+ORDER BY e.expected_date, e.template_name
+)
+-- , normal_flow_final_logic as (
+, all_templates_final_logic as (
+
+SELECT
+  e.expected_date,
+  -- send_date,
+  e.template_name,
+  city,
+  day_number,
+   count(distinct   users_to_receive) tobesent,
+     count(distinct  if(last_message_status not like 'failed', users_received_numbers,null )) as userreceived_successfully,
+     count(distinct users_reponded_numbers) as users_reponded,
+
+  count(distinct  if(last_message_status  like 'failed', users_received_numbers,null )) as meta_failures,
+  count(distinct if(users_received_numbers is null,users_to_receive,null)) as turn_failure,
+  -------------------------------------------------------------------------------------------------------------
+  count(distinct if(error_code="131050",users_received_numbers,null)) as error_131050,
+  count(distinct if(error_code="131049",users_received_numbers,null)) as error_131049,
+  count(distinct if(error_code="131026",users_received_numbers,null)) as error_131026,
+  count(distinct if(error_code="131000",users_received_numbers,null)) as error_131000,
+  count(distinct if(error_code="130472",users_received_numbers,null)) as error_130472,                  -- supposed to get
+  
+FROM expected_agg e
+LEFT JOIN actual_agg a
+on e.template_name=a.template_name
+and e.users_to_receive=a.users_received_numbers
+and a.send_date between date_sub(e.expected_date,interval 1 day) and date_add(e.expected_date,interval 1 Day)
+-- where expected_date='2025-11-28'
+  -- USING (send_date, template_name)
+  group by all
+ORDER BY expected_date, template_name
+
+)
+select *
+from first_template_final_logic
+where expected_date<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
+union all
+select *
+from all_templates_final_logic
+where expected_date<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
+order by   expected_date desc,  day_number asc-- )
+
+
+
