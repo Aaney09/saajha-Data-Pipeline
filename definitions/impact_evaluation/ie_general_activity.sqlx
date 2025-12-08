@@ -9,20 +9,20 @@ with template_sent as (
 )
 , ie_pilot_table as (
   select 
-  null as cohort,
-  null as phoneno,
-  "2028-10-10" as activity_date,
-  3 AS `GROUP`
+   cohort,
+  phone_lookup as  phoneno,
+  -- "2028-10-10" as activity_date,
+  Assignment AS `GROUP`,
 
   -- *
-  -- activity_date
-  from `impact_evaluation.IE_pilot` -- change to main
-  -- left join unnest( -- UNCOMMENT THIS
-  --   case when cohort=1 then ['2025-09-06','2025-10-06','2025-11-06']
-  --   when cohort=2 then ['2025-09-12','2025-10-12']
+  activity_date
+  from `impact_evaluation.ie_main_randomized_data` -- change to main
+  left join unnest( -- UNCOMMENT THIS
+    case when cohort=1 then ['2025-12-09','2026-01-09','2026-02-09','2026-03-09','2026-04-09','2026-05-09','2026-06-09']
+    when cohort=2 then ['2025-12-14','2026-01-14','2026-02-14','2026-03-14','2026-04-14','2026-05-14']
 
   --   else []
-  --   end) as activity_date 
+    end) as activity_date 
   
   -- where phoneno not in (917979058086,919315661819,918218140968  ) -- UNCOMMENT THIS
 )

@@ -111,7 +111,7 @@ group by 1,2)
 from ${ref("roster")}
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
-where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
 -- and ProjectId=1103912
 --and agentMobile in (9555489577,7303046353,9582377226)
 )
@@ -132,7 +132,7 @@ group by all
 from ${ref("roster")}
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
-where date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+where date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
 -- and ProjectId=1103912
 --and agentMobile in (9555489577,7303046353,9582377226)
 )

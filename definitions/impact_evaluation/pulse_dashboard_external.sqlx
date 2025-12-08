@@ -1,0 +1,60 @@
+-- create table `dataform.pulse_dashboard_external` as
+config {
+    type: "table",
+    tags: ["IE"]
+}
+
+WITH unpvt AS (
+  SELECT
+    source_table,
+    cohort,
+    interaction_col,
+    interaction_value
+  FROM ${ref("ie_pulse_dashboard")}
+  UNPIVOT (
+    interaction_value FOR interaction_col IN (
+      interaction_1,
+      interaction_2,
+      interaction_3,
+      interaction_4,
+      interaction_5,
+      interaction_6
+    )
+  )
+),
+
+indexed AS (
+  SELECT
+    source_table,
+    cohort,
+    interaction_value AS interaction,
+
+    CAST(REGEXP_EXTRACT(interaction_col, r'interaction_(\d+)') AS INT64) AS interaction_idx,
+    CASE source_table
+      WHEN 'General Activity (Treatment)' THEN 1
+      WHEN 'General Activity (Control)' THEN 2
+      WHEN '19th Day message' THEN 3
+      WHEN 'Call Resolve' THEN 4
+      WHEN 'Assessment Taken' THEN 5
+      WHEN 'Result Shared' THEN 6
+      WHEN 'FLN Achieved' THEN 7
+      WHEN 'Opt Out' THEN 8
+      WHEN 'Hindi 1st Worksheet' THEN 9
+      WHEN 'Math 1st Worksheet' THEN 10
+      WHEN 'MTP Attempted' THEN 11
+      ELSE 999  
+    END AS source_order
+  FROM unpvt
+  WHERE interaction_value IS NOT NULL
+)
+
+SELECT
+  source_table,
+  cohort,
+  interaction,
+  ROW_NUMBER() OVER (
+    ORDER BY interaction_idx, source_order
+  ) AS order_num
+FROM indexed
+WHERE source_order <> 999      
+ORDER BY order_num

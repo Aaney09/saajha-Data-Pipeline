@@ -30,7 +30,7 @@ where date(d) BETWEEN DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 29 DAY)
     AND DATE_SUB(CURRENT_DATE("Asia/Kolkata"),INTERVAL 1 DAY)
 order by d asc )assess
 INNER JOIN
-(select IEID,OnBoardedUserId from ${ref("IE")} where projectid <> 1103233)child
+(select IEID,OnBoardedUserId from ${ref("IE")} where projectid not in (1103233,1103935))child
 on assess.AssesseeActorId = child.IEID
 )firstAssessment
 inner join 
