@@ -8,7 +8,7 @@ config {
     DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
     link_clicked,
     datetime(time)clicked_time,
-    content_id,
+    content_id as worksheet_id,
     SAFE_CAST(regexp_extract(content_id,r'[Ll](?:evel)?([0-4])') as int64)
      LevelNumber,
     SAFE_CAST(regexp_extract(content_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
