@@ -5,7 +5,7 @@ config {
 with google_form AS (
    SELECT
     DISTINCT phone_number,
-    "" as worksheet_id
+    "" as worksheet_id,
     datetime(submit_time)submitted_time,
     safe_cast(Level as int64) as LevelNumber,
     worksheet as worksheetNumber,
@@ -21,7 +21,7 @@ with google_form AS (
 ,react_form as (
     SELECT
         DISTINCT phone_number,
-        form_id as worksheet_id
+        form_id as worksheet_id,
         datetime(end_time)submitted_time,
     SAFE_CAST(regexp_extract(form_id,r'[Ll](?:evel)?([0-4])') as int64)
      LevelNumber,
