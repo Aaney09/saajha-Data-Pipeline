@@ -169,9 +169,171 @@ from `adhoc.star_parent_tanu_data`
 ) 
 
 
--- 2) For every user, compute on which calendar date they are supposed
-  --  to receive each template based on opt-in date + day_number
-,expected_sents AS (
+, profile_detials as (
+  select
+ distinct 
+ safe_cast(trim(urn, '+') as int64) as number,
+  json_value(details,"$.onboardingday") as onboardingday,
+  json_value(details,"$.onbrestart")dd,
+  json_value(details,"$.lastonbactivitysentat") as last_activity_Date,
+  date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
+  json_value(details,"$.starparent"),
+  "Delhi" as city
+from ${ref("911171279787_contacts")}
+--  where safe_cast(trim(urn, '+') as int64)=919582674581
+-- where json_value(details,"$.onboardingday") in ("week2 day1","week2 day3","week2 day5","week2 day4")
+--  group by 1
+-- where json_value(details,"$.starparent") not like "true"
+where IFNULL(JSON_VALUE(details, "$.starparent"), "false") not like "true"
+ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+ 
+ union all
+ 
+   select
+ distinct 
+ safe_cast(trim(urn, '+') as int64) as number,
+  json_value(details,"$.onboardingday") as onboardingday,
+  json_value(details,"$.onbrestart")dd,
+  json_value(details,"$.lastonbactivitysentat") as last_activity_Date,
+  date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
+  json_value(details,"$.starparent"),
+  "Noida" as city
+from ${ref("911171817073_contacts")}
+--  where safe_cast(trim(urn, '+') as int64)=919582674581
+-- where json_value(details,"$.onboardingday") in ("week2 day1","week2 day3","week2 day5","week2 day4")
+--  group by 1
+-- where json_value(details,"$.starparent") not like "true"
+where IFNULL(JSON_VALUE(details, "$.starparent"), "false") not like "true"
+ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+)
+
+ ,expected_sents AS (
+select
+number as phone_number,
+city,
+onboardingday,
+profile_updated_date,
+profile_updated_date as expected_date,
+case onboardingday
+  -- when "week1 day3" then "onb_week1_day3"
+  when "week1 day4" then "onb_week1_day3"
+  when "week1 day5" then "onb_week1_day4"
+
+  when "week2 day3" then "onb_week1_day5"
+  when "week2 day4" then "onb_week2_day8"
+  when "week2 day5" then "onb_week2_day11"
+
+  when "week3 day3" then "onb_week2_day14"
+  when "week3 day4" then "onb_week3_day17"
+  when "week3 day5" then "onb_week3_day20"
+
+  when "week4 day3" then "onb_week3_day23"
+  when "week4 day4" then "onb_week4_day26"
+  when "week4 day5" then "onb_week4_day29"
+
+  when "week5 day3" then "onb_week4_day32"
+  when "week5 day4" then "onb_week5_day3"
+  when "week5 day5" then "onb_week5_day4"
+
+  when "week6 day3" then "onb_week5_day5"
+  when "week6 day4" then "onb_week6_day3"
+  when "week6 day5" then "onb_week6_day4"
+
+  when "week7 day3" then "onb_week6_day5"
+  when "week7 day4" then "onb_week7_day3"
+  when "week7 day5" then "onb_week7_day4"
+
+  when "week8 day3" then "onb_week7_day5"
+  when "week8 day4" then "onb_week8_day3"
+  when "week8 day5" then "onb_week8_day4"
+
+  when "week9 day3" then "onb_week8_day5"
+  when "week9 day4" then "onb_week9_day3"
+  when "week9 day5" then "onb_week9_day4"
+  
+  when "week10 day3" then "onb_week9_day5"
+  when "week10 day4" then "onb_week10_day3"
+  when "week10 day5" then "onb_week10_day4"
+
+  when "week11 day3" then "onb_week10_day5"
+  when "week11 day4" then "onb_week11_day3"
+  when "week11 day5" then "onb_week11_day4"
+
+
+
+
+
+
+ 
+  else "which day?"
+  end as template_name,
+  
+  case onboardingday
+  -- when "week1 day3" then 1
+  when "week1 day4" then 2
+  when "week1 day5" then 3
+
+  when "week2 day3" then 4
+  when "week2 day4" then 5
+  when "week2 day5" then 6
+
+   when "week3 day3" then 7
+  when "week3 day4" then 8
+  when "week3 day5" then 9
+
+  when "week4 day3" then 10
+  when "week4 day4" then 11
+  when "week4 day5" then 12
+
+  when "week5 day3" then 13
+  when "week5 day4" then 14
+  when "week5 day5" then 15
+
+  when "week6 day3" then 16
+  when "week6 day4" then 17
+  when "week6 day5" then 18
+
+  when "week7 day3" then 19
+  when "week7 day4" then 20
+  when "week7 day5" then 21
+
+  when "week8 day3" then 22
+  when "week8 day4" then 23
+  when "week8 day5" then 24
+
+  when "week9 day3" then 25
+  when "week9 day4" then 26
+  when "week9 day5" then 27
+  
+  when "week10 day3" then 28
+  when "week10 day4" then 29
+  when "week10 day5" then 30
+
+  when "week11 day3" then 31
+  when "week11 day4" then 32
+  when "week11 day5" then 33
+
+
+
+
+
+  else 999
+  end as day_number
+  
+from profile_detials es
+  left join first_call fc
+  on es.number=safe_cast(concat("91",fc.ParentMobile) as int64)
+  and profile_updated_date>=fc.first_Call_date
+
+  left join star_parent sp
+  on sp.numbers=es.number
+  where fc.ParentMobile is null
+  and sp.numbers is null
+
+)
+
+
+,expected_sentsss  AS (-- NOT USING THIS CTE
   SELECT
     o.phone_number,
     ts.template_name,
@@ -298,7 +460,7 @@ LEFT JOIN first_temp_actual_agg a
 on e.template_name=a.template_name
 and e.users_to_receive=a.users_received_numbers
 and a.send_date between e.expected_date and date_add(e.expected_date,interval 1 Day)
-
+where e.expected_date>='2025-10-01'
   group by all
 ORDER BY e.expected_date, e.template_name
 )
@@ -331,6 +493,7 @@ and e.users_to_receive=a.users_received_numbers
 and a.send_date between date_sub(e.expected_date,interval 1 day) and date_add(e.expected_date,interval 1 Day)
 -- where expected_date='2025-11-28'
   -- USING (send_date, template_name)
+  where e.expected_date>='2025-10-01' and day_number<>999
   group by all
 ORDER BY expected_date, template_name
 
