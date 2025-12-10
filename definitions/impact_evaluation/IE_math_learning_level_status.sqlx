@@ -39,18 +39,18 @@ group by 1
 )
 
 ,mfirstlevel as (select distinct assesseeActorId,mathAssessDate as first_math_assessment_date,mathLevel as firstmathLevel,
-from mathAss
+from mathData
 qualify row_number()over(partition by assesseeActorid order by mathAssessDate asc)=1)
 
 ,mLastLevel as (
   select distinct AssesseeActorId,mathAssessDate as last_math_assessment_date,mathLevel as lastmathLevel,
-  from mathAss
+  from mathData
   qualify row_number()over(partition by assesseeActorid order by mathAssessDate desc)=1
 )
 
 
 ,math_improvement_status as (
-   select distinct *,lastmathLevel-firstmathLevel as shift_in_math_level
+   select distinct *,if(highestMathRound>1,lastmathLevel-firstmathLevel,null) as shift_in_math_level
 from mfirstlevel
 Inner join mlastLevel
 using(assesseeActorId)
