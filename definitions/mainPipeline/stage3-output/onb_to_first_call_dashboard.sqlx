@@ -488,7 +488,7 @@ ORDER BY e.expected_date, e.template_name
 , all_templates_final_logic as (
 
 SELECT distinct
-  e.expected_date,
+  date_add(e.expected_date,interval 2 day) as dates,
   -- send_date,
   e.template_name,
   city,
@@ -522,7 +522,7 @@ and dt.sent_at between date_sub(e.expected_date, interval 2 day) and date_add(e.
   -- USING (send_date, template_name)
   where e.expected_date>='2025-10-01' and day_number<>999
   group by all
-ORDER BY expected_date, template_name
+ORDER BY dates, template_name
 
 )
 select *
@@ -531,7 +531,7 @@ where expected_date<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
 union all
 select *
 from all_templates_final_logic
-where expected_date<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
+where dates<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
 order by   expected_date desc,  day_number asc-- )
 
 
