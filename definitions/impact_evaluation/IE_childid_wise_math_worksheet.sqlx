@@ -169,19 +169,19 @@ End round_6_worksheet_sent,
 -------------------------------
 -- day difference calculation
 ----------------------------------
- max(DATE_DIFF( IFNULL(Round_2_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_1_assessment,DAY)) as round_1_2_days,
- max(DATE_DIFF( IFNULL(Round_3_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_2_Assessment,DAY)) AS round_2_3_days,
- max(DATE_DIFF( IFNULL(Round_4_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_3_Assessment,DAY)) AS round_3_4_days,
- max(DATE_DIFF( IFNULL(Round_5_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_4_Assessment,DAY)) AS round_4_5_days, 
- max(DATE_DIFF( IFNULL(Round_6_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_5_Assessment,DAY)) AS round_5_6_days,
- mAX(DATE_DIFF( IFNULL(Round_7_Assessment, CURRENT_DATE("Asia/Kolkata")),Round_6_Assessment,DAY)) AS round_6_7_days,
+ max(DATE_DIFF( IFNULL(Round_2_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_1_assessment,DAY)) as round_1_2_days,
+ max(DATE_DIFF( IFNULL(Round_3_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_2_Assessment,DAY)) AS round_2_3_days,
+ max(DATE_DIFF( IFNULL(Round_4_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_3_Assessment,DAY)) AS round_3_4_days,
+ max(DATE_DIFF( IFNULL(Round_5_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_4_Assessment,DAY)) AS round_4_5_days, 
+ max(DATE_DIFF( IFNULL(Round_6_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_5_Assessment,DAY)) AS round_5_6_days,
+ mAX(DATE_DIFF( IFNULL(Round_7_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),Round_6_Assessment,DAY)) AS round_6_7_days,
     
- max(if(DATE(general_activity_date) BETWEEN Round_1_assessment AND IFNULL(Round_2_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_1_2_general_activity,
- max(if(DATE(general_activity_date) BETWEEN Round_2_assessment AND IFNULL(Round_3_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_2_3_general_activity,
-max(if(DATE(general_activity_date) BETWEEN Round_3_assessment AND IFNULL(Round_4_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_3_4_general_activity,
-max(if(DATE(general_activity_date) BETWEEN Round_4_assessment AND IFNULL(Round_5_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_4_5_general_activity,
-max(if(DATE(general_activity_date) BETWEEN Round_5_assessment AND IFNULL(Round_6_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_5_6_general_activity,
-max(if(DATE(general_activity_date) BETWEEN Round_6_assessment AND IFNULL(Round_7_Assessment, CURRENT_DATE("Asia/Kolkata")),1,0)) as round_6_7_general_activity
+ max(if(DATE(general_activity_date) BETWEEN Round_1_assessment AND IFNULL(Round_2_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_1_2_general_activity,
+ max(if(DATE(general_activity_date) BETWEEN Round_2_assessment AND IFNULL(Round_3_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_2_3_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_3_assessment AND IFNULL(Round_4_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_3_4_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_4_assessment AND IFNULL(Round_5_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_4_5_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_5_assessment AND IFNULL(Round_6_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_5_6_general_activity,
+max(if(DATE(general_activity_date) BETWEEN Round_6_assessment AND IFNULL(Round_7_Assessment, date_sub(CURRENT_DATE("Asia/Kolkata"),interval 1 day)),1,0)) as round_6_7_general_activity
     
 
 
@@ -319,7 +319,7 @@ end as round_6_worksheet_to_Sent
 
 
 
-from `saajhadata.dataform.IE_parent_journey` ie
+from ${ref("IE_parent_journey")} ie
 left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
 
