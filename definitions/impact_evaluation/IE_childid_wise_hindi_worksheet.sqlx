@@ -320,7 +320,7 @@ end as round_6_worksheet_to_Sent
 
 
 
-from `saajhadata.dataform.IE_parent_journey` ie
+from ${ref("IE_parent_journey")} ie
 left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
 

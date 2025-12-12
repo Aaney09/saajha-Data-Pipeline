@@ -1,0 +1,103 @@
+config {
+    type: "table",
+    tags: ["19th_day_message"]
+}
+with _34_status as (
+  SELECT
+  DISTINCT
+  message_uuid,
+  status as last_message_status,
+    datetime_add(updated_at, interval 330 minute)updated_status_at,
+  
+  json_value(replace(replace( errors,"[",""),']',""),"$.title")title,
+  json_value(replace(replace( errors,"[",""),']',""),"$.code")code,
+
+
+  
+
+
+
+FROM
+  ${ref("911171817034","statuses")}
+-- where date(datetime_add(updated_at, interval 330 minute))<current_date("Asia/Kolkata")
+qualify row_number() over(partition by message_uuid order by updated_at desc)=1
+)
+,template_sent as (
+  SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    -- id,
+    -- uuid, 
+    -- chat_id,
+    -- json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    -- template template_meta_data, 
+    -- rendered_content as message_content,
+    last_message_status,
+    title as error_reason,
+    code as error_code,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    updated_status_at, 
+    911171817034 saajha_whatsapp_number,
+    "IE" wa_number_purpose,
+    external_id,
+from ${ref("911171817034","messages")}
+left join _34_status
+on uuid = message_uuid
+where message_type = "template" 
+qualify row_number()over(partition by uuid order by updated_at desc)=1
+)
+-- ,pid as (
+-- select
+-- rosterparentid,
+-- phone_number,
+-- date(sent_at) as sent_date
+-- from template_sent ts
+-- inner join ${ref("allPhoneNumberWithPid")} p
+-- on p.number=ts.phone_number
+-- where ts.template_name in ('ie_calling_number_info2','ie_calling_number_info4')
+
+-- )
+,message_day as (
+select
+cohort,
+parentid,
+childid,
+ParentMobileMain,
+activity_date
+from ${ref("impact_evaluation_main_data")}
+ left join unnest( -- UNCOMMENT THIS
+    case when cohort=1 then ['2025-12-07']
+    when cohort=2 then ['2025-12-13']
+    when cohort=3 then ["2025-12-20"]
+    when cohort=4 then ["2025-12-27"]
+  --   else []
+    end) as activity_date 
+)
+select 
+
+cohort,
+activity_date,
+md.ParentMobileMain as phone_number_to_be_sent,
+
+if(ts.phone_number is not null,ts.phone_number,null) as phone_numbers_actually_sent,
+if(ts.phone_number is not null and ts.last_message_status not like 'failed',ts.phone_number,null) as phone_numbers_successfully_sent,
+if( ts.last_message_status  like 'failed',ts.phone_number,null) as meta_failure_numbers,
+if(ts.phone_number is null,md.ParentMobileMain,null) as turn_failure_number,
+if(ts.error_code='131050',ts.phone_number,null) as code_050_User_has_stopped_reciept_of_marketing_messages,
+if(ts.error_code='131049',ts.phone_number,null) as code_049_Meta_chose_not_to_deliver,
+if(ts.error_code='131026',ts.phone_number,null) as code_026_Message_Undeliverable,
+if(ts.error_code='131000',ts.phone_number,null) as code_000_Something_went_wrong,
+if(ts.error_code='130472',ts.phone_number,null) as code_472_User_number_is_part_of_an_experiment
+-- if(ts.error_code='131050',ts.phone_number,null) as
+
+
+from message_day md
+left join template_sent ts
+on md.ParentMobileMain=ts.phone_number
+and date(md.activity_date)=date(ts.sent_at)
+where template_name in ('ie_calling_number_info2','ie_calling_number_info4')
+
+and date(md.activity_date)<current_date("Asia/Kolkata")+1
+

@@ -2,7 +2,9 @@ config {
     type:"table",
     tags: "wa_daily"
 }
-
+--------------------
+--- ADD IE PILOT PROFILES
+----------------------
 
 with hindiProfile as (
   SELECT distinct 
