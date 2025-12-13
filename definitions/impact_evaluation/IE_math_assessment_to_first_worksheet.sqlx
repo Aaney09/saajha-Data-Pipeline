@@ -87,7 +87,7 @@ where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
   from assessments r
   inner join math_first_worksheet_Sent m
   using(childid)
-  where math_worksheet1_sent_on between math_content_to_send_on and date_add(math_content_to_send_on,interval 1 day)
+  where math_worksheet1_sent_on between math_content_to_send_on and date_add(math_content_to_send_on,interval 2 day)
   -- datetime_diff(m.math_worksheet1_sent_on,sent_at,day)= 2
 )
 
@@ -99,7 +99,7 @@ left join sent_math_first_content mfc
 -- using(parentid,childid)
 on mhrs.parentid=mfc.parentid
 and mhrs.childid=mfc.childid
-and mfc.math_worksheet1_sent_on between mhrs.math_content_to_send_on and date_add(mhrs.math_content_to_send_on, interval 1 day)
+and mfc.math_worksheet1_sent_on between mhrs.math_content_to_send_on and date_add(mhrs.math_content_to_send_on, interval 2 day)
 
 )
 
@@ -145,7 +145,7 @@ using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
 
 left join math_first_worksheet_success ws
 on m.parentid=ws.parentid and m.childid= ws.childid
-and  date(ws.math_worksheet1_sent_on) between date(m.math_content_to_send_on) and date_add(date(m.math_content_to_send_on), interval 1 day) 
+and  date(ws.math_worksheet1_sent_on) between date(m.math_content_to_send_on) and date_add(date(m.math_content_to_send_on), interval 2 day) 
 
 left join   ${ref("impact_evaluation_main_data")} ie_main
 on m.parentid=ie_main.parentid
