@@ -36,13 +36,13 @@ from rounds
 group by 1,2)
 
 ,opted_out as (
-  select distinct cohort,round,childid,parentid,last_call_scheduled_date,
-  if(date(last_opted_out)=last_call_scheduled_date, 1,0)opted_out_status,
-  -- parentid,o.childid,last_opted_out
-  from  futureRosters
+  select distinct cohort,round,fr.childid,parentid,last_call_scheduled_date,
+  if(date(OptedOutDateTime)=last_call_scheduled_date, 1,0)opted_out_status,
+  -- parentid,o.childid,OptedOutDateTime
+  from  futureRosters fr
   left JOIN 
-  ${ref("opted_out")} o
-  using(parentid,childid)
+  ${ref("opted_out_PC")} o
+  using(parentid)
 )
 -- select  *
 -- from opted_out
