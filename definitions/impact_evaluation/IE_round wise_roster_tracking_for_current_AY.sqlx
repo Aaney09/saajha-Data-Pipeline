@@ -37,7 +37,7 @@ group by 1,2)
 
 ,opted_out as (
   select distinct cohort,round,fr.childid,parentid,last_call_scheduled_date,
-  if(date(OptedOutDateTime)=last_call_scheduled_date, 1,0)opted_out_status,
+  if(date(OptedOutDateTime) is not null, 1,0)opted_out_status,
   -- parentid,o.childid,OptedOutDateTime
   from  futureRosters fr
   left JOIN 
@@ -108,7 +108,10 @@ group by 1,2)
   group by all
 )
 ,resolves as (select distinct ParentId,childId,Round,cohort
-from ${ref("roster")}
+from (select c.*,r.round from ${ref("called")} c
+              left join  ${ref("roster")} r
+              on c.parentid=r.parentid
+              and c.childid=r.childid)
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
@@ -129,7 +132,10 @@ group by all
 )
 
 ,dialed as (select distinct ParentId,childId,Round,cohort,
-from ${ref("roster")}
+from (select c.*,r.round from ${ref("called")} c
+              left join  ${ref("roster")} r
+              on c.parentid=r.parentid
+              and c.childid=r.childid)
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
