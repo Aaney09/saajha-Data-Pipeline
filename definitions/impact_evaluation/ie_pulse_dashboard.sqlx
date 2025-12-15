@@ -200,7 +200,7 @@ on assesseeActorID=childid)
   from ${ref("IE_hindi_worksheet_sent")} ws
   inner join assessments a 
   on a.parentid=ws.parentid
-  and date(ws.sent_At) between a.hindi_content_to_send_on and date_add(hindi_content_to_send_on,interval 1 day)
+  and date(ws.sent_At) between a.hindi_content_to_send_on and date_add(hindi_content_to_send_on,interval 2 day)
   -- inner join `platform_commons.IE` ie
   -- on ie.ieid=ws.childid
   -- inner join ${ref("impact_evaluation_main_data")} ie_main
@@ -272,7 +272,7 @@ group by 1
   from ${ref("IE_math_worksheet_sent")} ws
   inner join assessments a 
   on a.parentid=ws.parentid
-  and date(ws.sent_At) between a.math_content_to_send_on and date_add(math_content_to_send_on,interval 1 day)
+  and date(ws.sent_At) between a.math_content_to_send_on and date_add(math_content_to_send_on,interval 2 day)
   -- inner join `platform_commons.IE` ie
   -- on ie.ieid=ws.childid
   -- inner join ${ref("impact_evaluation_main_data")} ie_main
