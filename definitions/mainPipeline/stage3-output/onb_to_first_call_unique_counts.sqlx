@@ -1,0 +1,65 @@
+-- verify templates attachement,
+
+--------------------------------------------------------
+--  COUNTS AFTER 01-07-25
+--------------------------------------------------------
+config {
+    type:"table",
+    tags: "wa_daily"
+}
+with template as (
+select
+ts.sent_at,
+ts.phone_number as sent_phone_number,
+-- ts.template_meta_data,
+tr.phone_number as responded_number,
+-- tr.template_button_text,
+-- ts.template_name,
+if(ts.saajha_whatsapp_number=911171817073,'Noida','Delhi') as city
+from `dataform.template-sent` ts
+
+
+left join `dataform.template-response` tr
+on ts.external_id=tr.context_id
+where date(sent_at) >= '2025-10-01'
+and last_message_status not like 'failed'
+
+and
+(template_name in(
+"onb_intro_msg",
+"onb_intro_reminder"--%onb_week1_%
+)
+or template_name like '%onb_week1_%'
+or template_name like '%onb_week2_%'
+or template_name like '%onb_week3_%'
+or template_name like '%onb_week4_%'
+or template_name like '%onb_week5_%'
+))
+-- Counting the uniquen number sent and responded for the templates except drawing one
+
+select 
+city,
+-- template_name,
+-- date(sent_at) as sent_date,
+count(distinct sent_phone_number) as unique_num_sent,
+count(distinct responded_number ) as unique_num_respond
+from template
+group by 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
