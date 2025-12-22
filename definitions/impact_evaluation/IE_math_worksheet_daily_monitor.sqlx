@@ -28,8 +28,8 @@ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interva
 ,ongoing_opt_in as (select *
 from mathProfile
 where (mathContentProfile = "inprocess") and math_level<>"4" and opted_in_status = "true" and lastsubject = "maths" 
-AND
-date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
+-- AND
+-- date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
 )
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
