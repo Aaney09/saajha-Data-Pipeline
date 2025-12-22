@@ -21,11 +21,64 @@ with mathProfile as (
 FROM ${ref("912250555658_contacts")}  		
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute)) order by updated_at desc)=1
 )	
+-------------------------------------------------------
+,ie_main_numbers as (
+select 
+number
+from ${ref("impact_evaluation_main_data")} m
+inner join ${ref("allPhoneNumberWithPid")} p
+on p.rosterparentid=m.parentid
+)
+,mathProfile_ie_pilot as (
+  SELECT distinct 
+    safe_cast(trim(urn, '+') as int64) as p_num, 
+    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    json_value(details,"$.opted_in")opted_in_status,
+    json_value(details, "$.contentflowmaths")mathContentProfile,
+    json_value(details, "$.contentflowhindi")hindiContentProfile,
+    json_value(details,"$.lastworksheetsubject")lastsubject,
+    json_value(details, "$.lastmathworksheetsent")lastsent,			
+    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    safe_cast(json_value(details, "$.hindilevel") as int64)hindi_level,
+    safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
+    safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
+    if(json_value(details, "$.lastmathworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
+    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
+      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
+FROM ${ref("911171817034_contacts")}	 c
+left join ie_main_numbers ie_main
+on ie_main.number= safe_cast(trim(urn, '+') as int64)
+where ie_main.number is null	
+qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+)	
 
+
+
+
+
+
+
+
+---------------------------------------------------------------
 -- select *
 -- from mathProfile
 
-,ongoing_opt_in as (select *,  case  
+,ongoing_opt_in as (select distinct 
+    p_num, 
+    parentId,
+    opted_in_status,
+    mathContentProfile,
+    lastsubject,
+    lastsent,			
+    updated_at_ist,			
+    profile_updated_date	,
+    math_level,
+    hindi_level,
+    childclass,
+    lastMathWorksheetSentOn,		
+  case  
 when childClass = 1 and math_Level>=2 then TRUE
 when childClass = 2 and math_Level>=3 then TRUE
 when childClass >=3 and math_Level>=4 then TRUE
@@ -37,7 +90,42 @@ when childClass >=2 and hindi_Level>=4 then TRUE
 Else false
 end hindiFLnAchievedClassWise
 from mathProfile
-where (mathContentProfile = "inprocess" or mathContentProfile = "running"  ) and opted_in_status = "true" and lastsubject = "hindi" )
+where (mathContentProfile = "inprocess" or mathContentProfile = "running"  ) and opted_in_status = "true" and lastsubject = "hindi" 
+
+union all
+
+select
+    p_num, 
+    parentId,
+    opted_in_status,
+    mathContentProfile,
+    lastsubject,
+    lastsent,			
+    updated_at_ist,			
+    profile_updated_date	,
+    math_level,
+    hindi_level,
+    childclass,
+    lastMathsWorksheetSentOn,		
+  case  
+when childClass = 1 and math_Level>=2 then TRUE
+when childClass = 2 and math_Level>=3 then TRUE
+when childClass >=3 and math_Level>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when childClass = 1 and hindi_Level>=3 then TRUE
+when childClass >=2 and hindi_Level>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from mathprofile_ie_pilot
+where (mathContentProfile = "inprocess") and math_level<>4 and opted_in_status = "true" and lastsubject = "maths" 
+AND
+date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
+
+
+
+)
 
 ,whom_math_Worksheet_should_not_go as (
   select *
@@ -51,10 +139,19 @@ where (mathContentProfile = "inprocess" or mathContentProfile = "running"  ) and
 
 ,worksheetTemp as (select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 from ${ref("template-sent")}
-inner join `dataform.allPhoneNumberWithPid`
+inner join ${ref("allPhoneNumberWithPid")}
 on phone_number = number
 where template_name like "%mfln_worksheet%" or template_name like "%rmfln%"  or (template_name ="fln_worksheet" and template_meta_data like "%content_id=Maths%")
 -- and flow_name like "%MFLN Worksheet [Apr2025]%"
+union all
+select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
+
+-- `dataform.hindiWorksheetSent`
+from ${ref("IE_template_sent")}
+inner join ${ref("allPhoneNumberWithPid")}
+on phone_number = number
+where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
+
 )
 
 -- ,failed as (
@@ -93,7 +190,12 @@ where template_name like "%mfln_worksheet%" or template_name like "%rmfln%"  or 
 -- from non_failed)
 
 , assessment as (select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
-from ${ref("prelim")})
+from ${ref("prelim")}
+union all
+select distinct parentid,childid,date(assessmentDate)date_assessment,datetime(assessmentDate)assessmentDate
+from ${ref("assessment_data")}
+
+)
 
 ,whom_worksheet_should_go as (
 select distinct o.p_num,profile_updated_date,o.parentid,math_level,hindi_level
