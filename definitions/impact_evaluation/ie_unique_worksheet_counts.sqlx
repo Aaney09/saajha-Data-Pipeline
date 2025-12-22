@@ -1,0 +1,250 @@
+with Worksheet_Sent AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("IE_hindi_worksheet_sent")} s 
+  WHERE DATE(sent_at) >'2025-09-01'
+  and last_message_status not like 'failed'
+
+),
+Worksheet_Clicked AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    clicked_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    -- origin as origin_clicked
+  FROM ${ref("IE_worksheet_clicked")}
+  WHERE DATE(clicked_time) > "2025-09-01"
+  and subject ='hindi' and worksheet_clicked_link_source  like 'whatsapp'
+),
+Worksheet_Completed AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    worksheet_completed_time as  submitted_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    -- hindi_assessment AS HindiAssessedName,
+    -- maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    -- origin as origin_completed
+  FROM ${ref("IE_hindi_worksheet_completed")} 
+  WHERE DATE(worksheet_completed_time) >'2025-09-01'
+  and worksheet_submitted_source like 'WHATSAPP'
+)
+
+,hindi_ as (SELECT rosterparentId,ws.Level,ws.month,WS.sent_at, WS.Worksheet,clicked_time,submitted_time, WS.phone_number ,WC.phone_number as clickedBy, TQ.phone_number as completedBy
+  -- Distinct WS.Worksheet,
+  -- COUNT(DISTINCT WS.phone_number) AS Sent,
+  -- COUNT(DISTINCT WC.phone_number) AS Clicked,
+  -- COUNT(DISTINCT TQ.phone_number) AS Completed
+FROM
+  Worksheet_Sent WS
+inner join `dataform.allPhoneNumberWithPid`
+on WS.Phone_number=number
+-- inner join final_assessed_data fa
+-- on fa.parentid=rosterparentId
+LEFT JOIN
+  Worksheet_Clicked WC ON WS.phone_number = WC.phone_number AND
+  WS.Worksheet = WC.Worksheet
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+LEFT JOIN
+  Worksheet_Completed TQ ON WC.phone_number = TQ.phone_number AND
+  WC.Worksheet = TQ.Worksheet
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+)
+
+,main_ as (select distinct h.*,ie.Cohort
+
+from hindi_ h
+inner join ${ref("impact_evaluation_main_data")} ie
+on h.rosterparentid=ie.parentid
+
+)
+
+,cte as (
+select 
+rosterparentid,
+-- date(sent_at) as sent_At,
+cohort,
+-- origin_clicked,
+-- origin_completed,
+-- month,
+-- fa.*,
+-- level,
+-- worksheet,
+count(distinct phone_number) as UniqueUserSentTo, 
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
+
+from main_ m
+
+group by all
+),
+level_wise_count as(
+  select
+  rosterparentid as parent_id_hindi,
+--   sent_At,
+  cohort,
+--   origin_clicked,
+-- origin_completed,
+  -- level level_hindi_worksheet,
+  sum(if(UniqueUserSentTo>1,1,UniqueUserSentTo)) as total_worksheet_sent_hindi,
+  sum(if(UniqueUserclickedBy>1,1,UniqueUserclickedBy)) as  total_worksheet_clicked_hindi,
+  sum(if(uniqueUserCompletedBy>1,1,uniqueUserCompletedBy)) as total_woorksheet_completeed_hindi
+  from cte
+  group by all
+)
+-----------------------------------------------------------------------------------------
+-- MATH WORKSHEET
+-----------------------------------------------------------------------------------------
+, Worksheet_Sent_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("IE_math_worksheet_sent")} s 
+  
+  WHERE DATE(sent_at)  >'2025-09-01'
+  and last_message_status not like 'failed'
+
+),
+Worksheet_Clicked_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    clicked_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    -- origin as origin_clicked
+    
+  FROM ${ref("IE_worksheet_clicked")} 
+  WHERE DATE(clicked_time) >'2025-09-01'
+  and subject='math'
+  and lower(worksheet_clicked_link_source)  like 'whatsapp'
+),
+Worksheet_Completed_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    worksheet_completed_time as  submitted_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    -- hindi_assessment AS HindiAssessedName,
+    -- maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    -- origin as origin_completed
+  FROM ${ref("IE_math_worksheet_completed")} 
+  WHERE DATE(worksheet_completed_time) >'2025-09-01'
+  and  lower(worksheet_submitted_source)  like 'whatsapp'
+)
+
+,math_ as (SELECT rosterparentId,ws.Level,ws.month,WS.sent_at, WS.Worksheet,clicked_time,submitted_time, WS.phone_number ,WC.phone_number as clickedBy, TQ.phone_number as completedBy
+
+FROM
+  Worksheet_Sent_math WS
+inner join `dataform.allPhoneNumberWithPid`
+on WS.Phone_number=number
+LEFT JOIN
+  Worksheet_Clicked_math WC ON WS.phone_number = WC.phone_number AND
+  WS.Worksheet = WC.Worksheet
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+LEFT JOIN
+  Worksheet_Completed_math TQ ON WC.phone_number = TQ.phone_number AND
+  WC.Worksheet = TQ.Worksheet
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+
+)
+
+,main_math as (select distinct m.*, ie.cohort
+
+from math_ m
+inner join ${ref("impact_evaluation_main_data")} ie
+on ie.parentid=m.rosterparentid
+)
+,cte_math as (
+select 
+rosterparentid,
+-- date(sent_at) as sent_At,
+cohort,
+-- origin_clicked,
+-- origin_completed,
+-- month,
+-- fa.*,
+-- level,
+-- worksheet,
+count(distinct phone_number) as UniqueUserSentTo, 
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
+
+from main_math m
+group by all
+),
+level_wise_count_math as(
+  select
+  rosterparentid as parentid,
+--   sent_At,
+  cohort,
+--   origin_clicked,
+-- origin_completed,
+  -- level as level_math_worksheet,
+  sum(if(UniqueUserSentTo>1,1,UniqueUserSentTo)) as total_worksheet_sent_math,
+  sum(if(UniqueUserclickedBy>1,1,UniqueUserclickedBy)) as total_worksheet_clicked_math,
+  sum(if(uniqueUserCompletedBy>1,1,uniqueUserCompletedBy)) as total_worksheet_completed_math
+  from cte_math
+  group by all
+)
+select 
+"Math" as subject_,
+cohort,
+sum(total_worksheet_sent_math) as total_unique_id_sent,
+sum(total_worksheet_clicked_math) as total_unique_id_clicked,
+sum(total_worksheet_completed_math) as total_unique_id_completed
+from level_wise_count_math
+group by all
+union all
+select 
+"Hindi" as subject_,
+cohort,
+sum(total_worksheet_sent_hindi) as total_unique_id_sent,
+sum(total_worksheet_clicked_hindi) as total_unique_id_clicked,
+sum(total_woorksheet_completeed_hindi) as total_unique_id_completed
+from level_wise_count
+group by all

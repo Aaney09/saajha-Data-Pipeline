@@ -98,8 +98,8 @@ cohort,
 level,
 worksheet,
 count(distinct phone_number) as UniqueUserSentTo, 
-count(distinct clickedBy)UniqueUserclickedBy,
-count(distinct completedBy)uniqueUserCompletedBy
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
 
 from main_ m
 
@@ -215,8 +215,8 @@ cohort,
 level,
 worksheet,
 count(distinct phone_number) as UniqueUserSentTo, 
-count(distinct clickedBy)UniqueUserclickedBy,
-count(distinct completedBy)uniqueUserCompletedBy
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
 
 from main_math m
 group by all
