@@ -159,7 +159,7 @@ firstAttemp as (select ParentId,
   group by ParentId
 ),
 opted_out as (
-  select distinct parentId,date(OptedOutDateTime) as opted_out_on,null as opted_out_reason
+  select distinct parentId,date(OptedOutDateTime) as opted_out_on,opt_out_reason as opted_out_reason
   from ${ref("opted_out_PC")}
 ),
 lastAssessed as  (
@@ -182,8 +182,8 @@ from ${ref("IE")}
 
 
 ,final as (select assessmentDetails.*,schoolId.school_id,
-la.* except(childid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
-opted_out.* except(parentid),if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
+la.* except(childid),
+
 if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
 if(opted_out.opted_out_on<Round_1_assessment or
 opted_out.opted_out_on<Round_2_assessment or
@@ -200,9 +200,9 @@ on assesseeActorId = la.childid
 left join
 opt_in 
 on la.parentid = opt_in.rosterParentid
-left join
-firstAttemp
-on la.parentId = firstAttemp.parentId
+-- left join
+-- firstAttemp
+-- on la.parentId = firstAttemp.parentId
 left join opted_out
 on la.parentId = opted_out.parentId
 left join fln
@@ -212,7 +212,18 @@ on la.parentId = schoolId.parentId
 
 )
 
-select f.*,m.cohort
-from final  f
-left join   ${ref("impact_evaluation_main_data")} m
+select distinct m.childid as assesseeActorid, m.parentId as ParentId,m.AgentName as current_agent_assigned,m.Projectid as Projectid,
+ f.* except (assesseeActorid,ParentId,Projectid),m.cohort,oo.* except(parentid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
+ if(oo.parentId is not null,"Yes","No") opted_out,
+from   ${ref("impact_evaluation_main_data")} m
+left join final  f
 on assesseeActorId=childid
+left join opted_out oo
+on m.parentid=oo.parentid
+left join
+firstAttemp
+on m.parentId = firstAttemp.parentId
+left join
+opt_in 
+on m.parentid = opt_in.rosterParentid
+where m1 is not null or oo.parentid is not null
