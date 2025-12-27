@@ -2,26 +2,13 @@ config {
     type:"table",
     tags: "wa_daily"
 }
---------------------
---- ADD IE PILOT PROFILES
-----------------------
+
 
 with hindiProfile as (
   SELECT distinct 
-    safe_cast(trim(urn, '+') as int64) as p_num, 
-    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
-    json_value(details,"$.opted_in")opted_in_status,
-    json_value(details, "$.contentflowhindi")hindiContentProfile,
-    json_value(details, "$.hindilevel")hindilevel,
-    json_value(details,"$.lastworksheetsubject")lastsubject,
-    json_value(details, "$.lastmathworksheetsent")lastsent,			
-    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
-    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
-    json_value(details, "$.hindilevel")hindi_level,
-    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
-FROM ${ref("912250555658_contacts")}  		
-qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+   *				
+FROM ${ref("worksheet_profile_delhi")}  		
+-- qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
 ----------------------------------------------------------------------------
 ,ie_main_numbers as (
@@ -33,24 +20,12 @@ on p.rosterparentid=m.parentid
 )
 ,hindiProfile_ie_pilot as (
   SELECT distinct 
-    safe_cast(trim(urn, '+') as int64) as p_num, 
-    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
-    json_value(details,"$.opted_in")opted_in_status,
-    json_value(details, "$.contentflowhindi")hindiContentProfile,
-    json_value(details,"$.lastworksheetsubject")lastsubject,
-    json_value(details, "$.lastmathworksheetsent")lastsent,			
-    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
-    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
-    json_value(details, "$.hindilevel")hindi_level,
-    if(json_value(details, "$.lastmathworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
-    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
-FROM ${ref("911171817034_contacts")}  c
+   *
+   FROM ${ref("ie_worksheet_profile")}  c
 left join ie_main_numbers ie_main
-on ie_main.number= safe_cast(trim(urn, '+') as int64)
+on ie_main.number= p_num
 where ie_main.number is null	
-qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+-- qualify row_number() over(partition by p_num,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
 
 
@@ -65,7 +40,7 @@ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interva
     lastsent,			
     updated_at_ist,			
     profile_updated_date	,
-    hindi_level,
+    -- hindi_level,
     lasthindiWorksheetSentOn	
 from hindiProfile
 where (hindiContentProfile = "inprocess" or hindiContentProfile = "running" or hindiContentProfile="highestLevel" or hindiContentProfile="achieved") and opted_in_status = "true" and lastsubject = "maths" and (hindilevel <> "4")
@@ -83,7 +58,7 @@ select
     lastsent,			
     updated_at_ist,			
     profile_updated_date	,
-    hindi_level,
+    -- hindi_level,
     lasthindiWorksheetSentOn	
 
 from hindiProfile_ie_pilot

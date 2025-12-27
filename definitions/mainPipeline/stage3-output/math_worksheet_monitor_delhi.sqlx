@@ -4,22 +4,22 @@ config {
 }
 
 with mathProfile as (
-  SELECT distinct 
-    safe_cast(trim(urn, '+') as int64) as p_num, 
-    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
-    json_value(details,"$.opted_in")opted_in_status,
-    json_value(details, "$.contentflowmaths")mathContentProfile,
-    json_value(details,"$.lastworksheetsubject")lastsubject,
-    json_value(details, "$.lastmathworksheetsent")lastsent,			
-    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
-    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
-    safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
-    safe_cast(json_value(details, "$.hindilevel")as int64)hindi_level,
-    safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
-    if(json_value(details, "$.lastmathworksheetsenton")<>"",
-    datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
-FROM ${ref("912250555658_contacts")}  		
-qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute)) order by updated_at desc)=1
+  SELECT distinct *
+    -- safe_cast(trim(urn, '+') as int64) as p_num, 
+    -- safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    -- json_value(details,"$.opted_in")opted_in_status,
+    -- json_value(details, "$.contentflowmaths")mathContentProfile,
+    -- json_value(details,"$.lastworksheetsubject")lastsubject,
+    -- json_value(details, "$.lastmathworksheetsent")lastsent,			
+    -- datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    -- date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    -- safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
+    -- safe_cast(json_value(details, "$.hindilevel")as int64)hindi_level,
+    -- safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
+    -- if(json_value(details, "$.lastmathworksheetsenton")<>"",
+    -- datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastMathWorksheetSentOn				
+FROM ${ref("worksheet_profile_delhi")}  		
+-- qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute)) order by updated_at desc)=1
 )	
 -------------------------------------------------------
 ,ie_main_numbers as (
@@ -30,28 +30,29 @@ inner join ${ref("allPhoneNumberWithPid")} p
 on p.rosterparentid=m.parentid
 )
 ,mathProfile_ie_pilot as (
-  SELECT distinct 
-    safe_cast(trim(urn, '+') as int64) as p_num, 
-    safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
-    json_value(details,"$.opted_in")opted_in_status,
-    json_value(details, "$.contentflowmaths")mathContentProfile,
-    json_value(details, "$.contentflowhindi")hindiContentProfile,
-    json_value(details,"$.lastworksheetsubject")lastsubject,
-    json_value(details, "$.lastmathworksheetsent")lastsent,			
-    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
-    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
-    safe_cast(json_value(details, "$.hindilevel") as int64)hindi_level,
-    safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
-    safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
-    if(json_value(details, "$.lastmathworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
-    if(json_value(details, "$.lasthindiworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
-FROM ${ref("911171817034_contacts")}	 c
+  SELECT distinct *except(hindi_level),
+  safe_cast(hindi_level as int64) as hindi_level 
+    -- safe_cast(trim(urn, '+') as int64) as p_num, 
+    -- safe_Cast(json_value(details,"$.parentid") as int64) as parentId,
+    -- json_value(details,"$.opted_in")opted_in_status,
+    -- json_value(details, "$.contentflowmaths")mathContentProfile,
+    -- json_value(details, "$.contentflowhindi")hindiContentProfile,
+    -- json_value(details,"$.lastworksheetsubject")lastsubject,
+    -- json_value(details, "$.lastmathworksheetsent")lastsent,			
+    -- datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
+    -- date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    -- safe_cast(json_value(details, "$.hindilevel") as int64)hindi_level,
+    -- safe_cast(json_value(details, "$.mathslevel")as int64)math_level,
+    -- safe_cast(left(json_value(details, "$.childclass"),1)as int64)childclass,
+    -- if(json_value(details, "$.lastmathworksheetsenton")<>"",
+    --   datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
+    -- if(json_value(details, "$.lasthindiworksheetsenton")<>"",
+    --   datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
+FROM ${ref("ie_worksheet_profile")}	 c
 left join ie_main_numbers ie_main
-on ie_main.number= safe_cast(trim(urn, '+') as int64)
+on ie_main.number= p_num
 where ie_main.number is null	
-qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+-- qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
 
 
