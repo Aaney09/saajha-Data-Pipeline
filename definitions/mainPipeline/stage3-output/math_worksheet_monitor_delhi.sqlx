@@ -138,19 +138,19 @@ date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
   where hindiFLnAchievedClassWise=true and mathFLnAchievedClassWise= true
 )
 
-,worksheetTemp as (select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
+,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 from ${ref("template-sent")}
-inner join ${ref("allPhoneNumberWithPid")}
-on phone_number = number
+-- inner join ${ref("allPhoneNumberWithPid")}
+-- on phone_number = number
 where template_name like "%mfln_worksheet%" or template_name like "%rmfln%"  or (template_name ="fln_worksheet" and template_meta_data like "%content_id=Maths%")
 -- and flow_name like "%MFLN Worksheet [Apr2025]%"
 union all
-select rosterparentid,phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
+select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
 from ${ref("IE_template_sent")}
-inner join ${ref("allPhoneNumberWithPid")}
-on phone_number = number
+-- inner join ${ref("allPhoneNumberWithPid")}
+-- on phone_number = number
 where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
 
 )
