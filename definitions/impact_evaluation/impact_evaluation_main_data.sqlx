@@ -3,7 +3,8 @@ config {
     tags: "IE"
 }
 
-select distinct userId as parentid,IEId as childid,Cohort,safe_cast(concat("91",UserLogin) as int64)ParentMobileMain,u.projectId,reportingUserloginname As agentMobile, reportingUserDisplayName as agentName
+select distinct userId as parentid,IEId as childid,Cohort,safe_cast(concat("91",UserLogin) as int64)ParentMobileMain,u.projectId,reportingUserloginname As agentMobile, reportingUserDisplayName as agentName,
+ie.education,ie.DisplayName as child_name,u.userDisplayName as parentname
 from (select  cohort,
 phone_lookup as  phoneno,
 Assignment
@@ -17,6 +18,6 @@ from saajhadata.impact_evaluation.ie_main_randomized_data
 inner join ${ref("User")} u
 on safe_cast(concat("91",UserLogin) as int64) = phoneNo
 
-Inner join  ${ref("IE")}
+Inner join  ${ref("IE")} ie
 on OnBoardedUserId = userid
 where Assignment = "Treatment" -- UNCOMMENT THIS WHEN YOU CHANGE THE PILOT TABLE TO MAIN TABLE 
