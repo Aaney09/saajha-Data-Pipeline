@@ -20,7 +20,7 @@ qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) o
 , childDetails as (select 
 distinct 
 ie.IEId as childid, ie.OnBoardedUserId as parentid,m.cohort,ie.ProjectId as ProjectId,
-safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+safe_cast(regexp_extract(ie.Education,r'\d+') as int64)as childClass
 from ${ref("IE")} ie
 left join   ${ref("impact_evaluation_main_data")} m
 on m.parentid=ie.OnBoardedUserId
