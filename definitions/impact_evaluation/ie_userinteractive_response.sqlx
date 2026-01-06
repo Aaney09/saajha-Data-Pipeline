@@ -1,0 +1,20 @@
+config {
+     type: "table",
+    tags: "IE"
+}
+SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    interactive interactive_response_metadata, 
+    json_value(interactive,"$.type") responseType,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    list_reply_description,list_reply_id,list_reply_title,
+    button_reply_id,button_reply_title,
+    911171817034 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
+    context_id,
+from ${ref("911171817034","messages")}
+where message_type = "interactive" and direction="inbound"
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
