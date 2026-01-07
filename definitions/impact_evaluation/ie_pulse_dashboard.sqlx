@@ -187,7 +187,49 @@ using(assesseeActorID,dateOfAssessment)
 inner join childDetails c
 on assesseeActorID=childid)
 
-
+-----------------------------------------------------
+-- GETING HIGHEST LEVEL COUNT
+----------------------------------------------------
+, highest_level_roundwise as (
+  select
+  m.cohort,
+  a.childid,
+  row_number() over(partition by a.childid order by dateOfAssessment) as rn,
+  mathFLnAchievedClassWise,
+  hindiFLnAchievedClassWise
+  from assessments a
+  inner join ${ref("impact_evaluation_main_data")} m
+  on a.childid=m.childid
+)
+,pulse_highest_level_math as (
+  select
+  cohort,
+  "Highest Level Math" as source_table,
+  count(distinct if(rn=1,childid,null)) as round_1_result,
+count(distinct if(rn=2,childid,null)) as round_2_result,
+count(distinct if(rn=3,childid,null)) as round_3_result,
+count(distinct if(rn=4,childid,null)) as round_4_result,
+count(distinct if(rn=5,childid,null)) as round_5_result,
+count(distinct if(rn=6,childid,null)) as round_6_result
+  from highest_level_roundwise
+  where mathFLnAchievedClassWise is true
+  group by all
+)
+,pulse_highest_level_hindi as (
+  select
+  cohort,
+  "Highest Level Hindi" as source_table,
+  count(distinct if(rn=1,childid,null)) as round_1_result,
+count(distinct if(rn=2,childid,null)) as round_2_result,
+count(distinct if(rn=3,childid,null)) as round_3_result,
+count(distinct if(rn=4,childid,null)) as round_4_result,
+count(distinct if(rn=5,childid,null)) as round_5_result,
+count(distinct if(rn=6,childid,null)) as round_6_result
+  from highest_level_roundwise
+  where hindiFLnAchievedClassWise is true
+  group by all
+)
+------------------------------------------------------------------------------
 
 
 
@@ -437,7 +479,7 @@ count(distinct if(rn=5,rm.parentid,null)) as round_5_assessment,
 count(distinct if(rn=6,rm.parentid,null)) as round_6_assessment
 
 from result_mtp rm
-left join `dataform.impact_evaluation_main_data` ie_main
+left join ${ref("impact_evaluation_main_data")} ie_main
 on rm.parentid=ie_main.parentid
 group by 1
 )
@@ -469,7 +511,7 @@ group by 1
   ie.FLNStatus,
   date(ie.FLNAchievedDate) as fln_achieve_date,
   date(OptedOutDateTime) as opt_out_date
-  from `dataform.impact_evaluation_main_data` ie_main
+  from ${ref("impact_evaluation_main_data")} ie_main
   inner join ${ref("User")} u
   on u.userid=ie_main.parentid
   inner join ${ref("IE")}  ie
@@ -556,7 +598,7 @@ where opt_out_date is not null
   0 as temp5,
   0 as temp6
   from ${ref("allPhoneNumberWithPid")} p
-  inner join `dataform.impact_evaluation_main_data` ie_main
+  inner join ${ref("impact_evaluation_main_data")} ie_main
   on ie_main.parentid=p.rosterparentid
   inner join (select * from ${ref("IE_template_sent")}  where template_name in ('ie_calling_number_info2','ie_calling_number_info4')   and last_message_status not like 'failed'    )ts
   on ts.phone_number=p.number
@@ -567,11 +609,64 @@ group by 1
 )
 
 
+-----------------------------------------------------------------------
+-- SCHEDULED TILL NOW
+-----------------------------------------------------------------------
+,  pulse_schedule_calls as (
+SELECT
+  cohort,
+"Call Schedule Till Now" as source_table,
+count(distinct if(round=1,fr.parentid,null)) as round_1,
+count(distinct if(round=2,fr.parentid,null)) as round_2,
+count(distinct if(round=3,fr.parentid,null)) as round_3,
+count(distinct if(round=4,fr.parentid,null)) as round_4,
+count(distinct if(round=5,fr.parentid,null)) as round_5,
+count(distinct if(round=6,fr.parentid,null)) as round_6
 
+-- fr.parentid,
+-- cohort,
+-- round as rn,
 
+FROM ${ref("futureRoster")} FR
+inner join  ${ref("impact_evaluation_main_data")} m
+on fr.parentid=m.parentid
+where CallDate <current_date("Asia/Kolkata")
+group by all
+)
+-- ,pulse_schedule_calls as (
+--   select
+--   cohort,
+-- "Schedule Till Now" as source_table,
+-- count(distinct if(rn=1,a.parentid,null)) as round_1,
+-- count(distinct if(rn=2,a.parentid,null)) as round_2,
+-- count(distinct if(rn=3,a.parentid,null)) as round_3,
+-- count(distinct if(rn=4,a.parentid,null)) as round_4,
+-- count(distinct if(rn=5,a.parentid,null)) as round_5,
+-- count(distinct if(rn=6,a.parentid,null)) as round_6
 
+--  from schedule_calls a
+--  group by all
+-- )
+---------------------------------------
+-- UNIQUE DIAL
+---------------------------------------
+, pulse_roster_details as (
+select
+cohort,
+"Unique Dialed" as source_table,
+count(distinct if(round=1,a.parentid,null)) as round_1,
+count(distinct if(round=2,a.parentid,null)) as round_2,
+count(distinct if(round=3,a.parentid,null)) as round_3,
+count(distinct if(round=4,a.parentid,null)) as round_4,
+count(distinct if(round=5,a.parentid,null)) as round_5,
+count(distinct if(round=6,a.parentid,null)) as round_6
 
-
+from ${ref("roster")} a
+inner join ${ref("impact_evaluation_main_data")} m
+on m.parentid=a.parentid
+where date(CallStartDateTime) between '2025-04-01' and '2026-12-01'
+group by all
+)
 
 select *, 1 as ordernum
 from pulse_general_activity_treatment
@@ -585,36 +680,50 @@ union all
 select *,3 as ordernum
 from pulse_message_template
 union all
-select *, 4 as ordernum
+select * ,4 as ordernum 
+from pulse_schedule_calls
+union all
+select *,5 as ordernum
+from pulse_roster_details
+union all
+
+select *, 6 as ordernum
 from pulse_call_reslove
 union all
 
-SELECT *, 5 AS ORDERNUM
+SELECT *, 7 AS ORDERNUM
 FROM assessment_taken
 UNION ALL
 
-select *, 6 as ordernum
+select *, 8 as ordernum
 from pulse_result_shared
 union all
 
-select * ,7 as ordernum
+select * ,9 as ordernum
 from pulse_fln_achieve
 union all
 
-select *,8 as ordernum 
+select *,10 as ordernum
+from pulse_highest_level_hindi
+union all
+select *,11 as ordernum 
+from pulse_highest_level_math
+union all
+
+select *,12 as ordernum 
 from pulse_opt_out
 union all
 
 
 
-select *, 9 as ordernum
+select *, 13 as ordernum
 from pulse_hindi
 union all
 
-select *, 10 as ordernum
+select *, 14 as ordernum
 from pulse_math
 union all
 
-select *, 11 as ordernum
+select *, 15 as ordernum
 from pulse_mtp
 order by ordernum
