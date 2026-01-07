@@ -108,10 +108,11 @@ group by 1,2)
   group by all
 )
 ,resolves as (select distinct ParentId,childId,Round,cohort
-from (select c.*,r.round from ${ref("called")} c
-              left join  ${ref("roster")} r
-              on c.parentid=r.parentid
-              and c.childid=r.childid)
+from (select *
+              from  ${ref("roster")} r
+            --   on c.parentid=r.parentid
+            --   and c.childid=r.childid
+              )
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
@@ -132,10 +133,11 @@ group by all
 )
 
 ,dialed as (select distinct ParentId,childId,Round,cohort,
-from (select c.*,r.round from ${ref("called")} c
-              left join  ${ref("roster")} r
-              on c.parentid=r.parentid
-              and c.childid=r.childid)
+from (select *
+              from  ${ref("roster")} r
+            --   on c.parentid=r.parentid
+            --   and c.childid=r.childid
+            )
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where date(CallStartDateTime) between "2025-04-01" and "2026-12-31"
