@@ -3,27 +3,28 @@ config {
     type: "table",
     tags: ["IE"]
 }
-SELECT
-  cohort,
-  CONCAT(
-    'Interaction Point ',
-    CAST(ip AS STRING),
-    '-',
-    source_table
-  ) AS table_name,
-  interaction_value AS interaction,
-  ordernum as activity_order,
-  ip AS Interaction_order
-FROM ${ref("ie_pulse_dashboard")},
-UNNEST([
-  STRUCT(1 AS ip, interaction_1 AS interaction_value),
-  STRUCT(2 AS ip, interaction_2 AS interaction_value),
-  STRUCT(3 AS ip, interaction_3 AS interaction_value),
-  STRUCT(4 AS ip, interaction_4 AS interaction_value),
-  STRUCT(5 AS ip, interaction_5 AS interaction_value),
-  STRUCT(6 AS ip, interaction_6 AS interaction_value)
-])
-WHERE interaction_value IS NOT NULL
-ORDER BY
-  Interaction_order,
-  ordernum
+WITH base AS (
+  SELECT
+    cohort,
+    CONCAT('Interaction Point ', ip, '-', source_table) AS table_name,
+    interaction_value AS interaction,
+    ordernum AS activity_order,
+    ip AS interaction_order
+  FROM ${ref("ie_pulse_dashboard")},
+  UNNEST([
+    STRUCT(1 AS ip, interaction_1 AS interaction_value),
+    STRUCT(2 AS ip, interaction_2 AS interaction_value),
+    STRUCT(3 AS ip, interaction_3 AS interaction_value),
+    STRUCT(4 AS ip, interaction_4 AS interaction_value),
+    STRUCT(5 AS ip, interaction_5 AS interaction_value),
+    STRUCT(6 AS ip, interaction_6 AS interaction_value)
+  ])
+  WHERE interaction_value IS NOT NULL
+)
+
+SELECT *
+FROM base
+PIVOT (
+  MAX(interaction) FOR cohort IN (1, 2, 3,4,5,6,7,8,9,10,11,12)   -- numeric, no quotes
+)
+ORDER BY interaction_order, activity_order
