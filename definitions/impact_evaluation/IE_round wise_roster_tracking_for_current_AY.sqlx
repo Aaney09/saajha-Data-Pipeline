@@ -27,7 +27,7 @@ group by all
 --  select distinct Round,parentid,childid 
 --  from futureRosters
 -- )
-,rounds as (select Cohort, Round as overall_round,parentid,childid,row_number() over(partition by parentid,childid order by ROund)rounds_since_april_2025
+,rounds as (select Cohort, Round as overall_round,parentid,childid,round as rounds_since_april_2025
 from futureRosters
 )
 
