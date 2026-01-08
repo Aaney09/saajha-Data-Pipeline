@@ -59,15 +59,72 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
   activity_date
   from `impact_evaluation.ie_main_randomized_data` -- change to main
   left join unnest( -- UNCOMMENT THIS
-    case when cohort=1 then ['2025-12-09','2026-01-09','2026-02-09','2026-03-09','2026-04-09','2026-05-09','2026-06-09']
-    when cohort=2 then ['2025-12-14','2026-01-14','2026-02-14','2026-03-14','2026-04-14','2026-05-14']
-    when cohort=3 then ["2025-12-21","2026-01-21","2026-02-21","2026-03-21","2026-04-21","2026-05-21"]
-    when cohort=4 then ["2025-12-28","2026-01-28","2026-02-28","2026-03-28","2026-04-28","2026-05-28"]
-    when cohort=5 then ['2026-01-04','2026-02-04','2026-03-04','2026-04-04','2026-05-04','2026-06-04'] 
-    when cohort=6 then ['2026-01-11','2026-02-11','2026-03-11','2026-04-11','2026-05-11','2026-06-11']
-    when cohort=7 then ['2026-01-19','2026-02-19','2026-03-19','2026-04-19','2026-05-19','2026-06-19']
-  --   else []
-    end) as activity_date 
+    CASE 
+    WHEN cohort = 1 THEN [
+        DATE '2025-12-09',
+        DATE_ADD(DATE '2025-12-09', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2025-12-09', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2025-12-09', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2025-12-09', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2025-12-09', INTERVAL 150 DAY),
+        DATE_ADD(DATE '2025-12-09', INTERVAL 180 DAY)
+    ]
+
+    WHEN cohort = 2 THEN [
+        DATE '2025-12-14',
+        DATE_ADD(DATE '2025-12-14', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2025-12-14', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2025-12-14', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2025-12-14', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2025-12-14', INTERVAL 150 DAY)
+    ]
+
+    WHEN cohort = 3 THEN [
+        DATE '2025-12-21',
+        DATE_ADD(DATE '2025-12-21', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2025-12-21', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2025-12-21', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2025-12-21', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2025-12-21', INTERVAL 150 DAY)
+    ]
+
+    WHEN cohort = 4 THEN [
+        DATE '2025-12-28',
+        DATE_ADD(DATE '2025-12-28', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2025-12-28', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2025-12-28', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2025-12-28', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2025-12-28', INTERVAL 150 DAY)
+    ]
+
+    WHEN cohort = 5 THEN [
+        DATE '2026-01-04',
+        DATE_ADD(DATE '2026-01-04', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-01-04', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-01-04', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-01-04', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-01-04', INTERVAL 150 DAY)
+    ]
+
+    WHEN cohort = 6 THEN [
+        DATE '2026-01-11',
+        DATE_ADD(DATE '2026-01-11', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-01-11', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-01-11', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-01-11', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-01-11', INTERVAL 150 DAY)
+    ]
+
+    WHEN cohort = 7 THEN [
+        DATE '2026-01-19',
+        DATE_ADD(DATE '2026-01-19', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-01-19', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-01-19', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-01-19', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-01-19', INTERVAL 150 DAY)
+    ]
+END
+) as activity_date 
   
   -- where phoneno not in (917979058086,919315661819,918218140968  ) -- UNCOMMENT THIS
 )
