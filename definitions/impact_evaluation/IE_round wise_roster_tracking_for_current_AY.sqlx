@@ -121,7 +121,7 @@ where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-0
 )
 
 ,year_2025_26_resolved as (
-  select distinct *, row_number()over(partition by parentid,childid order by round Asc) as rounds_since_april_2025
+  select distinct *,round as rounds_since_april_2025
   from resolves
 )
 -- ,agents as (select distinct parentid,childId,AgentMobile,round roundoFCall,AgentName,date(CallStartDateTime)callDate
