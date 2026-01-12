@@ -630,7 +630,7 @@ count(distinct if(round=6,fr.parentid,null)) as round_6
 FROM ${ref("futureRoster")} FR
 inner join  ${ref("impact_evaluation_main_data")} m
 on fr.parentid=m.parentid
-where CallDate <current_date("Asia/Kolkata")
+where CallDate  >="2025-04-01" 
 group by all
 )
 -- ,pulse_schedule_calls as (
