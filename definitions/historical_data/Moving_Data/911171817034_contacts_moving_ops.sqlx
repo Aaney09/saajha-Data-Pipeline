@@ -11,14 +11,49 @@ BEGIN TRANSACTION;
 
 
 -- Step 1: Insert into secondary table
-INSERT INTO ${ref("911171817034_contacts")}
+INSERT INTO ${ref("911171817034_contacts")}(partition_timestamp,	
+id,
+uuid,	
+type,	
+urn,	
+details,	
+number_id,	
+organisation_id,	
+is_fallback_active,	
+failure_count,	
+inserted_at,	
+updated_at,	
+external_id,	
+import_datetime,	
+is_deleted,	
+last_update_origin,	
+profile_field_errors
+)
 -- `saajhadata.Archive.911171817034_contacts`
-SELECT *
+SELECT 
+partition_timestamp,	
+id,
+uuid,	
+type,	
+urn,	
+details,	
+number_id,	
+organisation_id,	
+is_fallback_active,	
+failure_count,	
+inserted_at,	
+updated_at,	
+external_id,	
+import_datetime,	
+is_deleted,	
+last_update_origin,	
+profile_field_errors
+
 FROM ${ref("911171817034","contacts")}
 where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
 -- Step 2: Delete from main/metadata table
-DELETE FROM ${ref("911171817034","contacts")}
-where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+-- DELETE FROM ${ref("911171817034","contacts")}
+-- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 COMMIT TRANSACTION; 
 
