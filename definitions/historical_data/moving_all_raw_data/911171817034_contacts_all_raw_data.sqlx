@@ -1,0 +1,22 @@
+config {
+  type: "operations",
+  tags: ["moving_raw_data"],
+  description: "moving 911171817034's contact's raw data till previous day"
+}
+
+BEGIN TRANSACTION;
+
+
+-- Step 1: Insert into secondary table
+INSERT INTO `dataform.911171817034_contacts_all_raw_data`
+-- `saajhadata.Archive.911171817034_contacts`
+SELECT *
+
+FROM ${ref("911171817034","contacts")}
+where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+
+-- Step 2: Delete from main/metadata table
+DELETE FROM ${ref("911171817034","contacts")}
+where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+COMMIT TRANSACTION; 
+
