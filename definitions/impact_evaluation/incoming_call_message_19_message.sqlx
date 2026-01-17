@@ -74,7 +74,7 @@ from ${ref("impact_evaluation_main_data")}
     when cohort=4 then ["2025-12-27"]
     when cohort=5 then ["2026-01-03"]
     when cohort=6 then ["2026-01-10"]
-    when cohort=7 then ['2026-01-18']
+    when cohort=7 then ['2026-01-17']
   --   else []
     end) as activity_date 
 )
