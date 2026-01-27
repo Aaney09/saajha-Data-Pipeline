@@ -123,6 +123,34 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-01-18', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-01-18', INTERVAL 150 DAY)
     ]
+    
+    WHEN cohort = 8 THEN [
+        DATE '2026-01-25',
+        DATE_ADD(DATE '2026-01-25', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-01-25', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-01-25', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-01-25', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-01-25', INTERVAL 150 DAY)
+    ]
+
+     WHEN cohort = 9 THEN [
+        DATE '2026-02-01',
+        DATE_ADD(DATE '2026-02-01', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-02-01', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-02-01', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-02-01', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-02-01', INTERVAL 150 DAY)
+    ]
+
+     WHEN cohort = 10 THEN [
+        DATE '2026-02-08',
+        DATE_ADD(DATE '2026-02-08', INTERVAL 30 DAY),
+        DATE_ADD(DATE '2026-02-08', INTERVAL 60 DAY),
+        DATE_ADD(DATE '2026-02-08', INTERVAL 90 DAY),
+        DATE_ADD(DATE '2026-02-08', INTERVAL 120 DAY),
+        DATE_ADD(DATE '2026-02-08', INTERVAL 150 DAY)
+    ]
+
 END
 ) as activity_date 
   
