@@ -59,5 +59,17 @@ using(assesseeActorId)
 )
 
 
-select *
+select *,
+CASE
+WHEN shift_in_math_level >0 THEN  concat("Increased by ",shift_in_math_level)
+WHEN shift_in_math_level <0 THEN  concat("Decreased by ",abs(shift_in_math_level))
+WHEN shift_in_math_level =0 THEN "Same Level"
+ELSE "Round 3 not assessed" END AS math_improvement_level,
+CASE
+WHEN shift_in_math_level >0 THEN "Improved"
+WHEN shift_in_math_level <0 THEN "Decreased"
+WHEN shift_in_math_level =0 THEN "Same"
+ELSE "Round 3 not assessed" END AS math_shift_category
+
+
 from math_improvement_status
