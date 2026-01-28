@@ -50,5 +50,15 @@ inner join highestHindiAssessment hig
 using(assesseeActorId)
 )
 
-select *
+select distinct  *,
+CASE
+WHEN shift_in_hindi_level >0 THEN  concat("Increased by ",shift_in_hindi_level)
+WHEN shift_in_hindi_level <0 THEN  concat("Decreased by ",abs(shift_in_hindi_level))
+WHEN shift_in_hindi_level =0 THEN "Same Level"
+ELSE "Round 3 not assessed" END AS hindi_improvement_level,
+CASE
+WHEN shift_in_hindi_level >0 THEN "Improved"
+WHEN shift_in_hindi_level <0 THEN "Decreased"
+WHEN shift_in_hindi_level =0 THEN "Same"
+ELSE "Round 3 not assessed" END AS hindi_shift_category
 from hindi_improve_status 
