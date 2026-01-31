@@ -21,3 +21,4 @@ on safe_cast(concat("91",UserLogin) as int64) = phoneNo
 Inner join  ${ref("IE")} ie
 on OnBoardedUserId = userid
 where Assignment = "Treatment" -- UNCOMMENT THIS WHEN YOU CHANGE THE PILOT TABLE TO MAIN TABLE 
+and u.projectId=1103935
