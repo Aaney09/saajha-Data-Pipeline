@@ -25,7 +25,7 @@ from hindiAss
 ,
 hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
 from hindiDates
-where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=30
 )
 
 
@@ -48,7 +48,7 @@ mathAss
 
 , mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
 from mathDates
-where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=25)
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=30)
 
 
 
