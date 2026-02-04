@@ -7,7 +7,7 @@ config {
 }
 
 
-BEGIN TRANSACTION;
+-- BEGIN TRANSACTION;
 
 -- Step 1: Insert into secondary table
 INSERT INTO ${ref("911171817073_contacts")}(partition_timestamp,	
@@ -49,11 +49,14 @@ last_update_origin,
 profile_field_errors
 
 FROM ${ref("911171817073","contacts")}
-where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata")
+AND updated_at > (
+      SELECT MAX(updated_at)
+      FROM ${ref("911171817073_contacts")})
 
 -- Step 2: Delete from main/metadata table
 -- DELETE FROM ${ref("911171817073","contacts")}
 -- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
-COMMIT TRANSACTION; 
+-- COMMIT TRANSACTION; 
 
