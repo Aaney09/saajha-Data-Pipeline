@@ -45,12 +45,18 @@ PIVOT (
 )
 ORDER BY Assignment
 )
+, final_cte as (
 SELECT *
 from cte1
 union all
 select *
 from cte2
+)
 
+select *
+replace (if(table_name ='Interaction Point 1-Call Schedule Till Now',14,0)+ _5 as _5)
+
+from final_cte
 
 
 

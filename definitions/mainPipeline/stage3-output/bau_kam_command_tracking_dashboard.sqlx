@@ -7,7 +7,9 @@ with  math_or_hindi_option_click as (
   ie.phoneNumber as phone_number ,
   ie.parentId,
   ie.inserted_at as link_clicked_ist,
-  ie.subject as subject_clicked,
+   case when lower(ie.subject) like '%math%' then 'maths'
+  when lower(ie.subject) like '%hindi%' then 'hindi'
+  else ie.subject end as subject_clicked,
   ie.childId
 
 
