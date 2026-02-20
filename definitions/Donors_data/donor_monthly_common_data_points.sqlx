@@ -14,7 +14,7 @@ from ${ref("called")}
 where Recording is not null and 
 date(CallstartDatetime) between "2025-04-01" and "2026-03-31" 
 and CallstartDatetime<CallEndDatetime
-and ProjectId not in (1103908,1103935)
+and ProjectId not in (1103935)
 group by all)
 
 ,call_duration_donorwise as (select  monthYear,Month,
@@ -53,6 +53,18 @@ group by all
   GROUP BY 
     Month)
   
+,noida_number as ( SELECT distinct 
+EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
+COUNT(DISTINCT uuid) AS MessageCount_58,
+FROM
+${ref("911171817073","messages")}
+
+WHERE
+DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE)) between "2025-04-01" and "2026-03-31"
+AND last_status NOT LIKE '%failed%'
+and direction="outbound"
+GROUP BY 
+Month)
 ,MsgSentCountsWithoutfail as (select distinct month,ifNull(MessageCount_87,0)+ifnull(MessageCount_58,0)MessageSentCountForNonefailed,
 from onboarding_number_msg
 inner join fln_number
