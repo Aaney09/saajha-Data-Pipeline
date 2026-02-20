@@ -630,9 +630,36 @@ count(distinct if(round=6,fr.parentid,null)) as round_6
 FROM ${ref("futureRoster")} FR
 inner join  ${ref("impact_evaluation_main_data")} m
 on fr.parentid=m.parentid
-where CallDate  >="2025-04-01" 
+where CallDate between "2025-04-01" and current_date("Asia/Kolkata")
 group by all
 )
+
+,  pulse_schedule_calls_future as (
+SELECT
+  cohort,
+"Call Schedule in Roster" as source_table,
+count(distinct if(round=1,fr.parentid,null)) as round_1,
+count(distinct if(round=2,fr.parentid,null)) as round_2,
+count(distinct if(round=3,fr.parentid,null)) as round_3,
+count(distinct if(round=4,fr.parentid,null)) as round_4,
+count(distinct if(round=5,fr.parentid,null)) as round_5,
+count(distinct if(round=6,fr.parentid,null)) as round_6
+
+-- fr.parentid,
+-- cohort,
+-- round as rn,
+
+FROM ${ref("futureRoster")} FR
+inner join  ${ref("impact_evaluation_main_data")} m
+on fr.parentid=m.parentid
+where CallDate >= "2025-04-01" 
+group by all
+)
+
+
+
+
+
 -- ,pulse_schedule_calls as (
 --   select
 --   cohort,
@@ -680,50 +707,55 @@ union all
 select *,3 as ordernum
 from pulse_message_template
 union all
-select * ,4 as ordernum 
+select *,4 as ordernum
+from pulse_schedule_calls_future
+union all
+
+
+select * ,5 as ordernum 
 from pulse_schedule_calls
 union all
-select *,5 as ordernum
+select *,6 as ordernum
 from pulse_roster_details
 union all
 
-select *, 6 as ordernum
+select *, 7 as ordernum
 from pulse_call_reslove
 union all
 
-SELECT *, 7 AS ORDERNUM
+SELECT *, 8 AS ORDERNUM
 FROM assessment_taken
 UNION ALL
 
-select *, 8 as ordernum
+select *, 9 as ordernum
 from pulse_result_shared
 union all
 
-select * ,9 as ordernum
+select * ,10 as ordernum
 from pulse_fln_achieve
 union all
 
-select *,10 as ordernum
+select *,11 as ordernum
 from pulse_highest_level_hindi
 union all
-select *,11 as ordernum 
+select *,12 as ordernum 
 from pulse_highest_level_math
 union all
 
-select *,12 as ordernum 
+select *,13 as ordernum 
 from pulse_opt_out
 union all
 
 
 
-select *, 13 as ordernum
+select *, 14 as ordernum
 from pulse_hindi
 union all
 
-select *, 14 as ordernum
+select *, 15 as ordernum
 from pulse_math
 union all
 
-select *, 15 as ordernum
+select *, 16 as ordernum
 from pulse_mtp
 order by ordernum
