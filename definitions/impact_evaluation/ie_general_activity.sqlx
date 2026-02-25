@@ -159,7 +159,12 @@ END
 
 ,  ie_pilot_table as ( -- ADDED BECAUSE FOR COHORT 3 ROUND 3 TEMPLATE WAS CONVERTED INTO MARKETING
 select * except(Activity_date),
-if(cohort=3 and activity_date='2026-02-19' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`),  DATE_ADD(activity_date, INTERVAL 4 DAY),activity_date   ) as activity_date
+case when cohort=3 and activity_date='2026-02-19' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE_ADD(activity_date, INTERVAL 4 DAY)
+ when cohort=7 and activity_date='2026-02-17' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE_ADD(activity_date, INTERVAL 6 DAY)
+
+
+
+else activity_date   end  as activity_date
 from ie_pilot_table2
 )
 
