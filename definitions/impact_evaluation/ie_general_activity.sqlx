@@ -48,7 +48,7 @@ on uuid = message_uuid
 where message_type = "template" 
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
-, ie_pilot_table as (
+, ie_pilot_table2 as (
   select 
    cohort,
   phone_lookup as  phoneno,
@@ -157,10 +157,16 @@ END
   -- where phoneno not in (917979058086,919315661819,918218140968  ) -- UNCOMMENT THIS
 )
 
+,  ie_pilot_table as ( -- ADDED BECAUSE FOR COHORT 3 ROUND 3 TEMPLATE WAS CONVERTED INTO MARKETING
+select * except(Activity_date),
+if(cohort=3 and activity_date='2026-02-19' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`),  DATE_ADD(activity_date, INTERVAL 4 DAY),activity_date   ) as activity_date
+from ie_pilot_table2
+)
+
 , first_status as (
   select ts.*
   from template_sent ts
-  where template_name='ie_onb_activity_v2'
+  where template_name in ('ie_onb_activity_v2','ie_onb_activity_v7')
 
   qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At asc)=1
 )
@@ -168,7 +174,7 @@ END
 last_status as (
   select *
   from  template_sent ts
-  where template_name='ie_onb_activity_v2'
+  where template_name in ('ie_onb_activity_v2','ie_onb_activity_v7')
   qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At desc)=1
 )
 
@@ -247,7 +253,11 @@ fsfp.code_472_User_number_is_part_of_an_experiment,
 smfs.numbers_to_be_triggered_again,
 smfs.turn_failed_second_time,
 smfs.meta_failed_second_time,
-smfs.sent_successfully_second_time
+smfs.sent_successfully_second_time,
+  ROW_NUMBER() OVER (
+      PARTITION BY COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) 
+      ORDER BY fsfp.general_activity_date
+    ) AS round
 
 
 
@@ -257,6 +267,7 @@ from first_message_full_status fsfp
 left join second_message_full_status smfs
 on fsfp.phone_numbers_to_be_sent=smfs.numbers_to_be_triggered_again
 and fsfp.general_activity_date=smfs.general_activity_date
+
 
 
 -- left join last_status ls
