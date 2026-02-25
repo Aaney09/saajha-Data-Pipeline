@@ -255,7 +255,7 @@ smfs.turn_failed_second_time,
 smfs.meta_failed_second_time,
 smfs.sent_successfully_second_time,
   ROW_NUMBER() OVER (
-      PARTITION BY COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) 
+      PARTITION BY COALESCE(phone_numbers_to_be_sent) 
       ORDER BY fsfp.general_activity_date
     ) AS round
 
