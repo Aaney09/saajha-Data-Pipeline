@@ -23,7 +23,7 @@ count(distinct if(rn=2,successfully_general_activity_numbers,null)) as interacti
 count(distinct if(rn=3,successfully_general_activity_numbers,null)) as interaction_3,
 count(distinct if(rn=4,successfully_general_activity_numbers,null)) as interaction_4,
 count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_5,
-count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_6
+count(distinct if(rn=6,successfully_general_activity_numbers,null)) as interaction_6
 from general_activity_raw
 where lower(arm)='treatment'
 group by 1
