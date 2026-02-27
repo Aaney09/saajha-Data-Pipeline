@@ -171,6 +171,19 @@ lastAssessed as  (
   If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name
 
   from ${ref("prelim")}
+  where projectid<> 1103935
+ qualify row_number() over(partition by childid order by assessmentdate desc)=1
+ union all
+ 
+  select distinct ParentId,childid,childClass,
+  alternateMObileNumber,parentMobileNumber as parentNumber,
+  Projectid,parentname,childName,
+  AgentName,
+  agentMobile as agentNumber,
+  If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name
+
+  from ${ref("assessment_data")}
+  where projectid<> 1103935
  qualify row_number() over(partition by childid order by assessmentdate desc)=1
 )
 

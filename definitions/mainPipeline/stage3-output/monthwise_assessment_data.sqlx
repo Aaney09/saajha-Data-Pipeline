@@ -1,0 +1,150 @@
+config {
+    type: "table",
+    schema: "shareable_to_external", 
+    tags: "wa_daily",
+     description: "Table has data of all children schedule in AY 2025 onwards and there shift in level"
+}
+
+
+
+with 
+
+Assessed as (select distinct OnBoardedUserId as parentid, AssesseeActorId,date(AssessmentTakenOn)AssessDate,
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as Level,AssessmentInstanceAssesseDRId,QuestionText,projectid,
+if(QuestionText not like "%Ask%",'Math','Hindi') as subject
+from `saajhadata.platform_commons.assessment`
+inner join `saajhadata.platform_commons.IE`
+on ieid=assesseeactorid
+where date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
+-- and projectid=1103935
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, mathDates as
+(select distinct parentid,assesseeActorId,assessdate as mathAssessDate,level as mathLevel,projectid,
+lag(date(AssessDate)) over (partition by AssesseeActorId order by AssessDate asc)mathLagDate,
+lag(level) over(partition by AssesseeActorId order by AssessDate asc) as previous_math_level
+from
+Assessed
+where subject='Math'
+)
+
+, mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
+from mathDates
+where  if(mathLagDate is null, 0,date_diff(mathAssessDate,mathLagDate,day))=0 or (projectid in (1103935,1103908) and date_diff(mathAssessDate,mathLagDate,day)>=30) -- 30 DAYS difference
+or (projectid not in (1103935,1103908) and date_diff(mathAssessDate,mathLagDate,day)>=25)-- Delhi project
+)
+
+
+
+
+,math_improvement_status as (
+   select  distinct *,mathLevel-previous_math_level as shift_in_math_level -- GETTING PER ROUND SHIFT
+from mathdata
+)
+
+, math_final as (
+select *,
+CASE
+WHEN shift_in_math_level >0 THEN  concat("Increased by ",shift_in_math_level)
+WHEN shift_in_math_level <0 THEN  concat("Decreased by ",abs(shift_in_math_level))
+WHEN shift_in_math_level =0 THEN "Same Level"
+ELSE "Round 2 not assessed" END AS math_improvement_level,
+CASE
+WHEN shift_in_math_level >0 THEN "Improved"
+WHEN shift_in_math_level <0 THEN "Decreased"
+WHEN shift_in_math_level =0 THEN "Same"
+ELSE "Round 2 not assessed" END AS math_shift_category
+
+
+from math_improvement_status
+)
+-------------------------------------------------------
+-- HINDI LEVEL
+---------------------------------------------------------
+
+,
+hindiDates  as(select distinct parentid,assesseeActorId,Assessdate as hindiAssessDate,level as hindiLevel,projectid,
+lag(date(AssessDate)) over (partition by AssesseeActorId order by AssessDate asc)hindiLagDate,
+lag(level) over(partition by AssesseeActorId order by AssessDate asc) as previous_hindi_level
+from Assessed
+where subject='Hindi'
+)
+
+,
+hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or (projectid in (1103935,1103908) and date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=30) -- 30 DAYS difference
+or (projectid not in (1103935,1103908) and date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25)-- Delhi project
+)
+
+,highestHindiAssessment as (
+  select assesseeActorId,max(hindirounds)highestHindiRound
+  from hindiData
+  group by 1
+
+)
+-- ,hfirstLevel as (
+--   select distinct assesseeActorId,hindiAssessDate as first_hindi_assessment_date,
+--   hindiLevel as firstHindiLevel
+--   from hindiData
+--   qualify row_number()over(partition by assesseeActorid order by hindiAssessDate asc)=1
+-- )
+-- ,hLastLevel as (
+--   select distinct AssesseeActorId,hindiAssessDate as last_hindi_assessment_date, hindiLevel as lastHindiLevel,
+--   from hindiData
+--   qualify row_number()over(partition by assesseeActorid order by hindiAssessDate desc)=1
+-- )
+,hindi_improve_status as (
+  select distinct *,HindiLevel-previous_hindi_level as shift_in_hindi_level
+from hindidata
+-- Inner join hlastLevel
+-- using(assesseeActorId)
+-- inner join highestHindiAssessment hig
+-- using(assesseeActorId)
+)
+, hindi_final as (
+select distinct  * except(hindilagdate,hindidateDifference),
+CASE
+WHEN shift_in_hindi_level >0 THEN  concat("Increased by ",shift_in_hindi_level)
+WHEN shift_in_hindi_level <0 THEN  concat("Decreased by ",abs(shift_in_hindi_level))
+WHEN shift_in_hindi_level =0 THEN "Same Level"
+ELSE "Round 2 not assessed" END AS hindi_improvement_level,
+CASE
+WHEN shift_in_hindi_level >0 THEN "Improved"
+WHEN shift_in_hindi_level <0 THEN "Decreased"
+WHEN shift_in_hindi_level =0 THEN "Same"
+ELSE "Round 2 not assessed" END AS hindi_shift_category
+from hindi_improve_status 
+order by 1,2,3
+)
+
+, all_childid as (
+   select distinct parentid,childid
+   from `platform_commons.futureRoster`
+   where calldate>='2025-04-01'
+)
+, hindi_math as (
+   select 
+   mf.*except(mathlagdate),hf.* except(assesseeActorId,parentid,projectid)
+   from math_final mf
+   inner join hindi_final hf
+   on mf.assesseeActorId=hf.assesseeActorId
+   and mf.mathrounds=hf.hindirounds
+)
+
+select 
+ac.parentid,
+ac.childid,
+mf.* except(assesseeActorId,parentid,mathdateDifference)
+-- hf.* except(assesseeActorId,parentid,projectid)
+from all_childid ac
+left join hindi_math mf
+on ac.parentid=mf.parentid
+and ac.childid=mf.assesseeActorId
+-- left join hindi_final hf
+-- on ac.parentid=hf.parentid
+-- and ac.childid=hf.assesseeActorId
+order by 1,2,3
+
+
