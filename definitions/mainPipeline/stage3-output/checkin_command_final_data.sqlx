@@ -298,12 +298,13 @@ group by 1
 -- where date_of_last_math_assessment>"2025-06-01" or date_of_last_hindi_assessment>"2025-06-01"
 -- )
 select distinct
-
+0 as tenantid,
+ie.projectid,
 c.*,
-ca.Total_rounds_in_current_AY,
+ifnull(ca.Total_rounds_in_current_AY,0) as Total_rounds_in_current_AY,
 hindi.first_hindi_assessment_date,
 hindi.firstHindiLevel,
-hindi.highestHindiRound,
+-- hindi.highestHindiRound,
 hindi.last_hindi_assessment_date,
 hindi.lastHindiLevel,
 hindi.shift_in_hindi_level,
@@ -313,7 +314,7 @@ hindi.hindi_shift_category,
 
 math.first_math_assessment_date,
 math.firstMathLevel,
-math.highestMathRound,
+-- math.highestMathRound,
 math.last_math_assessment_date,
 math.lastMathLevel,
 math.shift_in_math_level,
@@ -344,7 +345,8 @@ on c.assesseeActorid = hindi.assesseeActorId
 left join math_status math
 on c.assesseeActorid = math.assesseeActorId
 
-
+left join `saajhadata.platform_commons.IE` ie
+on ie.ieid=c.assesseeActorId
 --  = m.parentid
 -- where assesseeActorid = 103230442263472651
 -- where assesseeActorid = 103241243387172779
