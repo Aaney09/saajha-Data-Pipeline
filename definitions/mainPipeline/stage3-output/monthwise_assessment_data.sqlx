@@ -134,14 +134,32 @@ order by 1,2,3
 )
 
 select 
+0 as tenantid,
+ie.projectid,
 ac.parentid,
 ac.childid,
-mf.* except(assesseeActorId,parentid,mathdateDifference)
+mf.mathrounds as assessment_number,
+mf.mathAssessDate,
+mf.mathlevel,
+mf.previous_math_level,
+mf.shift_in_math_level,
+mf.math_improvement_level,
+mf.math_shift_category,
+mf.hindiAssessDate,
+mf.hindilevel,
+mf.previous_hindi_level,
+mf.shift_in_hindi_level,
+mf.hindi_improvement_level,
+mf.hindi_shift_category
+
+-- mf.* except(assesseeActorId,parentid,mathdateDifference)
 -- hf.* except(assesseeActorId,parentid,projectid)
 from all_childid ac
 left join hindi_math mf
 on ac.parentid=mf.parentid
 and ac.childid=mf.assesseeActorId
+left join `saajhadata.platform_commons.IE` ie
+on ie.ieid=ac.childid
 -- left join hindi_final hf
 -- on ac.parentid=hf.parentid
 -- and ac.childid=hf.assesseeActorId
