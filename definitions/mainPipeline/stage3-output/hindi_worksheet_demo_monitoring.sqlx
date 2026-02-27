@@ -1,6 +1,6 @@
 config {
-    type:"table",
-    tags: "wa_daily"
+    type:"table"
+ 
 }
 
 insert into `adhoc.hindi_worksheet_demo_check` 
