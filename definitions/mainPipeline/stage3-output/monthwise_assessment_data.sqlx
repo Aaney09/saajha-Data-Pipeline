@@ -17,7 +17,7 @@ inner join `saajhadata.platform_commons.IE`
 on ieid=assesseeactorid
 where date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
 -- and projectid=1103935
-qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn),subject order by AssessmentTakenOn desc)=1
 )
 
 , mathDates as
