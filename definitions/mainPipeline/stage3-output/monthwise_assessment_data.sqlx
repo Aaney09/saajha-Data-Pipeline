@@ -9,7 +9,7 @@ config {
 
 with 
 
-Assessed as (select distinct OnBoardedUserId as parentid, AssesseeActorId,date(AssessmentTakenOn)AssessDate,
+Assessed as (select distinct OnBoardedUserId as parentid,AssessmentInstanceAssesseId, AssesseeActorId,date(AssessmentTakenOn)AssessDate,
 if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as Level,AssessmentInstanceAssesseDRId,QuestionText,projectid,
 if(QuestionText not like "%Ask%",'Math','Hindi') as subject
 from `saajhadata.platform_commons.assessment`
@@ -21,7 +21,7 @@ qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn),su
 )
 
 , mathDates as
-(select distinct parentid,assesseeActorId,assessdate as mathAssessDate,level as mathLevel,projectid,
+(select distinct parentid,assesseeActorId,assessdate as mathAssessDate,level as mathLevel,projectid,AssessmentInstanceAssesseId as math_aia_id,
 lag(date(AssessDate)) over (partition by AssesseeActorId order by AssessDate asc)mathLagDate,
 lag(level) over(partition by AssesseeActorId order by AssessDate asc) as previous_math_level
 from
@@ -64,7 +64,7 @@ from math_improvement_status
 ---------------------------------------------------------
 
 ,
-hindiDates  as(select distinct parentid,assesseeActorId,Assessdate as hindiAssessDate,level as hindiLevel,projectid,
+hindiDates  as(select distinct parentid,assesseeActorId,Assessdate as hindiAssessDate,level as hindiLevel,projectid,AssessmentInstanceAssesseId as hindi_aia_id,
 lag(date(AssessDate)) over (partition by AssesseeActorId order by AssessDate asc)hindiLagDate,
 lag(level) over(partition by AssesseeActorId order by AssessDate asc) as previous_hindi_level
 from Assessed
@@ -123,6 +123,7 @@ order by 1,2,3
    select distinct parentid,childid
    from `platform_commons.futureRoster`
    where calldate>='2025-04-01'
+   and childid is not null
 )
 , hindi_math as (
    select 
@@ -134,19 +135,26 @@ order by 1,2,3
 )
 
 select 
-0 as tenantid,
-ie.projectid,
-ac.parentid,
-ac.childid,
+(select 
+TenantId
+from `platform_commons.tenant`) as tenant_id,
+ie.projectid as project_id,
+ac.parentid as parent_id,
+ac.childid as child_id,
+2025 as assessment_year,
 mf.mathrounds as assessment_number,
-mf.mathAssessDate,
-mf.mathlevel,
+mf.mathAssessDate as math_assessment_date,
+mf.mathlevel as math_level,
+mf.math_aia_id,
+
+
 mf.previous_math_level,
 mf.shift_in_math_level,
 mf.math_improvement_level,
 mf.math_shift_category,
-mf.hindiAssessDate,
-mf.hindilevel,
+mf.hindiAssessDate as hindi_assessment_date,
+mf.hindilevel as hindi_level,
+mf.hindi_aia_id,
 mf.previous_hindi_level,
 mf.shift_in_hindi_level,
 mf.hindi_improvement_level,
