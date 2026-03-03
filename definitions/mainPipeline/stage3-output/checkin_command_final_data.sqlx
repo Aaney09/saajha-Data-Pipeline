@@ -277,6 +277,7 @@ group by 1
   select distinct childid as assesseeActorid ,parentid 
   from `platform_commons.futureRoster`
   where calldate>='2025-04-01'
+  and childid is not null
 )
 , hindi_status as (
   select * from `dataform.current_academic_hindi_assessment_status_of_child`
@@ -298,38 +299,43 @@ group by 1
 -- where date_of_last_math_assessment>"2025-06-01" or date_of_last_hindi_assessment>"2025-06-01"
 -- )
 select distinct
-0 as tenantid,
-ie.projectid,
-c.*,
-ifnull(ca.Total_rounds_in_current_AY,0) as Total_rounds_in_current_AY,
-hindi.first_hindi_assessment_date,
-hindi.firstHindiLevel,
+(select 
+TenantId
+from `platform_commons.tenant`) as tenant_id,
+-- 0 as tenantid,
+ie.projectid as project_id,
+c.assesseeActorid as child_id,
+c.parentid as parent_id,
+2025 as assessment_year,
+ifnull(ca.Total_rounds_in_current_AY,0) as total_rounds_in_current_ay,
+hindi.first_hindi_assessment_date ,
+hindi.firstHindiLevel as first_hindi_level,
 -- hindi.highestHindiRound,
 hindi.last_hindi_assessment_date,
-hindi.lastHindiLevel,
+hindi.lastHindiLevel as last_hindi_level,
 hindi.shift_in_hindi_level,
 hindi.hindi_improvement_level,
 hindi.hindi_shift_category,
 
 
 math.first_math_assessment_date,
-math.firstMathLevel,
+math.firstMathLevel as first_math_level,
 -- math.highestMathRound,
 math.last_math_assessment_date,
-math.lastMathLevel,
+math.lastMathLevel as last_math_level,
 math.shift_in_math_level,
 math.math_improvement_level,
 math.math_shift_category,
 
-coalesce(hindi_worksheet_sent_in_last_30_Day,0) as hindi_worksheet_sent_in_last_30_Days,
-coalesce(hindi_worksheet_clicked_in_last_30_Day,0) as hindi_worksheet_clicked_in_last_30_Days,
+coalesce(hindi_worksheet_sent_in_last_30_Day,0) as hindi_worksheet_sent_in_last_30_days,
+coalesce(hindi_worksheet_clicked_in_last_30_Day,0) as hindi_worksheet_clicked_in_last_30_days,
 coalesce(hindi_worksheet_attempted_in_last_30_day,0) as hindi_worksheet_attempted_in_last_30_days,
-coalesce(hindi_worksheet_submitted_in_last_30_Day,0) as hindi_worksheet_submitted_in_last_30_Days,
+coalesce(hindi_worksheet_submitted_in_last_30_Day,0) as hindi_worksheet_submitted_in_last_30_days,
 
-coalesce(math_worksheet_sent_in_last_30_Day,0) as math_worksheet_sent_in_last_30_Days,
-coalesce(math_worksheet_clicked_in_last_30_Day,0) as math_worksheet_clicked_in_last_30_Days,
+coalesce(math_worksheet_sent_in_last_30_Day,0) as math_worksheet_sent_in_last_30_days,
+coalesce(math_worksheet_clicked_in_last_30_Day,0) as math_worksheet_clicked_in_last_30_days,
 coalesce(math_worksheet_attempted_in_last_30_day,0) as math_worksheet_attempted_in_last_30_days,
-coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_Days
+coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_days
     
    
 from all_childid c
