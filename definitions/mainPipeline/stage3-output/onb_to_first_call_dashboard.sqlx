@@ -525,11 +525,13 @@ and dt.sent_at between date_sub(e.expected_date, interval 2 day) and date_add(e.
 ORDER BY dates, template_name
 
 )
-select *
+select *,null as activity_number,
+"old" as dashboard_activity
 from first_template_final_logic
 where expected_date<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
 union all
-select *
+select *,null as activity_number,
+"old" as dashboard_activity
 from all_templates_final_logic
 where dates<date_sub(current_date("Asia/Kolkata"),interval 2 DAY)
 order by   expected_date desc,  day_number asc-- )
