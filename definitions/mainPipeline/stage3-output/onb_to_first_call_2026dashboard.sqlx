@@ -1,0 +1,152 @@
+config {
+    type:"operations",
+    tags: "wa_daily"
+}
+
+
+insert into dataform.onb_to_first_call_2026dashboard (
+expected_date,
+dashboard_activity,
+template_name,
+city,
+day_number,
+activity_number,
+tobesent,
+userreceived_successfully,
+users_reponded,
+audio_or_video_responded,
+meta_failures,
+turn_failure,
+  -------------------------------------------------------------------------------------------------------------
+error_131050,
+error_131049,
+error_131026,
+error_131000,
+error_130472
+
+
+
+
+
+)
+
+
+with first_call as (
+  select ParentMobile, date(min(CallstartDatetime)) as first_Call_date
+  from `platform_commons.roster`
+  where date(CallStartDateTime)>='2025-09-30'
+  group by 1
+)
+
+
+,profile as (
+select 
+distinct
+safe_cast(trim(urn, '+') as int64) as nums,
+date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
+safe_Cast(profile_onboardingday as int64) -1 as activity_number,
+-- safe_Cast(profile_onboardingday as int64)-1,
+profile_lastonbactivitysentat as last_activity_Date,
+profile_onbrestart,
+"Delhi" as city
+from `dataform.911171279787_contacts_all_raw_data` all_nums
+left join first_call fc
+on safe_Cast(concat("91",fc.parentmobile) as int64)=safe_cast(trim(urn, '+') as int64)
+and date(datetime_Add(updated_At, interval 330 minute))>=fc.first_Call_date
+
+where fc.parentmobile is  null
+-- safe_cast(trim(urn, '+') as int64)=917408096186
+ and date(datetime_Add(updated_At, interval 330 minute))>='2026-02-24'
+and profile_starparent is not true
+ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+
+union all
+
+select 
+distinct
+safe_cast(trim(urn, '+') as int64) as nums,
+date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
+safe_Cast(profile_onboardingday as int64) -1 as activity_number,
+-- safe_Cast(profile_onboardingday as int64)-1,
+profile_lastonbactivitysentat   ,
+cast(null as string) as profile_onbrestart  ,
+"Noida" as city
+from `dataform.911171817073_contacts_all_raw_data` all_nums
+left join first_call fc
+on fc.parentmobile=safe_cast(trim(urn, '+') as int64)
+and date(datetime_Add(updated_At, interval 330 minute))>=fc.first_Call_date
+
+where fc.parentmobile is  null
+-- safe_cast(trim(urn, '+') as int64)=917408096186
+ and date(updated_At)>='2026-02-24'
+-- and profile_starparent is not true
+ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
+
+
+
+
+)
+
+
+, templates as (
+  select
+ts.phone_number as sent_number,
+ts.template_name,
+ts.sent_at,
+ts.error_code,
+ts.last_message_status,
+template_meta_data,
+REGEXP_EXTRACT(
+JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+r'\d+'
+) as activity_num,
+tr.responded_at,
+tr.phone_number as responded_number
+
+
+from `dataform.template-sent` ts
+left join `dataform.template-response` tr
+on ts.external_id=tr.context_id
+
+
+
+where template_name like 'onboarding_act_v5k'
+)
+
+
+
+select 
+p.profile_updated_date as expected_date,
+"New" as dashboard_Activity,
+t.template_name,
+city,
+null as daynumber,
+p.activity_number ,
+count(distinct  p.nums) as numbers_to_receive,
+count(distinct  if(last_message_status not like 'failed', t.sent_number,null )) as userreceived_successfully,
+count(distinct t.responded_number) as users_reponded,
+0 as audio_or_video_responded,
+
+  count(distinct  if(last_message_status  like 'failed', t.sent_number,null )) as meta_failures,
+  count(distinct if(t.sent_number is null, p.nums,null)) as turn_failure,
+  -------------------------------------------------------------------------------------------------------------
+  count(distinct if(error_code="131050",t.sent_number,null)) as error_131050,
+  count(distinct if(error_code="131049",t.sent_number,null)) as error_131049,
+  count(distinct if(error_code="131026",t.sent_number,null)) as error_131026,
+  count(distinct if(error_code="131000",t.sent_number,null)) as error_131000,
+  count(distinct if(error_code="130472",t.sent_number,null)) as error_130472,
+
+
+
+
+
+from profile p
+left join templates t
+on p.nums=t.sent_number
+and date(sent_at)  BETWEEN DATE_SUB(DATE(profile_updated_date), INTERVAL 1 DAY)
+                      AND DATE_ADD(DATE(profile_updated_date), INTERVAL 1 DAY)
+and safe_cast(activity_num as int64)=activity_number
+-- and p.activity_number is not null
+where p.activity_number is not null
+and p.profile_updated_date <= current_date("Asia/Kolkata")-2
+group by all

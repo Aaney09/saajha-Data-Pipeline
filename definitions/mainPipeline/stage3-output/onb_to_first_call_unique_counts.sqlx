@@ -4,8 +4,8 @@
 --  COUNTS AFTER 01-07-25
 --------------------------------------------------------
 config {
-    type:"table",
-    tags: "wa_daily"
+    type:"table"
+    
 }
 with template as (
 select
@@ -34,6 +34,7 @@ or template_name like '%onb_week2_%'
 or template_name like '%onb_week3_%'
 or template_name like '%onb_week4_%'
 or template_name like '%onb_week5_%'
+or template_name like '%onboarding_act_v5k%'
 ))
 -- Counting the uniquen number sent and responded for the templates except drawing one
 
