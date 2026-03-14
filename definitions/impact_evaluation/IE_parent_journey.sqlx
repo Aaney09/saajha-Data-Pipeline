@@ -214,6 +214,53 @@ on la.parentId = schoolId.parentId
 
 )
 
+, calling_data as (
+
+select
+-- r.ParentId,
+r.childid,
+count(distinct if(round=1 ,CallStartDateTime,null))Round_1_calls,
+count(distinct if(round=2 ,CallStartDateTime,null))Round_2_calls,    
+count(distinct if(round=3 ,CallStartDateTime,null))Round_3_calls,
+count(distinct if(round=4 ,CallStartDateTime,null))Round_4_calls,
+count(distinct if(round=5 ,CallStartDateTime,null))Round_5_calls,
+count(distinct if(round=6 ,CallStartDateTime,null))Round_6_calls,
+
+
+
+
+from ${ref("roster")} r
+inner join `dataform.impact_evaluation_main_data` ie_main
+on r.parentid=ie_main.parentid
+group by 1
+
+
+)
+
+, ws_engagement as (
+  select 
+childid,
+-- subject,
+-- Hindi
+max(if(round_number=1 and subject='hindi', engagement_percentage, 0)) as round_1_hindi_engagement,
+max(if(round_number=2 and subject='hindi', engagement_percentage, 0)) as round_2_hindi_engagement,
+max(if(round_number=3 and subject='hindi', engagement_percentage, 0)) as round_3_hindi_engagement,
+max(if(round_number=4 and subject='hindi', engagement_percentage, 0)) as round_4_hindi_engagement,
+max(if(round_number=5 and subject='hindi', engagement_percentage, 0)) as round_5_hindi_engagement,
+max(if(round_number=6 and subject='hindi', engagement_percentage, 0)) as round_6_hindi_engagement,
+
+-- Math
+max(if(round_number=1 and subject='math', engagement_percentage, 0)) as round_1_math_engagement,
+max(if(round_number=2 and subject='math', engagement_percentage, 0)) as round_2_math_engagement,
+max(if(round_number=3 and subject='math', engagement_percentage, 0)) as round_3_math_engagement,
+max(if(round_number=4 and subject='math', engagement_percentage, 0)) as round_4_math_engagement,
+max(if(round_number=5 and subject='math', engagement_percentage, 0)) as round_5_math_engagement,
+max(if(round_number=6 and subject='math', engagement_percentage, 0)) as round_6_math_engagement
+
+from `impact_evaluation.ie_round_cohort_level_wise_worksheet_engagement`
+group by 1
+)
+
 select distinct m.childid as assesseeActorid, m.parentId as ParentId,m.AgentName as current_agent_assigned,m.Projectid as Projectid,
  f.* except (assesseeActorid,ParentId,Projectid,childName,childClass),m.cohort,oo.* except(parentid),opt_in.opted_in_on,firstAttemp.firstCallAttemptedOn,
  coalesce(f.childClass,m.education) as childClass,
@@ -221,6 +268,12 @@ select distinct m.childid as assesseeActorid, m.parentId as ParentId,m.AgentName
  last_dialed_agent,
 
  if(oo.parentId is not null,"Yes","No") opted_out,
+hindi.shift_in_hindi_level,
+math.shift_in_math_level,
+ws_engagement.*  except (childid),
+calling_data.* except(childid)
+
+
 from   ${ref("impact_evaluation_main_data")} m
 left join final  f
 on assesseeActorId=childid
@@ -238,6 +291,17 @@ left join (select parentid, AgentName
  qualify row_number() over(partition by parentid order by CallStartDateTime desc)=1 ) r
     on r.parentid=m.parentid
 
+left join ${ref("ie_current_hindi_assessment_status_of_child")} hindi 
+on m.childid=hindi.assesseeActorId
+left join ${ref("ie_current_math_assessment_status_of_child")} math
+on m.childid=math.assesseeActorId
 
 
-where m1 is not null or oo.parentid is not null
+left join ws_engagement
+on ws_engagement.childid=m.childid
+
+left join calling_data
+on calling_data.childid=m.childid
+
+
+-- where m1 is not null or oo.parentid is not null
