@@ -1,0 +1,210 @@
+config {
+    type: "table",
+    tags: ["IE"]
+}
+with  ws as (select 
+ws.parentid,
+childid,
+levelnumber,
+worksheet_id,
+sent_at,
+cohort,
+-- worksheetNumber,
+CASE 
+  WHEN DATE_DIFF(DATE(sent_at), DATE(ws.math_assessment_date), DAY) > 25
+       AND worksheetNumber BETWEEN 1 AND 5
+  THEN worksheetNumber + 15
+  
+  ELSE worksheetNumber
+
+
+END AS worksheetnumber,
+
+
+case 
+when date(sent_at) between Round_1_Assessment and ifnull(Round_2_Assessment,"2026-09-01") then 1
+when date(sent_at) between Round_2_Assessment and ifnull(Round_3_Assessment,"2026-09-01") then 2
+when date(sent_at) between Round_3_Assessment and ifnull(Round_4_Assessment,"2026-09-01") then 3
+when date(sent_at) between Round_4_Assessment and ifnull(Round_5_Assessment,"2026-09-01") then 4
+
+End as rounds_worksheet,
+
+math_assessment_date,
+hindi_assessment_date,
+
+"Math" as subject
+from ${ref("IE_math_worksheet_sent")} ws
+inner join ${ref("IE_parent_journey")} pe
+on ws.childid=pe.assesseeActorid
+
+
+
+where last_message_status not like 'failed'
+ 
+union all  
+
+select 
+ws.parentid,
+childid,
+levelnumber,
+worksheet_id,
+sent_at,
+cohort,
+-- worksheetNumber,
+CASE 
+  WHEN DATE_DIFF(DATE(sent_at), DATE(ws.math_assessment_date), DAY) > 25
+       AND worksheetNumber BETWEEN 1 AND 5
+  THEN worksheetNumber + 15
+  
+  ELSE worksheetNumber
+
+
+END AS worksheetnumber,
+
+
+case 
+when date(sent_at) between Round_1_Assessment and ifnull(Round_2_Assessment,"2026-09-01") then 1
+when date(sent_at) between Round_2_Assessment and ifnull(Round_3_Assessment,"2026-09-01") then 2
+when date(sent_at) between Round_3_Assessment and ifnull(Round_4_Assessment,"2026-09-01") then 3
+when date(sent_at) between Round_4_Assessment and ifnull(Round_5_Assessment,"2026-09-01") then 4
+
+End as rounds_worksheet,
+
+math_assessment_date,
+hindi_assessment_date,
+
+"Hindi" as subject
+from ${ref("IE_hindi_worksheet_sent")} ws
+inner join ${ref("IE_parent_journey")} pe
+on ws.childid=pe.assesseeActorid
+
+
+
+where last_message_status not like 'failed'
+
+
+)
+, total_ws_sent as (
+select
+
+subject,
+cohort,
+levelnumber as level,
+worksheetnumber as worksheet_number,
+rounds_worksheet as rounds,
+count(distinct childid) as unique_child_ws_sent  
+from ws
+group by all
+)
+
+
+,attempt_data as (
+select 
+distinct
+a.parentid,
+a.childid,
+ws.cohort,
+date(ws.sent_at) as    date_Sent,
+a.formid,
+if(lower(formid) like '%hindi%',"Hindi","Math") as subject,
+-- case when date(insertedAt)
+CAST(REGEXP_EXTRACT(formid, r'L(\d+)') AS INT64) AS level,
+CASE 
+  WHEN DATE_DIFF(DATE(insertedat), DATE(a.hindi_assessment_date), DAY) > 25
+       AND CAST(REGEXP_EXTRACT(formid, r'Worksheet(\d+)') AS INT64) BETWEEN 1 AND 5
+  THEN CAST(REGEXP_EXTRACT(formid, r'Worksheet(\d+)') AS INT64) + 15
+  
+  ELSE CAST(REGEXP_EXTRACT(formid, r'Worksheet(\d+)') AS INT64)
+
+
+END AS worksheet_number,
+GREATEST(DATE(a.hindi_assessment_date), DATE(a.maths_assessment_date)) AS assessment_date,
+
+case 
+when date(sent_at) between Round_1_Assessment and ifnull(Round_2_Assessment,"2026-09-01") then 1
+when date(sent_at) between Round_2_Assessment and ifnull(Round_3_Assessment,"2026-09-01") then 2
+when date(sent_at) between Round_3_Assessment and ifnull(Round_4_Assessment,"2026-09-01") then 3
+when date(sent_at) between Round_4_Assessment and ifnull(Round_5_Assessment,"2026-09-01") then 4
+
+End as rounds,
+
+
+
+
+from `impact_evaluation.attemptrate` a
+inner join ${ref("IE_parent_journey")} pe
+on safe_cast(a.childid as int64) = pe.assesseeActorid
+
+left join  ws
+
+on ws.parentid=safe_Cast(a.parentid as int64)
+and ws.childid=safe_cast(a.childid as int64)
+and ws.worksheet_id=a.formid
+and  date(ws.math_assessment_date)=date(a.maths_assessment_date)
+and date(ws.hindi_assessment_date)=date(a.hindi_assessment_date) 
+where a.platform='WHATSAPP'
+
+
+
+
+
+
+)
+-- , final_data as (
+
+-- select distinct
+-- ad.*,
+
+-- case 
+-- when date_sent between Round_1_Assessment and ifnull(Round_2_Assessment,"2026-09-01") then " Round 1"
+-- when date_sent between Round_2_Assessment and ifnull(Round_3_Assessment,"2026-09-01") then " Round 2"
+-- when date_sent between Round_3_Assessment and ifnull(Round_4_Assessment,"2026-09-01") then " Round 3"
+-- when date_sent between Round_4_Assessment and ifnull(Round_5_Assessment,"2026-09-01") then " Round 4"
+
+-- End as rounds,
+-- -- when assessment_date<=Round_1_assessment then 1
+-- -- when   assessment_date > Round_1_assessment and  assessment_Date<= Round_2_Assessment  then 2
+-- -- when assessment_date > Round_2_Assessment and  assessment_Date<= Round_3_Assessment  then 3
+-- -- when assessment_date > Round_3_Assessment and  assessment_Date<= Round_4_Assessment  then 4
+-- -- when assessment_date > Round_4_Assessment and  assessment_Date<= Round_5_Assessment  then "Round 5"
+
+
+-- -- end as rounds
+
+
+
+
+
+
+
+
+
+-- from attempt_data ad
+-- inner join ${ref("IE_parent_journey")} pj
+-- on safe_Cast(ad.childid as int64)=pj.assesseeActorid
+-- )
+
+, final_cte as (
+select 
+-- childid,
+subject,
+cohort,
+level,
+worksheet_number,
+rounds,
+count(distinct childid) as total_child_attempted,
+-- unique_child_ws_sent
+
+from attempt_data ad
+
+group by all
+order by 1,2,3,4
+)
+
+select
+*,
+round(total_child_attempted/unique_child_ws_sent*100,0) as attempt_percentage
+from total_ws_sent
+left join final_cte fd
+-- left join total_ws_sent
+using(subject,cohort,level,worksheet_number,rounds) 
