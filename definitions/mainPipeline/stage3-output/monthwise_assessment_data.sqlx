@@ -134,7 +134,7 @@ order by 1,2,3
    and mf.mathrounds=hf.hindirounds
 )
 
-select 
+select  distinct
 (select 
 TenantId
 from `platform_commons.tenant`) as tenant_id,
@@ -142,7 +142,7 @@ ie.projectid as project_id,
 ac.parentid as parent_id,
 ac.childid as child_id,
 2025 as assessment_year,
-mf.mathrounds as assessment_number,
+ifnull(mf.mathrounds,0) as assessment_number,
 mf.mathAssessDate as math_assessment_date,
 mf.mathlevel as math_level,
 mf.math_aia_id,
