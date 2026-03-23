@@ -54,7 +54,7 @@ where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
   union distinct 
   select *
   from assessments
-  where mathFLnAchievedClassWise = true and hindiFLnAchievedClassWise=true
+  where  hindiFLnAchievedClassWise=true
 )
 
 , hindi_first_worksheet_sent as (
@@ -92,7 +92,9 @@ and mfc.hindi_worksheet1_sent_on between mhrs.hindi_content_to_send_on and date_
 
 )
 
-select dateOfAssessment,
+select 
+distinct
+dateOfAssessment,
 hindi_content_to_send_on,
 ie_main.cohort,
 count(distinct m.parentid)ParentIdAssessed,
