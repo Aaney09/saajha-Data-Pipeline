@@ -1,6 +1,5 @@
 config {
-    type:"table",
-    tags: "wa_daily"
+    type:"table"
 }
 with bigquery_optins as (
   select distinct phone_number,

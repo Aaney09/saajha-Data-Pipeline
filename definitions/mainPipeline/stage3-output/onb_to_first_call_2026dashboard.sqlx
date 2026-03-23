@@ -1,36 +1,38 @@
 config {
+
+
     type:"operations",
     tags: "wa_daily"
 }
 
-
-insert into dataform.onb_to_first_call_2026dashboard (
-expected_date,
-dashboard_activity,
-template_name,
-city,
-day_number,
-activity_number,
-tobesent,
-userreceived_successfully,
-users_reponded,
-audio_or_video_responded,
-meta_failures,
-turn_failure,
-  -------------------------------------------------------------------------------------------------------------
-error_131050,
-error_131049,
-error_131026,
-error_131000,
-error_130472
-
+-- insert into dataform.onb_to_first_call_2026dashboard (
+-- expected_date,
+-- dashboard_activity,
+-- template_name,
+-- city,
+-- day_number,
+-- activity_number,
+-- tobesent,
+-- userreceived_successfully,
+-- users_reponded,
+-- audio_or_video_responded,
+-- meta_failures,
+-- turn_failure,
+--   -------------------------------------------------------------------------------------------------------------
+-- error_131050,
+-- error_131049,
+-- error_131026,
+-- error_131000,
+-- error_130472
 
 
 
 
-)
 
+-- )
 
+MERGE dataform.onb_to_first_call_2026dashboard T
+USING (
 with first_call as (
   select ParentMobile, date(min(CallstartDatetime)) as first_Call_date
   from `platform_commons.roster`
@@ -120,9 +122,9 @@ p.profile_updated_date as expected_date,
 "New" as dashboard_Activity,
 t.template_name,
 city,
-null as daynumber,
+null as day_number,
 p.activity_number ,
-count(distinct  p.nums) as numbers_to_receive,
+count(distinct  p.nums) as tobesent,
 count(distinct  if(last_message_status not like 'failed', t.sent_number,null )) as userreceived_successfully,
 count(distinct t.responded_number) as users_reponded,
 0 as audio_or_video_responded,
@@ -149,4 +151,74 @@ and safe_cast(activity_num as int64)=activity_number
 -- and p.activity_number is not null
 where p.activity_number is not null
 and p.profile_updated_date <= current_date("Asia/Kolkata")-2
+ AND p.profile_updated_date >= DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 20 DAY)-- picking only last 20 days response
+
+
 group by all
+) s
+
+ON T.expected_date = S.expected_date
+AND T.activity_number = S.activity_number
+AND T.city = S.city
+AND T.template_name = S.template_name
+
+WHEN MATCHED THEN UPDATE SET
+  tobesent = S.tobesent,
+  userreceived_successfully = S.userreceived_successfully,
+  users_reponded = S.users_reponded,
+  audio_or_video_responded = S.audio_or_video_responded,
+  meta_failures = S.meta_failures,
+  turn_failure = S.turn_failure,
+  error_131050 = S.error_131050,
+  error_131049 = S.error_131049,
+  error_131026 = S.error_131026,
+  error_131000 = S.error_131000,
+  error_130472 = S.error_130472
+
+WHEN NOT MATCHED THEN INSERT (
+  expected_date,
+  dashboard_activity,
+  template_name,
+  city,
+  day_number,
+  activity_number,
+  tobesent,
+  userreceived_successfully,
+  users_reponded,
+  audio_or_video_responded,
+  meta_failures,
+  turn_failure,
+  error_131050,
+  error_131049,
+  error_131026,
+  error_131000,
+  error_130472
+)
+VALUES (
+  S.expected_date,
+  S.dashboard_activity,
+  S.template_name,
+  S.city,
+  S.day_number,
+  S.activity_number,
+  S.tobesent,
+  S.userreceived_successfully,
+  S.users_reponded,
+  S.audio_or_video_responded,
+  S.meta_failures,
+  S.turn_failure,
+  S.error_131050,
+  S.error_131049,
+  S.error_131026,
+  S.error_131000,
+  S.error_130472
+)
+
+
+
+
+
+
+
+
+
