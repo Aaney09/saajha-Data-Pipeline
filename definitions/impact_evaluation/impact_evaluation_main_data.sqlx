@@ -14,9 +14,10 @@ from saajhadata.impact_evaluation.ie_main_randomized_data
 ) q
 
 -- `impact_evaluation.IE_pilot` -- change to main table once we main experiment starts
-
+inner join ${ref("allPhoneNumberWithPid")} p
+on p.number=phoneno
 inner join ${ref("User")} u
-on safe_cast(concat("91",UserLogin) as int64) = phoneNo
+on userid=rosterparentid
 
 Inner join  ${ref("IE")} ie
 on OnBoardedUserId = userid
