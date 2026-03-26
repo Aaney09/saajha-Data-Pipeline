@@ -161,7 +161,8 @@ END
 select * except(Activity_date),
 case when cohort=3 and activity_date='2026-02-19' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE_ADD(activity_date, INTERVAL 4 DAY)
  when cohort=7 and activity_date='2026-02-17' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE_ADD(activity_date, INTERVAL 6 DAY)
-
+when cohort=3 and activity_date='2026-03-21' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE "2026-03-25"
+ when cohort=7 and activity_date='2026-03-19' and  phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then  DATE "2026-03-25"
 
 
 else activity_date   end  as activity_date
