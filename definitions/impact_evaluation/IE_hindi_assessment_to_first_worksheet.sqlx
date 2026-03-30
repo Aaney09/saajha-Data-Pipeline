@@ -7,11 +7,13 @@ config {
 
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+,Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
 from ${ref("assessment")}
 where QuestionText like "%Ask%" and AssessmentId<>6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
 , math as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+,Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
 from ${ref("assessment")}
 where QuestionText not like  "%Ask%" and AssessmentId <> 6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
@@ -26,7 +28,18 @@ where  projectid=1103935
 )
 
 , assessments as (
-  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  select 
+    c.*, h.*except(dateOfAssessment,rounds),m.*   except(dateOfAssessment,rounds),
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment) as dateOfAssessment,
+   COALESCE(
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
+  h.dateOfAssessment,
+  m.dateOfAssessment
+)+1 as hindi_content_to_send_on,COALESCE(
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
+  h.dateOfAssessment,
+  m.dateOfAssessment
+)+2 as math_content_to_send_on,
   case  
 when c.childClass = 1 and mathLevel>=2 then TRUE
 when c.childClass = 2 and mathLevel>=3 then TRUE
@@ -40,7 +53,7 @@ Else false
 end hindiFLnAchievedClassWise
 from hindi h
 inner join math m
-using(assesseeActorID,dateOfAssessment)
+using(assesseeActorID,rounds)
 inner join childDetails c
 on assesseeActorID=childid
 where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
