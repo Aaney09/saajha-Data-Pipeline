@@ -78,69 +78,69 @@ group by all
 -- RESULT SHARED
 --------------------------------------------------------
 
-, allNumbersPIDtemplatesent as (
-  select distinct 
-  phone_number,
-  rosterparentid as parentid,
-  sent_at,
-  date(sent_at)sent_date,
-  last_message_status,
-  -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
-  from ${ref("allPhoneNumberWithPid")} p
-  inner join (select * from ${ref("IE_template_sent")} where last_message_status not like 'failed') ts
-  on number = phone_number
-  inner join  ${ref("IE")} ie
-  on p.rosterparentid=ie.OnBoardedUserId
-  where number is not null
-  and ie.projectid=1103935
-  and date(sent_at)>="2025-04-01"
-  -- and rosterparentid=2033918
-  AND  (template_name like "%fln_result_v2%" or template_name like "%fln_highest_level_v2%")
-  qualify row_number() over(partition by rosterparentid, date(sent_at) order by Sent_At desc)=1
-)
-, lag_dates as (
-  select 
-  parentid,
-  sent_date,
-  lag(sent_date) over(partition by parentid order by sent_date) as resultlagdate
-  from allNumbersPIDtemplatesent
-  order by parentid asc, sent_date asc,resultlagdate asc
-)
+-- , allNumbersPIDtemplatesent as (
+--   select distinct 
+--   phone_number,
+--   rosterparentid as parentid,
+--   sent_at,
+--   date(sent_at)sent_date,
+--   last_message_status,
+--   -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
+--   from ${ref("allPhoneNumberWithPid")} p
+--   inner join (select * from ${ref("IE_template_sent")} where last_message_status not like 'failed') ts
+--   on number = phone_number
+--   inner join  ${ref("IE")} ie
+--   on p.rosterparentid=ie.OnBoardedUserId
+--   where number is not null
+--   and ie.projectid=1103935
+--   and date(sent_at)>="2025-04-01"
+--   -- and rosterparentid=2033918
+--   AND  (template_name like "%fln_result_v2%" or template_name like "%fln_highest_level_v2%")
+--   qualify row_number() over(partition by rosterparentid, date(sent_at) order by Sent_At desc)=1
+-- )
+-- , lag_dates as (
+--   select 
+--   parentid,
+--   sent_date,
+--   lag(sent_date) over(partition by parentid order by sent_date) as resultlagdate
+--   from allNumbersPIDtemplatesent
+--   order by parentid asc, sent_date asc,resultlagdate asc
+-- )
 
-,resultData as ((select *,if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day)) resultdateDifference,
-from lag_dates
-where if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day))=0)
+-- ,resultData as ((select *,if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day)) resultdateDifference,
+-- from lag_dates
+-- where if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day))=0)
 
-UNION ALL
-(select *,if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day)) resultdateDifference,
-from lag_dates
-where if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day))>=25)
-order by parentid  desc)
-
-
- ,result as (select *, row_number() over(partition by parentid order by sent_date asc)rn
-from resultData
-order by parentid asc,rn asc)
+-- UNION ALL
+-- (select *,if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day)) resultdateDifference,
+-- from lag_dates
+-- where if(resultlagdate is null, 0,date_diff(sent_date,resultlagdate,day))>=25)
+-- order by parentid  desc)
 
 
+--  ,result as (select *, row_number() over(partition by parentid order by sent_date asc)rn
+-- from resultData
+-- order by parentid asc,rn asc)
 
-, pulse_result_shared as (
-Select 
-cohort,
-"Result Shared" as source_table,
-count(distinct if(rn=1,a.parentid,null)) as round_1_result,
-count(distinct if(rn=2,a.parentid,null)) as round_2_result,
-count(distinct if(rn=3,a.parentid,null)) as round_3_result,
-count(distinct if(rn=4,a.parentid,null)) as round_4_result,
-count(distinct if(rn=5,a.parentid,null)) as round_5_result,
-count(distinct if(rn=6,a.parentid,null)) as round_6_result
--- count(distinct if(rn=7,a.parentid,null)) as round_7_result
-from result a
-left join ${ref("impact_evaluation_main_data")} ie_main
-on a.parentid=ie_main.parentid
--- where last_message_status not like 'failed'
-group by 1
-)
+
+
+-- , pulse_result_shared as (
+-- Select 
+-- cohort,
+-- "Result Shared" as source_table,
+-- count(distinct if(rn=1,a.parentid,null)) as round_1_result,
+-- count(distinct if(rn=2,a.parentid,null)) as round_2_result,
+-- count(distinct if(rn=3,a.parentid,null)) as round_3_result,
+-- count(distinct if(rn=4,a.parentid,null)) as round_4_result,
+-- count(distinct if(rn=5,a.parentid,null)) as round_5_result,
+-- count(distinct if(rn=6,a.parentid,null)) as round_6_result
+-- -- count(distinct if(rn=7,a.parentid,null)) as round_7_result
+-- from result a
+-- left join ${ref("impact_evaluation_main_data")} ie_main
+-- on a.parentid=ie_main.parentid
+-- -- where last_message_status not like 'failed'
+-- group by 1
+-- )
 -----------------------------------------------------------------------------
 -- HINDI FIRST WORKSHEET
 ------------------------------------------------------------------------------
@@ -149,12 +149,14 @@ group by 1
 
 
 , 
-hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel,
+Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
 from ${ref("assessment")}
 where QuestionText like "%Ask%" and AssessmentId<>6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
 )
-, math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+, math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel,
+Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
 from ${ref("assessment")}
 where QuestionText not like  "%Ask%" and AssessmentId <> 6
 qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
@@ -168,8 +170,19 @@ from ${ref("IE")}
 where  projectid=1103935
 )
 
-, assessments as (
-  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+, assessments_v1 as (
+  select 
+  c.*, h.*except(dateOfAssessment,rounds),m.*   except(dateOfAssessment,rounds),
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment) as dateOfAssessment,
+   COALESCE(
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
+  h.dateOfAssessment,
+  m.dateOfAssessment
+)+1 as hindi_content_to_send_on,COALESCE(
+  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
+  h.dateOfAssessment,
+  m.dateOfAssessment
+)+2 as math_content_to_send_on,
   case  
 when c.childClass = 1 and mathLevel>=2 then TRUE
 when c.childClass = 2 and mathLevel>=3 then TRUE
@@ -183,9 +196,86 @@ Else false
 end hindiFLnAchievedClassWise
 from hindi_assessment h
 inner join math_assessment m
-using(assesseeActorID,dateOfAssessment)
+
+using(assesseeActorID,rounds)
 inner join childDetails c
 on assesseeActorID=childid)
+, lagasses as (
+
+  select *,
+  lag(dateOfAssessment) over(partition by parentid order by dateOfAssessment) as asseslagdate
+  from assessments_v1
+)
+
+
+,all_assessed as ((select *,if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day)) assess_date_difference,
+from lagasses
+where if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day))=0)
+
+UNION ALL
+(select *,if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day)) assess_date_difference,
+from lagasses
+where if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day))>=25)
+order by parentid  desc)
+, assessments as (
+  select *,
+  row_number() over(partition by parentid order by dateOfAssessment ) as rounds
+  from all_assessed
+)
+
+
+
+----------------------------------------------------------
+-- RESULT SHARED
+--------------------------------------------------------
+
+, combinedResult as (
+  select distinct 
+  phone_number,
+  rosterparentid as parentid,
+  sent_at as combined_Result_sent_on ,
+  date(sent_at)sent_date,
+  last_message_status,
+  -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
+  from `saajhadata.dataform.allPhoneNumberWithPid` p
+  inner join (select * from `saajhadata.dataform.IE_template_sent` where last_message_status not like 'failed') ts
+  on number = phone_number
+  inner join  `saajhadata.platform_commons.IE` ie
+  on p.rosterparentid=ie.OnBoardedUserId
+  where number is not null
+  and ie.projectid=1103935
+  and date(sent_at)>="2025-04-01"
+  -- and rosterparentid=2033918
+  AND  (template_name like "%fln_result_v2%" or template_name like "%fln_highest_level_v2%")
+  qualify row_number() over(partition by rosterparentid, date(sent_at) order by Sent_At desc)=1
+)
+
+, tracking_result as (
+select  distinct a.parentid as assessed_id,childid,rounds, m.parentid as result_shared_id,a.dateOfAssessment
+from assessments a
+left join combinedResult m
+on a.parentid = m.parentid and
+date(combined_Result_sent_on) BETWEEN dateOfAssessment AND DATE_ADD(dateOfAssessment,INTERVAL 1 DAY)
+)
+,pulse_result_shared as (
+-- select * from pulse_result_shared
+select
+cohort,
+"Result Shared" as source_table,
+count(distinct if (rounds=1,result_shared_id,null)  ) as round_1,
+count(distinct if (rounds=2,result_shared_id,null)  ) as round_2,
+count(distinct if (rounds=3,result_shared_id,null)  ) as round_3,
+count(distinct if (rounds=4,result_shared_id,null)  ) as round_4,
+count(distinct if (rounds=5,result_shared_id,null)  ) as round_5,
+count(distinct if (rounds=6,result_shared_id,null)  ) as round_6
+from tracking_result
+left join ${ref("impact_evaluation_main_data")} ie_main
+on result_shared_id =ie_main.parentid
+group by 1,2
+
+
+)
+
 
 -----------------------------------------------------
 -- GETING HIGHEST LEVEL COUNT
