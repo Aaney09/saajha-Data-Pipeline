@@ -58,7 +58,7 @@ inner join math m
 using(assesseeActorID,dateOfAssessment)
 inner join childDetails c
 on assesseeActorID=childid
-where m.dateOfAssessment <= current_date("Asia/Kolkata")-3
+where GREATEST(h.dateOfAssessment, m.dateOfAssessment) <= current_date("Asia/Kolkata")-3
 )
 
 
