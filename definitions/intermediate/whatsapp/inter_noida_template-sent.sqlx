@@ -1,0 +1,26 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "This table contains data for template sent to Noida Onbaording and FLN users; Created on 01-04-26" }
+
+SELECT distinct 
+  phone_number,
+    id,
+    uuid, 
+    chat_id,
+   flow_id,
+    flow_name,
+    flow_type,
+    template_name, 
+     template_meta_data, 
+     message_content,
+    last_message_status,
+    error_reason,
+    error_code,
+   sent_at,
+    updated_status_at, 
+     saajha_whatsapp_number,
+    wa_number_purpose,
+    external_id,
+from ${ref("std_noida_template-sent")}

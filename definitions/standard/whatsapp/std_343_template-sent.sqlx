@@ -1,0 +1,42 @@
+config {
+    type:"view",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "This table contains data for Internal number users to which templates were sent"
+}
+
+with _343_status  as (
+    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
+    from ${ref("912250323343_statuses")}
+)
+,
+agents as (
+    SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    template template_meta_data, 
+    rendered_content as message_content,
+    last_message_status,
+    title as error_reason,
+    code as error_code,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    updated_status_at,  
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose,
+    external_id
+
+from ${ref("912250323343","messages")}
+left join _343_status
+on uuid = message_uuid
+where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
+qualify row_number()over(partition by uuid order by updated_at desc)=1
+and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'
+    )
+
+ select * from agents
