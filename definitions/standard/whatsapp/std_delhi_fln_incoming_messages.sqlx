@@ -1,0 +1,22 @@
+config {
+    type:"view",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "Incoming message details of users on Delhi FLN Number"
+}
+
+SELECT distinct 
+    safe_cast(trim(from_addr,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    message_type, 
+    content message_content, 
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    912250555658 saajha_whatsapp_number,
+    "only fln" wa_number_purpose,
+    context_id,
+from ${ref("912250555658","messages")}
+where message_type not in ("interactive","button") and direction="inbound" 
+and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
+and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'

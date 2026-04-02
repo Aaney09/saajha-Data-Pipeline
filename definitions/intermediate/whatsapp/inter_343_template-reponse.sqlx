@@ -1,0 +1,22 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "This table contains data for Inetrnal number users who reponded to the template shared; Created on 01-04-26"
+}
+
+SELECT distinct 
+  phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    responded_at,
+     saajha_whatsapp_number,
+    wa_number_purpose,
+    context_id,
+from ${ref("std_343_template-response")}

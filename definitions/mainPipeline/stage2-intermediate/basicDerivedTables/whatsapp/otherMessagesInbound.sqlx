@@ -10,6 +10,7 @@ with _911171279787 as
     chat_id,
     message_type, 
     content message_content, 
+    
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     911171279787 as saajha_whatsapp_number, 
     "onboarding" as wa_number_purpose,

@@ -1,0 +1,19 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "Incoming message details of users on Noida Onboarding and FLN Number; Created on 01-04-26"
+}
+
+SELECT distinct 
+    phone_number,
+    id,
+    uuid, 
+    chat_id,
+    message_type, 
+    message_content, 
+    sent_at,
+     saajha_whatsapp_number,
+    wa_number_purpose,
+    context_id,
+from ${ref("std_noida_incoming_messages")}

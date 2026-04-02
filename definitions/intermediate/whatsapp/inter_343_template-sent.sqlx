@@ -1,0 +1,20 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "This table contains data for Internal number users to which templates were sent; Created on 01-04-26"
+}
+
+ SELECT 
+     template_meta_data, 
+   message_content,
+    last_message_status,
+   error_reason,
+   error_code,
+    sent_at,
+    updated_status_at,  
+     saajha_whatsapp_number,
+    wa_number_purpose,
+    external_id,
+
+from ${ref("std_343_template-sent")}
