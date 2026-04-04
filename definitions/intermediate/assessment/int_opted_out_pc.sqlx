@@ -1,0 +1,27 @@
+config {
+    type: "table",
+    tags : "call_daily"
+}
+-- add IE table for child id
+select distinct userId as parentid,
+ie.ieid as childid,
+-- c.childid,
+OptedOutStatus, 
+OptedOutDateTime,
+feedbackreason as opt_out_reason
+from ${ref("User")} u
+left join ( select parentid,callstartdatetime,childid,Feedbackreason 
+from ${ref("called")} where feedbacktype like '%OPTED_OUT%'
+qualify row_number() over(partition by childid, date(callstartdatetime) order by callstartdatetime desc)=1
+
+) c
+on u.userid=c.parentid
+and date(optedoutdatetime)=date(c.CallstartDatetime)
+left join ${ref("IE")} ie
+on u.userid=ie.onboardedUserId
+
+where OptedOutDateTime is not null and userrolescode like "%saajha.parent%"
+
+-- select distinct userId as parentid,OptedOutStatus, OptedOutDateTime
+-- from ${ref("User")}
+-- where OptedOutDateTime is not null and userrolescode like "%saajha.parent%"
