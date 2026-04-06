@@ -1,0 +1,397 @@
+config {
+    type: "table",
+    tags: ["call_daily"],
+    description: "from april 2026 till march 31st 2027"
+}
+
+
+with hindiMath as (select *
+from  ${ref("int_Valid_Assessed_2026_2027")}
+)
+,
+assessmentDetails as 
+(select *
+-- r1.* except(m1,h1),
+-- r2.Round_2_Assessment,
+-- r3.Round_3_Assessment,
+-- r4.Round_4_Assessment,
+-- r5.Round_5_Assessment,
+-- r6.Round_6_Assessment,
+-- r7.Round_7_Assessment,
+-- r8.Round_8_Assessment,
+-- r9.Round_9_Assessment,
+-- r10.Round_10_Assessment,
+-- r11.Round_11_Assessment,
+-- r12.Round_12_Assessment
+
+from
+(select distinct assesseeActorid,mathassessdate m1,hindiAssessDate h1,greatest(hindiAssessDate,mathAssessDate) as Round_1_assessment,hindiLevel as r1_hindiLevel,mathLevel as r1_mathlevel 
+from hindimath
+where hindiRounds=1)r1
+
+
+left join
+(select distinct  assesseeActorid,mathAssessDate m2,hindiAssessDate h2, greatest(mathassessdate,hindiAssessDate) as Round_2_Assessment,hindiLevel as r2_hindiLevel,mathLevel as r2_mathlevel
+from hindiMath
+where hindiRounds=2)r2
+using(assesseeActorid)
+
+Left join(select assesseeActorid,mathAssessDate m3,hindiAssessdate h3,
+greatest(mathassessdate,hindiAssessDate)Round_3_Assessment,hindiLevel as r3_hindiLevel,mathLevel as r3_mathlevel
+from hindiMath
+where mathRounds=3)r3
+using(assesseeActorid)
+
+left join
+(select assesseeActorid,
+mathAssessDate m4,hindiAssessdate h4,
+greatest(mathassessdate,hindiAssessDate)Round_4_Assessment,hindiLevel as r4_hindiLevel,mathLevel as r4_mathlevel
+from hindimath
+where mathRounds=4)r4
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m5,hindiAssessdate h5,
+greatest(mathassessdate,hindiAssessDate) Round_5_Assessment,hindiLevel as r5_hindiLevel,mathLevel as r5_mathlevel
+from hindiMath
+where mathRounds=5)r5
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m6,hindiAssessdate h6,
+greatest(mathassessdate,hindiAssessDate)Round_6_Assessment,hindiLevel as r6_hindiLevel,mathLevel as r6_mathlevel
+from hindiMath
+where mathRounds=6)r6
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m7,hindiAssessdate h7,
+greatest(mathassessdate,hindiAssessDate)Round_7_Assessment,hindiLevel as r7_hindiLevel,mathLevel as r7_mathlevel
+from hindiMath
+where hindiRounds = 7)r7
+using(assesseeActorid)
+
+
+left join(select assesseeActorid,
+mathAssessDate m8,hindiAssessdate h8,
+greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hindiLevel,mathLevel as r8_mathlevel
+from hindiMath
+where hindiRounds = 8)r8
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m9,hindiAssessdate h9,
+greatest(mathassessdate,hindiAssessDate) Round_9_Assessment,hindiLevel as r9_hindiLevel,mathLevel as r9_mathlevel
+from hindiMath
+where hindiRounds = 9)r9
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m10,hindiAssessdate h10,
+greatest(mathassessdate,hindiAssessDate)  Round_10_Assessment,hindiLevel as r10_hindiLevel,mathLevel as r10_mathlevel
+from hindiMath
+where hindiRounds = 10)r10
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m11,hindiAssessdate h11,
+greatest(mathassessdate,hindiAssessDate) Round_11_Assessment,hindiLevel as r11_hindiLevel,mathLevel as r11_mathlevel
+from hindiMath
+where hindiRounds = 11)r11
+using(assesseeActorid)
+
+left join(select assesseeActorid,
+mathAssessDate m12,hindiAssessdate h12,
+greatest(mathassessdate,hindiAssessDate) Round_12_Assessment,hindiLevel as r12_hindiLevel,mathLevel as r12_mathlevel
+from hindiMath
+where hindiRounds = 12)r12
+using(assesseeActorid)
+
+
+--for shift level,first,last date in hindi 
+left join (select assesseeActorid,first_hindi_assessment_date,last_hindi_assessment_date, shift_in_hindi_level
+from ${ref("int_current_academic_hindi_assessment_status_of_child")} )
+using (assesseeActorid)
+
+--for shift level,first and last date in math 
+left join (select assesseeActorid, first_math_assessment_date,last_math_assessment_date, shift_in_math_level
+from ${ref("int_current_academic_math_assessment_status_of_child")} )
+using (assesseeActorid)
+) 
+
+,all_opt_ins as (
+  select distinct phone_number,min(firstopted_in_on_bau)firstopted_in_on
+  from(select distinct phone_number,date(min(timestamp))firstopted_in_on_bau
+  from ${ref("opt_in_records","opt_in_users")}
+  group by 1
+  union distinct
+  select distinct phone_number,date(min(timestamp))firstopted_in_onPI,
+  from ${ref("process_improvement","opt_in_users")}
+  group by 1)
+  group by 1
+  )
+
+
+,
+opt_in as (
+  select distinct rosterparentId,min(firstopted_in_on) as opted_in_on
+  from all_opt_ins
+  inner join ${ref("allPhoneNumberWithPid")}
+  on phone_number = number
+  group by all
+)
+
+,fln as (
+select parentid,childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
+from ${ref("int_FLN_Achieved_2026_2027")}
+)
+,
+firstAttempt as (select ParentId,
+  date(min(CallStartDateTime))firstCallAttemptedOn
+  from 
+      (select distinct ParentId,CallStartDateTime
+      from ${ref("roster")}
+      where  date(CallStartDateTime) <> "1970-01-01"
+      union distinct 
+      select ParentId,CallStartDateTime
+      from ${ref("incoming")}
+      where  date(CallStartDateTime) <> "1970-01-01"
+      )
+  
+  group by ParentId
+),
+opted_out as (
+  select distinct parentId,date(OptedOutDateTime) as opted_out_on,opt_out_reason as opted_out_reason
+  from ${ref("int_opted_out_pc")}
+),
+lastAssessed as  (
+
+  select distinct ParentId,childid,childClass,
+  alternateMObileNumber,parentMobileNumber as parentNumber,
+  Projectid,parentname,childName,
+  AgentName,
+  agentMobile as agentNumber,
+  If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name
+
+  from ${ref("prelim")}
+  where projectid<> 1103935
+ qualify row_number() over(partition by childid order by assessmentdate desc)=1
+ union all
+ 
+  select distinct ParentId,childid,childClass,
+  alternateMObileNumber,parentMobileNumber as parentNumber,
+  Projectid,parentname,childName,
+  AgentName,
+  agentMobile as agentNumber,
+  If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name
+
+  from ${ref("assessment_data")}
+  where projectid<> 1103935
+ qualify row_number() over(partition by childid order by assessmentdate desc)=1
+)
+
+, schoolId as (select distinct safe_cast(Institution as int64)school_id, ieid as child_id,OnBoardedUserId as parentId,
+-- If(Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name 
+from ${ref("IE")}
+where projectid<>1103935
+)
+
+,parent_journey_main_table as (
+  
+select assessmentDetails.*,
+schoolId.school_id,
+la.* except(childid),
+opt_in.opted_in_on,
+firstAttempt.firstCallAttemptedOn,
+opted_out.* except(parentid),
+if(la.parentId = opted_out.parentId,"Yes","No") opted_out,
+if(la.childid = fln.childid,"Yes","No")FLNAchieved,FLNAchievedOn,
+if(opted_out.opted_out_on<Round_1_assessment or
+opted_out.opted_out_on<Round_2_assessment or
+opted_out.opted_out_on<Round_3_assessment or
+opted_out.opted_out_on<Round_4_assessment or
+opted_out.opted_out_on<Round_5_assessment or
+opted_out.opted_out_on<Round_6_assessment or
+opted_out.opted_out_on<Round_7_assessment or
+opted_out.opted_out_on<Round_8_assessment or
+opted_out.opted_out_on<Round_9_assessment or
+opted_out.opted_out_on<Round_10_assessment or
+opted_out.opted_out_on<Round_11_assessment or
+opted_out.opted_out_on<Round_12_assessment
+,"Yes","No") returnedParent
+
+from assessmentDetails 
+Inner join lastAssessed la
+on assesseeActorId = la.childid
+
+left join opt_in 
+on la.parentid = opt_in.rosterParentid
+
+left join firstAttempt
+on la.parentId = firstAttempt.parentId
+
+left join opted_out
+on la.parentId = opted_out.parentId
+
+left join fln
+on la.childid = fln.childid
+
+left join schoolId
+on la.childId = schoolId.child_id
+
+) 
+-----------------------------------------------------------------------------------------------------------------------------------------
+--Subject-wise Improvement or Both
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+,hindi_improved as(
+select 
+c.*
+from ${ref("int_current_academic_hindi_assessment_status_of_child")}  c
+INNER join parent_journey_main_table as pa
+on c.assesseeActorId=pa.assesseeActorid
+where highestHindiRound>=3 and c.shift_in_hindi_level>0 and pa.Round_3_Assessment is not null
+)
+, math_improved as (
+  select
+  c.*
+  from ${ref("int_current_academic_math_assessment_status_of_child")}  c
+  INNER join parent_journey_main_table as pa
+on c.assesseeActorId=pa.assesseeActorid
+  where highestMathRound>=3 and c.shift_in_math_level>0 and pa.Round_3_Assessment is not null
+)
+
+,all_child as (
+  select assesseeactorid
+  from hindi_improved
+
+  union distinct 
+
+  select assesseeactorid
+  from math_improved
+)
+
+, improvement as (
+select distinct
+all_child.assesseeactorid as childid,
+ie.ProjectId,
+case 
+when hi.assesseeactorid is not null and mi.assesseeactorid is not null then "Both"
+ when hi.assesseeactorid is not null and mi.assesseeactorid is null then 'Hindi'
+ when mi.assesseeactorid is not null and hi.assesseeactorid is null then 'Math'
+ end as improved_subject,      --name of the subject where improvement occured
+
+from all_child
+left join hindi_improved hi
+on all_child.assesseeactorid=hi.assesseeactorid
+
+left join math_improved mi
+on all_child.assesseeactorid=mi.assesseeactorid
+
+left join ${ref("IE")} as ie
+on ie.ieid=all_child.assesseeactorid
+-- where ie.is_active=1
+) 
+
+----------------------------------------------------------------------------------------------------------------------------------------------------- 
+-- Atleast 3 Assessment Hindi and Math
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+,hindiAss as (
+  select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
+
+from ${ref("assessment")}
+inner join ${ref("IE")}
+on assesseeactorid=ieid
+where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2026-04-01" and "2027-03-31"
+and projectid <> 1103935
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
+
+,hindiDates  as (
+  select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+from hindiAss
+)
+
+,hindiData as (
+  select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
+from hindiDates
+where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=25
+)
+
+
+, mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
+from ${ref("assessment")} s
+inner join ${ref("IE")}
+on assesseeactorid=ieid
+where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2026-04-01" and "2027-03-31"
+and projectid <> 1103935
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, mathDates as
+(select distinct assesseeActorId,mathAssessDate,mathLevel,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+from mathAss
+)
+
+, mathData as(select *,if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day)) mathdateDifference,row_number() over(partition by assesseeActorId order by mathAssessDate asc)mathrounds,
+from mathDates
+where if(mathLagDate is null, 0,date_diff(mathDates.mathAssessDate,mathLagDate,day))=0 or date_diff(mathDates.mathAssessDate,mathLagDate,day)>=25)
+
+
+,highestMathAssessment as (select assesseeActorId, count(distinct mathAssessDate)c,count(distinct mathRounds)highestRound
+from mathData
+group by 1
+order by c asc) 
+
+,highestHindiAssessment as (
+  select assesseeActorId,count(distinct hindiAssessDate)c,max(hindirounds)highestRound
+  from hindiData
+  group by 1
+  order by c desc
+)
+
+,hindiMin3AssessmentCounts as (
+  select count( distinct assesseeActorId)atLeast3HindiAssessment
+from highestHindiAssessment
+where highestRound >= 3
+)
+,mathMin3AssessmentCounts as(
+  select count( distinct assesseeActorId)atLeast3MathAssessment
+from highestMathAssessment
+where highestRound >= 3
+)
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+--   QUERY
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+select distinct
+parent_journey_main_table.*,
+im.improved_subject, 
+(case
+when hh.highestRound >= 3 then 'Yes'
+else 'No' end ) as atLeast3HindiAssessment,
+(case
+when hm.highestRound >= 3 then 'Yes'
+else 'No' end ) as atLeast3MathAssessment,
+
+
+from parent_journey_main_table
+left join improvement as im
+on parent_journey_main_table.assesseeActorid=im.childid 
+
+
+left join highestHindiAssessment as hh
+using (assesseeActorid)
+
+left join highestMathAssessment as hm
+using (assesseeActorid)
+
+
+
+
