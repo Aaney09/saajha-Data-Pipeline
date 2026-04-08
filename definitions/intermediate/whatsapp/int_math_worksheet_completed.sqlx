@@ -1,0 +1,46 @@
+config {
+    type:"table",
+    description:"Contains data of all math workhsheet completed form 1st april 2025"
+}
+with google_form AS (
+   SELECT
+    DISTINCT phone_number,
+    "" as worksheet_id,
+    datetime(submit_time)submitted_time,
+    safe_cast(Level as int64) as LevelNumber,
+    worksheet as worksheetNumber,
+    null as monthNumber,
+    string(null) as maths_assessment,
+    string(null) hindi_assessment,
+    datetime(null) maths_assessment_date,
+    datetime(null) hindi_assessment_date,
+    null childid,
+    null parentid,
+  FROM
+    `whatsapp_tools.maths_fln_forms`)
+,react_form as (
+    SELECT
+        DISTINCT phone_number,
+        form_id as worksheet_id,
+        datetime(end_time)submitted_time,
+    SAFE_CAST(regexp_extract(form_id,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+    SAFE_CAST(regexp_extract(form_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+     SAFE_CAST(regexp_extract(form_id,r'M([0-9]+)') as int64) monthNumber,
+    maths_assessment,
+    hindi_assessment,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid
+    FROM
+    `saajhadata.whatsapp_tools.maths_react_forms`
+)
+
+select *
+from google_form
+where phone_number not in (918527647594,919915539829)
+UNION DISTINCT
+select *
+from react_form
+where phone_number not in (918527647594,919915539829)
