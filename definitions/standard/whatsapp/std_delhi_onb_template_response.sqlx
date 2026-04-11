@@ -1,10 +1,9 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for Inetrnal number users who reponded to the template shared"
+    description: "This table displays users data that responded to templates of Delhi Onboarding number"
 }
-
 select distinct
     safe_cast(trim(from_addr,"+") as int64) phone_number,
     id,
@@ -16,9 +15,11 @@ select distinct
     template_button_template_name,
     template_button_template_language,
     datetime_add(inserted_at, Interval 330 minute)responded_at,
-    912250323343 saajha_whatsapp_number,
-    "agents" wa_number_purpose,
+    911171279787 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
     context_id,
-from ${ref("912250323343","messages")}
+
+from ${ref("911171279787","messages")}
 where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'
+

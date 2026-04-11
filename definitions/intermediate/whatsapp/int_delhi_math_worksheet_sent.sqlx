@@ -17,7 +17,7 @@ WITH base AS (
     uuid,
     -- Extract full param string once
     JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text') AS param_text
-  FROM ${ref("std_delhi_fln_template-sent")}
+  FROM ${ref("std_delhi_fln_template_sent")}
   WHERE template_name in("mfln_worksheet_v2",
   "rmfln_not_completed","mfln_worksheet_v2",
   "rmfln_not_completed",

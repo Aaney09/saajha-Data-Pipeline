@@ -1,0 +1,24 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "This table contains data for Inetrnal number users who reponded to the template shared"
+}
+
+select distinct
+    safe_cast(trim(from_addr,"+") as int64) phone_number,
+    id,
+    uuid,
+    chat_id,
+    template_button_text,
+    template_button_index,
+    template_button_payload,
+    template_button_template_name,
+    template_button_template_language,
+    datetime_add(inserted_at, Interval 330 minute)responded_at,
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose,
+    context_id,
+from ${ref("912250323343","messages")}
+where message_type="button" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
+and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'
