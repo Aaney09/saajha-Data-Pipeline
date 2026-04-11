@@ -1,15 +1,16 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for template sent to Delhi FLN users"
+    description: "This table contains data for Internal number users to which templates were sent"
 }
 
-with _delhiFLN_status as (
+with _343_status  as (
     select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
-    from ${ref("912250555658_statuses")}
+    from ${ref("912250323343_statuses")}
 )
-, fln_number as (
+,
+agents as (
     SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
     id,
@@ -25,16 +26,17 @@ with _delhiFLN_status as (
     title as error_reason,
     code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
-    updated_status_at, 
-    912250555658 saajha_whatsapp_number,
-    "only fln" wa_number_purpose,
-    external_id,
-from ${ref("912250555658","messages")}
-left join _delhiFLN_status
+    updated_status_at,  
+    912250323343 saajha_whatsapp_number,
+    "agents" wa_number_purpose,
+    external_id
+
+from ${ref("912250323343","messages")}
+left join _343_status
 on uuid = message_uuid
 where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'
-)
+    )
 
-select * from fln_number
+ select * from agents

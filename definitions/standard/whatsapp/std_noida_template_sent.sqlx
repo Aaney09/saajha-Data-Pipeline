@@ -1,15 +1,17 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for template sent to Delhi Onboarding users"
+    description: "This table contains data for template sent to Noida Onbaording and FLN users"
 }
 
-with _delhionb_status as (
+with _noida073_status as (
     select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
-    from ${ref("911171279787_statuses")}
+    from ${ref("911171817073_statuses")}
 )
-,_delhionb as  (SELECT distinct 
+,
+_7073 as (
+    SELECT distinct 
     safe_cast(trim(addressees,'""[]+') as int64) phone_number,
     id,
     uuid, 
@@ -25,15 +27,15 @@ with _delhionb_status as (
     code as error_code,
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     updated_status_at, 
-    911171279787 saajha_whatsapp_number,
-    "onboarding" wa_number_purpose,
+    911171817073 saajha_whatsapp_number,
+    "Noida" wa_number_purpose,
     external_id,
-from ${ref("911171279787","messages")}
-left join _delhionb_status
+from ${ref("911171817073","messages")}
+left join _noida073_status
 on uuid = message_uuid
 where message_type = "template" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 and date( datetime_add(inserted_at, Interval 330 minute))>='2025-04-01'
-)
+    )
 
-select * from _delhionb
+select * from _7073

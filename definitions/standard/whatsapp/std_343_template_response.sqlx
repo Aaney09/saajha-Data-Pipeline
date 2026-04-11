@@ -1,5 +1,5 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
     description: "This table contains data for Inetrnal number users who reponded to the template shared"

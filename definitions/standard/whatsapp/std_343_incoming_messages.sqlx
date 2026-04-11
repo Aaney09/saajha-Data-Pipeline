@@ -1,5 +1,5 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
     description: "Incoming message details of users on Internal Number 912250323343"

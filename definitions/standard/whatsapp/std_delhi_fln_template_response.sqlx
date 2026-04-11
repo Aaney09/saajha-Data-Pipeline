@@ -1,5 +1,5 @@
 config {
-    type:"view",
+    type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
     description: "This table displays users data that responded to templates of Delhi FLN number"
