@@ -1,7 +1,7 @@
 config {
     type: "table",
     tags: "call_daily",
-    schema: "calling",
+    schema: "calls",
     description: "Details regarding agent calling, from today onwards in future roster. (created on 11/04/2026)"
 }
 
