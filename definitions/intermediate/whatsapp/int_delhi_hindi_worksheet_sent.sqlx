@@ -1,10 +1,10 @@
 config {
     type: "table",
     schema:"whatsapp",
-    tags: "wa_daily",
-    description:"Contains all Worksheet related data of NOIDA from 1st april 2025"
+    description:"Contains all Worksheet related data of DELHI from 1st april 2025",
+    tags: "wa_daily"
+}
 
-    }
 WITH base AS (
   SELECT
     phone_number,
@@ -19,17 +19,15 @@ WITH base AS (
     uuid,
     -- Extract full param string once
     JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text') AS param_text
-  FROM ${ref("std_noida_template_sent")}
-  WHERE template_name in("mfln_worksheet_v2",
-  "rmfln_not_completed","mfln_worksheet_v2",
-  "rmfln_not_completed",
-  "mfln_worksheet_v2_mtp_v2",
-  "mfln_worksheet_mtp_utility",
-  "fln_math_worksheet_v1")
-OR  (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
-or (lower(template_name) like "%rmfln%")
-OR (lower(template_name) like "%mfln%")
-and date(sent_at)>='2025-04-01'
+  -- FROM ${ref("template-sent")}
+   FROM ${ref("std_delhi_fln_template_sent")}
+  WHERE (template_name in ("hfln_worksheet_mtp_utility","hfln_worksheet_v6_mtp_v2")
+  or lower(template_name) like "%hfln%"
+  or lower(template_name) like '%rhfln%'
+  or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%")
+  )
+    AND phone_number NOT IN (918888727876,919971478794,918527647594,919915539829)
+    
 ),
 
 -- Split param string into array
@@ -93,7 +91,8 @@ final AS (
     saajha_whatsapp_number,
     uuid
   FROM kv
-  -- WHERE lengthOfSplitedArray >=7
+--   WHERE lengthOfSplitedArray >=7
+where template_name not like 'hfln_no_worksheet'
 )
 
 SELECT DISTINCT *

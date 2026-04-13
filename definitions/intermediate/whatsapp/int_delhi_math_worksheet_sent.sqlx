@@ -1,6 +1,8 @@
 config {
-    type : "table",
-    description:"Contains all Worksheet related data of DELHI from 1st april 2025"
+    type: "table",
+    schema:"whatsapp",
+    description:"Contains all Worksheet related data of DELHI from 1st april 2025",
+    tags: "wa_daily"
 
     }
 WITH base AS (

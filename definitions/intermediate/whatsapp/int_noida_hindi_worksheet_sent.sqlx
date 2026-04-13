@@ -1,5 +1,5 @@
 config {
-    type: "table",
+        type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
     description:"Contains all Worksheet related data of NOIDA from 1st april 2025"

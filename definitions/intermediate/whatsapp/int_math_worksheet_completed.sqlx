@@ -1,5 +1,7 @@
 config {
-    type:"table",
+        type: "table",
+    schema:"whatsapp",
+    tags: "wa_daily",
     description:"Contains data of all math workhsheet completed form 1st april 2025"
 }
 with google_form AS (
@@ -16,6 +18,7 @@ with google_form AS (
     datetime(null) hindi_assessment_date,
     null childid,
     null parentid,
+   string( null) as region
   FROM
     `whatsapp_tools.maths_fln_forms`)
 ,react_form as (
@@ -32,9 +35,12 @@ with google_form AS (
     maths_assessment_date,
     hindi_assessment_date,
     childid,
-    parentid
+    parentid,   
+     if(projectid=1103908, 'Noida','Delhi') as region
     FROM
     `saajhadata.whatsapp_tools.maths_react_forms`
+        left join ${ref("User")}
+    on userid=parentid
 )
 
 select *
