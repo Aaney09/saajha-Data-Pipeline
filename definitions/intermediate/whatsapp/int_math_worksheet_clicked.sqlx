@@ -1,5 +1,7 @@
 config {
-    type:"table",
+    type: "table",
+    schema:"whatsapp",
+    tags: "wa_daily",
     description:"Contains data of all math workhsheet clicked form 1st april 2025"
 }
 
@@ -18,8 +20,11 @@ config {
     hindi_assessment_date,
     childid,
     parentid,
+    if(projectid=1103908, 'Noida','Delhi') as region
   FROM
     `redirector.FLN_links`
+    left join ${ref("User")}
+    on userid=parentid
   WHERE
     SAFE_CAST(RIGHT(phone_number,12) AS int64) IS NOT NULL
     AND lower(content_id) LIKE "%math%"
