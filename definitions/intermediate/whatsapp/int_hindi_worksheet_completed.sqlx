@@ -1,0 +1,29 @@
+config {
+    type: "table",
+    schema:"whatsapp",
+    tags: "wa_daily",
+    description:"Contains data of all hindi workhsheet completed form 1st april 2025"
+}
+
+
+SELECT
+
+    DISTINCT phone_number,
+    datetime(end_time)submitted_time,
+    form_id as worksheet_id,
+    SAFE_CAST(regexp_extract(form_id,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+    SAFE_CAST(regexp_extract(form_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(form_id,r'M([0-9]+)') as int64) monthNumber,
+    maths_assessment,
+    hindi_assessment,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid,
+    if(projectid=1103908, 'Noida','Delhi') as region
+FROM
+    `whatsapp_tools.hindi_fln_forms`
+            left join ${ref("User")}
+    on userid=parentid
+where phone_number not in (918527647594,919915539829) and not regexp_contains(form_id,'(Maths)')

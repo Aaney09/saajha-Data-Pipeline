@@ -1,0 +1,35 @@
+config {
+    type: "table",
+    schema:"whatsapp",
+    tags: "wa_daily",
+    description:"Contains data of all math workhsheet clicked form 1st april 2025"
+}
+
+ SELECT
+    DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
+    link_clicked,
+    datetime(time)clicked_time,
+    content_id as worksheet_id,
+    SAFE_CAST(regexp_extract(content_id,r'[Ll](?:evel)?([0-4])') as int64)
+     LevelNumber,
+   SAFE_CAST(regexp_extract(content_id,r'(?i)worksheet([0-9]+)') as int64) worksheetNumber,
+    SAFE_CAST(regexp_extract(content_id,r'M([0-9]+)') as int64)monthNumber,
+    maths_assessment,
+    hindi_assessment,
+    maths_assessment_date,
+    hindi_assessment_date,
+    childid,
+    parentid,
+    if(projectid=1103908, 'Noida','Delhi') as region
+  FROM
+    `redirector.FLN_links`
+    left join ${ref("User")}
+    on userid=parentid
+  WHERE
+    SAFE_CAST(RIGHT(phone_number,12) AS int64) IS NOT NULL
+    AND lower(content_id) LIKE "%math%"
+    AND lower(content_id) LIKE "%worksheet%"
+    AND SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
+    and date(datetime(time))>='2025-04-01'
+  ORDER BY
+    worksheetNumber ASC 

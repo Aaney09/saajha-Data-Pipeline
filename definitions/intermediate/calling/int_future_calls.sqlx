@@ -1,0 +1,27 @@
+config {
+    type: "table",
+    tags: "call_daily",
+    schema: "calls",
+    description: "Details regarding agent calling, from today onwards in future roster. (created on 11/04/2026)"
+}
+
+
+select distinct 
+fr.AgentMobile,
+max(fr.AgentName)as AgentName,
+fr.Round,
+ie.education as child_class,
+If(fr.Projectid =1103912,'Impact Evaluation','Other Projects') AS project_name,
+count(distinct if(date(fr.calldate)= current_date("Asia/Kolkata"),fr.ParentId,null))today_scheduled_call,
+count(distinct if(date(fr.calldate)> current_date("Asia/Kolkata"),fr.ParentId,null))day_aftertomorrow_and_future_calls,
+count(distinct if(date(fr.calldate)>= current_date("Asia/Kolkata"),fr.ParentId,null))overallCallsFromTodayOnwards
+
+from ${ref("futureRoster")} as fr
+left join ${ref("IE")} as ie
+on  fr.childid = ie.ieid 
+
+where date(ExtractionDate) = date_sub(current_date("Asia/Kolkata"), INTERVAL 1 day) 
+and date(CallDate) >= current_date("Asia/Kolkata") 
+and fr.ProjectId <> 1102996 and fr.AgentName <>"Aashish" 
+and fr.projectid<>1103935
+group by all

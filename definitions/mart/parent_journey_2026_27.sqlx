@@ -1,7 +1,7 @@
 config {
     type: "table",
     tags: ["call_daily"],
-    description: "from april 2026 till march 31st 2027"
+    description: "Complete journey of the child from 1st april 2026 till march 31st 2027"
 }
 
 
@@ -199,6 +199,21 @@ where projectid<>1103935
 ,parent_journey_main_table as (
   
 select assessmentDetails.*,
+CASE
+  WHEN Round_12_Assessment IS NOT NULL THEN 12
+  WHEN Round_11_Assessment IS NOT NULL THEN 11
+  WHEN Round_10_Assessment IS NOT NULL THEN 10
+  WHEN Round_9_Assessment IS NOT NULL THEN 9
+  WHEN Round_8_Assessment IS NOT NULL THEN 8
+  WHEN Round_7_Assessment IS NOT NULL THEN 7
+  WHEN Round_6_Assessment IS NOT NULL THEN 6
+  WHEN Round_5_Assessment IS NOT NULL THEN 5
+  WHEN Round_4_Assessment IS NOT NULL THEN 4
+  WHEN Round_3_Assessment IS NOT NULL THEN 3
+  WHEN Round_2_Assessment IS NOT NULL THEN 2
+  WHEN Round_1_assessment IS NOT NULL THEN 1
+  ELSE 0
+END as total_assessment,
 schoolId.school_id,
 la.* except(childid),
 opt_in.opted_in_on,
