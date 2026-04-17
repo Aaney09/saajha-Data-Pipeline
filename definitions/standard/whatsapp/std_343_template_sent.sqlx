@@ -10,7 +10,7 @@ config {
     saajha_whatsapp_number: "The bot number through which conversation took place 912250323343 which used by Saajha internal team for onboarding"
      },
     bigquery: {
-    partitionBy: "sent_at",
+    partitionBy: "date(sent_at)",
     clusterBy: ["phone_number", "template_name"]
     }
 }
