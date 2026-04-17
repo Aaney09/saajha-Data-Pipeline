@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "call_daily",
+    tags: "not_used",
     description: "current academic year"
 }
 

@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["call_daily"],
+    tags: ["not_used"],
     description: "Hindi assessment first and last level of a child from april 2025 till march 31st 2026"
     }
 
