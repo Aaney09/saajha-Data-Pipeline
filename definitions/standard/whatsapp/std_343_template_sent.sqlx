@@ -2,7 +2,17 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for Internal number users to which templates were sent"
+    uniqueKey: ["uuid","phone_number"],
+    description: "This table contains templates sent data by through 912250323343 whatsapp bot number. Usecase :Triggering Impact evaluation onboarding flow",
+    columns: {
+    flow_name: "journey or stack name though which template message was sent",
+    template_name: "template name used to send messages",
+    saajha_whatsapp_number: "The bot number through which conversation took place 912250323343 which used by Saajha internal team for onboarding"
+     },
+    bigquery: {
+    partitionBy: "sent_at",
+    clusterBy: ["phone_number", "template_name"]
+    }
 }
 
 with _343_status  as (
