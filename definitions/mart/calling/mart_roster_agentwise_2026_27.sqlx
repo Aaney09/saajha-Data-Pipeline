@@ -2,13 +2,15 @@
 
 config {
     type: "table",
-    tags: "not_used"
+    tags: "call_daily",
+    schema:"calls",
+    description: "Daily roster calling Agentwise for academic year 2026-27, BAU "
 }
 
 
 with rosters as (select distinct ParentId,childId,Round roundoFCall, min(date(CallStartDateTime))callDate
 from ${ref("roster")}
-where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2026-03-31"
+where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2026-04-01" and "2027-03-31"
 and projectid<> 1103935
 group by all )
 
@@ -54,7 +56,7 @@ count(distinct ParentId)unique_scheduledParents,
 from ${ref("roster" )}r -- inner join user
 inner join ${ref("User")} u
 on r.parentid=u.userid
-where CallDate  between "2025-04-01" and "2026-03-31" and r.ProjectId <> 1103935
+where CallDate  between "2026-04-01" and "2027-03-31" and r.ProjectId <> 1103935
 group by all)
 
 , agent_names as (

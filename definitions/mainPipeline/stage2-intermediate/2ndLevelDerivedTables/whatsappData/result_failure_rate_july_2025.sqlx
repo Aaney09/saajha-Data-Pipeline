@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "wa_daily",
+    tags: "not_used",
     description: "new result utility template july end"
     }
 
