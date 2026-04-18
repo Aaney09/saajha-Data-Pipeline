@@ -1,7 +1,7 @@
 
 config {
     type: "table",
-    tags: "call_daily"
+    tags: "not_used"
 }
 
 with incom as (  SELECT
@@ -50,5 +50,5 @@ using(agentMobile,project_name)
 left join incom_out
 on incom.agentMobile = Incom_out.agentMobile and incom.lastCallReceivedDate = Incom_out.CallDate
 and incom.project_name=incom_out.project_name
-where incom.lastCallReceivedDate between "2025-04-01" and "2026-03-31"
+where incom.lastCallReceivedDate between "2025-04-01" and "2026-03-31" 
 order by incom.lastCallReceivedDate desc

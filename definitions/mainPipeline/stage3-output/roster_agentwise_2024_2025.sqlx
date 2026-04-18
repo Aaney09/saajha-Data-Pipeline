@@ -2,7 +2,7 @@
 
 config {
     type: "table",
-    tags: "call_daily"
+    tags: "not_used"
 }
 
 
