@@ -1,0 +1,56 @@
+
+config {
+    type: "table",
+    tags: "call_daily",
+    schema:"calls",
+    description: "Daily incoming Agentwise for academic year 2026-27, BAU "
+}
+
+with incom as (  SELECT
+    DATE(LastRequestDateTime) AS lastCallReceivedDate,
+    AgentMobile,
+    If(Projectid = 1103935  ,'Impact Evaluation','Other Projects') AS project_name,
+    COUNT(DISTINCT parentid)as uniqueIncomingCalls,
+
+  FROM
+    ${ref("incoming")}
+  GROUP BY
+    lastCallReceivedDate,
+    AgentMobile,
+    project_name
+    
+  ORDER BY
+    lastCallReceivedDate DESC)
+
+, incom_out as (
+  SELECT
+    DATE(CallStartDateTime)CallDate,
+    AgentMobile,
+    If(Projectid = 1103935  ,'Impact Evaluation','Other Projects') AS project_name,
+    COUNT(parentid)totalDials,
+    COUNT(DISTINCT parentid)uniqueDial,
+    count(distinct if(FeedbackType like "%RESOLVED%",parentid,NULL)) totalResolvedCalls
+  FROM
+    ${ref("incoming")}
+    where CallStartDateTime is not null
+    group by CallDate,AgentMobile,project_name
+)
+
+, agent_names as (
+  select AgentMobile,    If(Projectid =1103935 ,'Impact Evaluation','Other Projects') AS project_name,
+  max(AgentName)agent_name,
+  
+  from ${ref("incoming")}
+  group by 1,2
+)
+
+
+select incom.*,Incom_out.totalDials,Incom_out.uniqueDial,incom_out.totalResolvedCalls,agent_name
+from incom
+left join agent_names n
+using(agentMobile,project_name)
+left join incom_out
+on incom.agentMobile = Incom_out.agentMobile and incom.lastCallReceivedDate = Incom_out.CallDate
+and incom.project_name=incom_out.project_name
+where incom.lastCallReceivedDate between "2026-04-01" and "2027-03-31" and incom.project_name <>"Impact Evaluation"
+order by incom.lastCallReceivedDate desc
