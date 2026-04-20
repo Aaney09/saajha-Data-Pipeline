@@ -2,16 +2,14 @@ config {
     type: "table",
     tags: ["IE"]
 }
+
 WITH general_activity_raw  AS (
   SELECT 
     COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) AS successfully_general_activity_numbers,
     general_activity_date,
     `group` as arm,
     Cohort,
-    ROW_NUMBER() OVER (
-      PARTITION BY COALESCE(phone_numbers_successfully_sent, sent_successfully_second_time) 
-      ORDER BY general_activity_date
-    ) AS rn
+    round as  rn
   FROM ${ref("ie_general_activity")}
 )
 , pulse_general_activity_treatment as (
@@ -47,7 +45,7 @@ group by 1
 -- CALL RESOLVE
 --------------------------------------------------------------------------------------------
 , resolves as (select distinct ParentId,childId,Round,cohort
-from ${ref("roster")} R
+from `saajhadata.platform_commons.roster` R
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2028-03-31"
@@ -148,80 +146,34 @@ group by all
 
 
 
-, 
-hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel,
-Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
-from ${ref("assessment")}
-where QuestionText like "%Ask%" and AssessmentId<>6
-qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
-)
-, math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel,
-Dense_rank() over(partition by AssesseeActorId order by date(AssessmentTakenOn)) as rounds
-from ${ref("assessment")}
-where QuestionText not like  "%Ask%" and AssessmentId <> 6
-qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
-)
 
-, childDetails as (select 
-distinct 
-IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
-safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
-from ${ref("IE")}
-where  projectid=1103935
-)
-
-, assessments_v1 as (
+, assessments as (
   select 
-  c.*, h.*except(dateOfAssessment,rounds),m.*   except(dateOfAssessment,rounds),
-  GREATEST(h.dateOfAssessment, m.dateOfAssessment) as dateOfAssessment,
-   COALESCE(
-  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
-  h.dateOfAssessment,
-  m.dateOfAssessment
-)+1 as hindi_content_to_send_on,COALESCE(
-  GREATEST(h.dateOfAssessment, m.dateOfAssessment),
-  h.dateOfAssessment,
-  m.dateOfAssessment
-)+2 as math_content_to_send_on,
+  OnBoardedUserId as parentid,
+  assesseeActorId as childid,
+  ProjectId,
+  child_class,
+  hindirounds as rounds,
   case  
-when c.childClass = 1 and mathLevel>=2 then TRUE
-when c.childClass = 2 and mathLevel>=3 then TRUE
-when c.childClass >=3 and mathLevel>=4 then TRUE
+when child_Class = 1 and mathLevel>=2 then TRUE
+when child_Class = 2 and mathLevel>=3 then TRUE
+when child_Class >=3 and mathLevel>=4 then TRUE
 Else false
 end mathFLnAchievedClassWise,
 case  
-when c.childClass = 1 and hindiLevel>=3 then TRUE
-when c.childClass >=2 and hindiLevel>=4 then TRUE
+when child_Class = 1 and hindiLevel>=3 then TRUE
+when child_Class >=2 and hindiLevel>=4 then TRUE
 Else false
-end hindiFLnAchievedClassWise
-from hindi_assessment h
-inner join math_assessment m
+end hindiFLnAchievedClassWise,
+  greatest(hindiAssessDate,mathAssessDate)  as dateOfAssessment,
+  greatest(hindiAssessDate,mathAssessDate)+1 as hindi_content_to_send_on,
+  greatest(hindiAssessDate,mathAssessDate)+2 as math_content_to_send_on
+  from `dataform.ie_valid_Assessed_2025_2026`
+  left join `platform_commons.IE`
+  on ieid=assesseeActorId
 
-using(assesseeActorID,rounds)
-inner join childDetails c
-on assesseeActorID=childid)
-, lagasses as (
-
-  select *,
-  lag(dateOfAssessment) over(partition by parentid order by dateOfAssessment) as asseslagdate
-  from assessments_v1
 )
 
-
-,all_assessed as ((select *,if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day)) assess_date_difference,
-from lagasses
-where if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day))=0)
-
-UNION ALL
-(select *,if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day)) assess_date_difference,
-from lagasses
-where if(asseslagdate is null, 0,date_diff(dateOfAssessment,asseslagdate,day))>=25)
-order by parentid  desc)
-, assessments as (
-  select *,
-  row_number() over(partition by parentid order by dateOfAssessment ) as rounds
-  from all_assessed
-)
 
 
 
@@ -237,8 +189,8 @@ order by parentid  desc)
   date(sent_at)sent_date,
   last_message_status,
   -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
-  from `saajhadata.dataform.allPhoneNumberWithPid` p
-  inner join (select * from `saajhadata.dataform.IE_template_sent` where last_message_status not like 'failed') ts
+  from ${ref("allPhoneNumberWithPid")} p
+  inner join (select * from ${ref("IE_template_sent")} where last_message_status not like 'failed') ts
   on number = phone_number
   inner join  `saajhadata.platform_commons.IE` ie
   on p.rosterparentid=ie.OnBoardedUserId
@@ -326,6 +278,7 @@ count(distinct if(rn=6,childid,null)) as round_6_result
 , hindi_first_worksheet_raw as (
  select distinct ws.parentid,
  ws.childid,
+ a.rounds as rn,
   phone_number,
   date(sent_at) as sent_date,
   last_message_status 
@@ -345,29 +298,29 @@ count(distinct if(rn=6,childid,null)) as round_6_result
   and ws.parentid is not null
   qualify row_number() over(partition by ws.parentid ,date(sent_at) order by sent_at desc )=1
 )
-, lag_dates_hindi as (
-  select 
-  parentid,
-  sent_date,
-  lag(sent_date) over(partition by parentid order by sent_date) as hindilagdate
-  from hindi_first_worksheet_raw
-  order by parentid asc, sent_date asc,hindilagdate asc
-)
+-- , lag_dates_hindi as (
+--   select 
+--   parentid,
+--   sent_date,
+--   lag(sent_date) over(partition by parentid order by sent_date) as hindilagdate
+--   from hindi_first_worksheet_raw
+--   order by parentid asc, sent_date asc,hindilagdate asc
+-- )
 
-,hindiData as ((select *,if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day)) hindi_date_difference,
-from lag_dates_hindi
-where if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day))=0)
+-- ,hindiData as ((select *,if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day)) hindi_date_difference,
+-- from lag_dates_hindi
+-- where if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day))=0)
 
-UNION ALL
-(select *,if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day)) hindi_date_difference,
-from lag_dates_hindi
-where if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day))>=25)
-order by parentid  desc)
+-- UNION ALL
+-- (select *,if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day)) hindi_date_difference,
+-- from lag_dates_hindi
+-- where if(hindilagdate is null, 0,date_diff(sent_date,hindilagdate,day))>=25)
+-- order by parentid  desc)
 
 
- ,hindi_worksheet as (select *, row_number() over(partition by parentid order by sent_date asc)rn
-from hindiData
-order by parentid asc,rn asc)
+--  ,hindi_worksheet as (select *, row_number() over(partition by parentid order by sent_date asc)rn
+-- from hindiData
+-- order by parentid asc,rn asc)
 
 
 
@@ -382,7 +335,7 @@ count(distinct if(rn=4,a.parentid,null)) as round_4_result,
 count(distinct if(rn=5,a.parentid,null)) as round_5_result,
 count(distinct if(rn=6,a.parentid,null)) as round_6_result
 -- count(distinct if(rn=7,a.parentid,null)) as round_7_result
-from hindi_worksheet a
+from hindi_first_worksheet_raw a
 inner join ${ref("impact_evaluation_main_data")} ie_main
 on a.parentid=ie_main.parentid
 -- where last_message_status not like 'failed'
@@ -398,6 +351,7 @@ group by 1
 , math_first_worksheet_raw as (
  select distinct ws.parentid,
  ws.childid,
+ a.rounds as rn,
   phone_number,
   date(sent_at) as sent_date,
   last_message_status 
@@ -417,29 +371,29 @@ group by 1
   and ws.parentid is not null
   qualify row_number() over(partition by ws.parentid ,date(sent_at) order by sent_at desc )=1
 )
-, lag_dates_math as (
-  select 
-  parentid,
-  sent_date,
-  lag(sent_date) over(partition by parentid order by sent_date) as mathlagdate
-  from math_first_worksheet_raw
-  order by parentid asc, sent_date asc,mathlagdate asc
-)
+-- , lag_dates_math as (
+--   select 
+--   parentid,
+--   sent_date,
+--   lag(sent_date) over(partition by parentid order by sent_date) as mathlagdate
+--   from math_first_worksheet_raw
+--   order by parentid asc, sent_date asc,mathlagdate asc
+-- )
 
-,mathdata as ((select *,if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day)) hindi_date_difference,
-from lag_dates_math
-where if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day))=0)
+-- ,mathdata as ((select *,if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day)) hindi_date_difference,
+-- from lag_dates_math
+-- where if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day))=0)
 
-UNION ALL
-(select *,if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day)) hindi_date_difference,
-from lag_dates_math
-where if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day))>=25)
-order by parentid  desc)
+-- UNION ALL
+-- (select *,if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day)) hindi_date_difference,
+-- from lag_dates_math
+-- where if(mathlagdate is null, 0,date_diff(sent_date,mathlagdate,day))>=25)
+-- order by parentid  desc)
 
 
- ,math_worksheet as (select *, row_number() over(partition by parentid order by sent_date asc)rn
-from mathdata
-order by parentid asc,rn asc)
+--  ,math_worksheet as (select *, row_number() over(partition by parentid order by sent_date asc)rn
+-- from mathdata
+-- order by parentid asc,rn asc)
 
 
 ,pulse_math as (
@@ -454,7 +408,7 @@ count(distinct if(rn=4,a.parentid,null)) as round_4_result,
 count(distinct if(rn=5,a.parentid,null)) as round_5_result,
 count(distinct if(rn=6,a.parentid,null)) as round_6_result
 -- count(distinct if(rn=7,a.parentid,null)) as round_7_result
-from math_worksheet a
+from math_first_worksheet_raw a
 inner join ${ref("impact_evaluation_main_data")} ie_main
 on a.parentid=ie_main.parentid
 -- where last_message_status not like 'failed'
@@ -465,28 +419,28 @@ group by 1
 -- MTP CALLS
 ----------------------------------------------------------------------
 
-, lag_dates_mtp as (
-  select 
-  parentid,
-  dateOfAssessment,
-  lag(dateOfAssessment) over(partition by parentid order by dateOfAssessment) as assessmentlagdate
-  from assessments
-  order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
-)
+-- , lag_dates_mtp as (
+--   select 
+--   parentid,
+--   dateOfAssessment,
+--   lag(dateOfAssessment) over(partition by parentid order by dateOfAssessment) as assessmentlagdate
+--   from assessments
+--   order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
+-- )
 
-,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
-from lag_dates_mtp
-where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
+-- ,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
 
-UNION ALL
-(select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
-from lag_dates_mtp
-where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
-order by parentid  desc)
+-- UNION ALL
+-- (select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
+-- order by parentid  desc)
 
 
- ,result_mtp as (select *, row_number() over(partition by parentid order by dateOfAssessment asc)rn
-from resultData_mtp
+ ,result_mtp as (select * except(rounds),rounds as rn 
+from assessments
 order by parentid asc,rn asc) -- using for the assessment data also
 
 
@@ -546,7 +500,7 @@ if(date(mtp.inserted_at)>assessment_6 and date(mtp.inserted_at)<ifnull(assessmen
 
 
 from mtp_assessement_wise maw
-left join ${ref("mtp_calls")} mtp
+left join `saajhadata.impact_evaluation.mtp_calls` mtp
 on maw.parentid=safe_cast(mtp.parentid as int64)
 left join ${ref("impact_evaluation_main_data")} ie_main
 on maw.parentid=ie_main.parentid
@@ -602,9 +556,9 @@ group by 1
   date(ie.FLNAchievedDate) as fln_achieve_date,
   date(OptedOutDateTime) as opt_out_date
   from ${ref("impact_evaluation_main_data")} ie_main
-  inner join ${ref("User")} u
+  inner join `saajhadata.platform_commons.User` u
   on u.userid=ie_main.parentid
-  inner join ${ref("IE")}  ie
+  inner join `saajhadata.platform_commons.IE`  ie
   on ie.OnBoardedUserId=u.userid
 )
 , FLN_ACHIEVE AS (
@@ -717,7 +671,7 @@ count(distinct if(round=6,fr.parentid,null)) as round_6
 -- cohort,
 -- round as rn,
 
-FROM ${ref("futureRoster")} FR
+FROM `saajhadata.platform_commons.futureRoster` FR
 inner join  ${ref("impact_evaluation_main_data")} m
 on fr.parentid=m.parentid
 where CallDate between "2025-04-01" and current_date("Asia/Kolkata")
@@ -739,7 +693,7 @@ count(distinct if(round=6,fr.parentid,null)) as round_6
 -- cohort,
 -- round as rn,
 
-FROM ${ref("futureRoster")} FR
+FROM `saajhadata.platform_commons.futureRoster` FR
 inner join  ${ref("impact_evaluation_main_data")} m
 on fr.parentid=m.parentid
 where CallDate >= "2025-04-01" 
@@ -778,7 +732,7 @@ count(distinct if(round=4,a.parentid,null)) as round_4,
 count(distinct if(round=5,a.parentid,null)) as round_5,
 count(distinct if(round=6,a.parentid,null)) as round_6
 
-from ${ref("roster")} a
+from `saajhadata.platform_commons.roster` a
 inner join ${ref("impact_evaluation_main_data")} m
 on m.parentid=a.parentid
 where date(CallStartDateTime) between '2025-04-01' and '2026-12-01'
