@@ -1,38 +1,57 @@
 
 
 config {
-    type: "view",
+    type: "table",
     tags: ["call_daily"],
     description: "unique parentids from april 2025 till december 31st 2026 whose one child has done at 3 assessment"
 }
 
 
 
-with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
-from ${ref("assessment")}
-inner join ${ref("IE")}
+
+
+with class as (
+  select
+  childId,
+  safe_cast(regexp_extract(childClass, r'\d+') as int64) as child_class,
+  date(assessmentDate) as assessed_date
+  from `impact_evaluation.assessment_data`
+  where lower(assessmentName) like '%hindi%'
+  qualify row_number() over(partition by childid, date(assessmentDate) order by assessmentDate desc)=1
+)
+
+
+, hindiAss as (select distinct AssesseeActorId,  child_class,
+date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText,
+if(date(AssessmentTakenOn)<='2026-03-31',"25",'26') as Academic_year
+from `saajhadata.platform_commons.assessment`
+inner join `saajhadata.platform_commons.IE`
 on ieid=assesseeactorid
+left join class c 
+on c.childid=assesseeactorid
+and assessed_date=date(AssessmentTakenOn)
 where QuestionText  like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-12-31"
 and projectid=1103935
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1)
 
 ,
-hindiDates  as(select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,
-lag(date(hindiAssessDate)) over (partition by AssesseeActorId order by hindiAssessDate asc)hindiLagDate,
+hindiDates  as(select distinct assesseeActorId,hindiAssessDate,hindiAss.hindiLevel,child_class,
+lag(date(hindiAssessDate)) over (partition by AssesseeActorId, Academic_year order by hindiAssessDate asc)hindiLagDate,
 from hindiAss
 )
-
+-- select * from hindidates where assesseeActorId=103251243719024552
 ,
 hindiData as (select *,if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)) hindidateDifference,row_number() over(partition by assesseeActorId order by hindiAssessDate asc)hindirounds
 from hindiDates
 where if(hindiLagDate is null, 0,date_diff(hindiDates.hindiAssessDate,hindiLagDate,day))=0 or date_diff(hindiDates.hindiAssessDate,hindiLagDate,day)>=30
 )
 
-
+-- select * from hindidata where assesseeActorId=103251243719024552
 , mathAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)mathAssessDate,
-if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText
-from ${ref("assessment")}
-inner join ${ref("IE")}
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as mathLevel,AssessmentInstanceAssesseDRId,QuestionText,
+if(date(AssessmentTakenOn)<='2026-03-31',"25",'26') as Academic_year
+from `saajhadata.platform_commons.assessment`
+inner join `saajhadata.platform_commons.IE`
 on ieid=assesseeactorid
 where QuestionText not like "%Ask%" and date(AssessmentTakenOn) between "2025-04-01" and "2026-12-31"
 and projectid=1103935
@@ -41,7 +60,7 @@ qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) or
 
 , mathDates as
 (select distinct assesseeActorId,mathAssessDate,mathLevel,
-lag(date(mathAssessDate)) over (partition by AssesseeActorId order by mathAssessDate asc)mathLagDate,
+lag(date(mathAssessDate)) over (partition by AssesseeActorId,Academic_year order by mathAssessDate asc)mathLagDate,
 from
 mathAss
 )
@@ -61,4 +80,4 @@ and md.mathrounds = hd.hindirounds
 )
 
 
-SELECT * FROM hindiMath
+SELECT distinct * FROM hindiMath

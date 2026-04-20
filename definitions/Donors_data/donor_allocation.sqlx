@@ -3,7 +3,8 @@
 -- FIRST TO RUN
 config {
   type: "incremental",
-  tags:"Donor"
+  tags:"Donor",
+   protected: true
 }
 with 
 both_sub_3_assessed as (SELECT *
