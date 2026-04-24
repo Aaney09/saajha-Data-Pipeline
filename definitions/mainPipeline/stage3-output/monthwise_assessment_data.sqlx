@@ -2,7 +2,7 @@ config {
     type: "table",
     schema: "shareable_to_external", 
     tags: "wa_daily",
-     description: "Table has data of all children schedule in AY 2025 onwards and there shift in level"
+     description: "Table has data of all children schedule in AY 2026 onwards and there shift in level"
 }
 
 
@@ -12,12 +12,24 @@ with
 Assessed as (select distinct OnBoardedUserId as parentid,AssessmentInstanceAssesseId, AssesseeActorId,date(AssessmentTakenOn)AssessDate,
 if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as Level,AssessmentInstanceAssesseDRId,QuestionText,projectid,
 if(QuestionText not like "%Ask%",'Math','Hindi') as subject
-from `saajhadata.platform_commons.assessment`
-inner join `saajhadata.platform_commons.IE`
+from ${ref("assessment")}
+inner join ${ref("IE")}
 on ieid=assesseeactorid
-where date(AssessmentTakenOn) between "2025-04-01" and "2026-03-31"
--- and projectid=1103935
+where date(AssessmentTakenOn) between "2026-04-01" and "2027-03-31"
+and projectid<> 1103935
 qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn),subject order by AssessmentTakenOn desc)=1
+
+union all
+select distinct OnBoardedUserId as parentid,AssessmentInstanceAssesseId, AssesseeActorId,date(AssessmentTakenOn)AssessDate,
+if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as Level,AssessmentInstanceAssesseDRId,QuestionText,projectid,
+if(QuestionText not like "%Ask%",'Math','Hindi') as subject
+from ${ref("assessment")}
+inner join ${ref("IE")}
+on ieid=assesseeactorid
+where date(AssessmentTakenOn) between "2025-04-01" and "2027-03-31"
+and projectid= 1103935
+qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn),subject order by AssessmentTakenOn desc)=1
+
 )
 
 , mathDates as
@@ -121,7 +133,7 @@ order by 1,2,3
 
 , all_childid as (
    select distinct parentid,childid
-   from `platform_commons.futureRoster`
+   from ${ref("futureRoster")}
    where calldate>='2025-04-01'
    and childid is not null
 )
@@ -141,7 +153,7 @@ from `platform_commons.tenant`) as tenant_id,
 ie.projectid as project_id,
 ac.parentid as parent_id,
 ac.childid as child_id,
-2025 as assessment_year,
+2026 as assessment_year,
 ifnull(mf.mathrounds,0) as assessment_number,
 mf.mathAssessDate as math_assessment_date,
 mf.mathlevel as math_level,
@@ -166,7 +178,7 @@ from all_childid ac
 left join hindi_math mf
 on ac.parentid=mf.parentid
 and ac.childid=mf.assesseeActorId
-left join `saajhadata.platform_commons.IE` ie
+left join ${ref("IE")} ie
 on ie.ieid=ac.childid
 -- left join hindi_final hf
 -- on ac.parentid=hf.parentid
