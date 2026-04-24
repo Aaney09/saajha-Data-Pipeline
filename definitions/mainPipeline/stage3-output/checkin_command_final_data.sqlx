@@ -2,7 +2,7 @@ config {
     type: "table",
     schema: "shareable_to_external", 
     tags: "wa_daily",
-     description: "Table has data of all children schedule in AY 2025 onwards"
+     description: "Table has data of all children schedule in AY 2026 onwards"
 }
 
 
@@ -25,7 +25,7 @@ else 0
 end as Total_rounds_in_current_AY
 
 
-from ${ref("parent_journey_2025_2026")}
+from ${ref("parent_journey_2026_27")}
 
 union all
 
@@ -74,16 +74,36 @@ from ${ref("IE_parent_journey")}
     ,count(distinct if(date(co.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
 
 
- from ${ref("hindiWorksheetSent")} s
+ from  (
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_delhi_hindi_worksheet_sent")}
+ 
+ union all
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_noida_hindi_worksheet_sent")}
+
+
+ 
+ ) s
 left join
-${ref("hindiWorksheetClicked")} c
+${ref("int_hindi_worksheet_clicked")} c
 on s.childid = c.childid
 and s.hindi_assessment_date = c.hindi_assessment_date 
 and s.math_assessment_date = c.maths_assessment_date 
 and s.LevelNumber = c.LevelNumber 
 and s.worksheetNumber= c.worksheetNumber 
 and s.monthNumber= c.monthNumber
-left join ${ref("hindiWorksheetCompleted")} co 
+left join ${ref("int_hindi_worksheet_completed")} co 
 on c.childid = co.childid 
 and c.hindi_assessment_date=co.hindi_assessment_date 
 and c.maths_assessment_date = co.maths_assessment_date 
@@ -119,7 +139,8 @@ group by 1
     ,count(distinct if(date(co.worksheet_completed_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
 
 
- from ${ref("IE_hindi_worksheet_sent")} s
+ from  
+ ${ref("IE_hindi_worksheet_sent")} s
 left join
 ${ref("IE_worksheet_clicked")} c
 on s.childid = c.childid
@@ -175,16 +196,34 @@ s.childid
     ,count(distinct if(date(co.submitted_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_submitted_in_last_30_Day
 
 
- from ${ref("mathWorksheetSent")} s
+ from 
+ (  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_delhi_math_worksheet_sent")}
+ 
+ union all
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_noida_math_worksheet_sent")}
+)
+ s
 left join
-${ref("mathWorksheetClicked")} c
+${ref("int_math_worksheet_clicked")} c
 on s.childid = c.childid 
 and s.hindi_assessment_date = c.hindi_assessment_date 
 and s.math_assessment_date = c.maths_assessment_date 
 and s.LevelNumber = c.LevelNumber 
 and s.worksheetNumber= c.worksheetNumber
 and s.monthNumber= c.monthNumber
-left join ${ref("mathWorksheetCompleted")} co 
+left join ${ref("int_math_worksheet_completed")} co 
 on c.childid = co.childid 
 and c.hindi_assessment_date=co.hindi_assessment_date 
 and c.maths_assessment_date=co.maths_assessment_date 
@@ -280,14 +319,14 @@ group by 1
   and childid is not null
 )
 , hindi_status as (
-  select * from `dataform.current_academic_hindi_assessment_status_of_child`
+  select * from ${ref("int_current_academic_hindi_assessment_status_of_child")}
   union all
-  select * from `dataform.ie_current_hindi_assessment_status_of_child`
+  select * from ${ref("ie_current_hindi_assessment_status_of_child")}
 )
 , math_status as (
-  select * from `dataform.current_academic_math_assessment_status_of_child`
+  select * from ${ref("int_current_academic_math_assessment_status_of_child")}
   union all
-  select * from `dataform.ie_current_math_assessment_status_of_child`
+  select * from ${ref("ie_current_math_assessment_status_of_child")}
 )
 -- , children_assessment as (select *
 -- from children_assessed
@@ -306,7 +345,7 @@ from `platform_commons.tenant`) as tenant_id,
 ie.projectid as project_id,
 c.assesseeActorid as child_id,
 c.parentid as parent_id,
-2025 as assessment_year,
+2026 as assessment_year,
 ifnull(ca.Total_rounds_in_current_AY,0) as total_rounds_in_current_ay,
 hindi.first_hindi_assessment_date ,
 hindi.firstHindiLevel as first_hindi_level,
