@@ -170,7 +170,9 @@ mf.hindi_aia_id,
 mf.previous_hindi_level,
 mf.shift_in_hindi_level,
 mf.hindi_improvement_level,
-mf.hindi_shift_category
+mf.hindi_shift_category,
+
+current_Date("Asia/Kolkata") as data_updated_on
 
 -- mf.* except(assesseeActorId,parentid,mathdateDifference)
 -- hf.* except(assesseeActorId,parentid,projectid)
