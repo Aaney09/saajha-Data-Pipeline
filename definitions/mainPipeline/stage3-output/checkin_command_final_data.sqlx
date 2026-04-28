@@ -374,7 +374,9 @@ coalesce(hindi_worksheet_submitted_in_last_30_Day,0) as hindi_worksheet_submitte
 coalesce(math_worksheet_sent_in_last_30_Day,0) as math_worksheet_sent_in_last_30_days,
 coalesce(math_worksheet_clicked_in_last_30_Day,0) as math_worksheet_clicked_in_last_30_days,
 coalesce(math_worksheet_attempted_in_last_30_day,0) as math_worksheet_attempted_in_last_30_days,
-coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_days
+coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_days,
+
+current_Date("Asia/Kolkata") as data_updated_on
     
    
 from all_childid c
