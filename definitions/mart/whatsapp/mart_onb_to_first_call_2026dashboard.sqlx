@@ -2,7 +2,9 @@ config {
 
 
     type:"operations",
-    tags: "not_used"
+    tags: "wa_daily",
+        schema:"whatsapp",
+    description:"This table have onboarding to first call daily activtiy details. Created on 7th May"
 }
 
 -- insert into dataform.onb_to_first_call_2026dashboard (
@@ -28,20 +30,19 @@ config {
 
 
 
-
 -- )
 
-MERGE dataform.onb_to_first_call_2026dashboard T
+MERGE whatsapp.mart_onb_to_first_call_2026dashboard T
 USING (
 with first_call as (
   select ParentMobile, date(min(CallstartDatetime)) as first_Call_date
-  from `platform_commons.roster`
+  from ${ref("roster")}
   where date(CallStartDateTime)>='2025-09-30'
   group by 1
 )
 
 
-,profile as (
+,profiless as (
 select 
 distinct
 safe_cast(trim(urn, '+') as int64) as nums,
@@ -89,7 +90,13 @@ where fc.parentmobile is  null
 
 )
 
-
+, profile as (
+  select *
+  from profiless
+  qualify row_number() over(partition by nums,activity_number order by profile_updated_date)=1
+)
+-- select * from profile 
+-- where nums=918851529433
 , templates as (
   select
 ts.phone_number as sent_number,
@@ -106,13 +113,34 @@ tr.responded_at,
 tr.phone_number as responded_number
 
 
-from `dataform.template-sent` ts
-left join `dataform.template-response` tr
+from ${ref("std_delhi_onb_template_sent")} ts
+left join ${ref("std_delhi_onb_template_response")} tr
 on ts.external_id=tr.context_id
-
-
-
 where template_name like 'onboarding_act_v5k'
+
+union all
+  select
+ts.phone_number as sent_number,
+ts.template_name,
+ts.sent_at,
+ts.error_code,
+ts.last_message_status,
+template_meta_data,
+REGEXP_EXTRACT(
+JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+r'\d+'
+) as activity_num,
+tr.responded_at,
+tr.phone_number as responded_number
+
+
+from ${ref("std_noida_template_sent")} ts
+left join ${ref("std_noida_template_response")} tr
+on ts.external_id=tr.context_id
+where template_name like 'onboarding_act_v5k'
+
+
+
 )
 
 
