@@ -1,0 +1,34 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema: "whatsapp",
+    description: "Details regarding the interactive messsages sent from Delhi Onboarding Number,after 1st April 2025"
+   
+}
+
+with _911171279787 as (SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    id,
+    uuid, 
+    chat_id,
+    json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type, 
+    json_value(interactive,"$.type") interactiveType,
+    interactive interactive_sent_metadata, 
+    last_value(last_status) over(partition by uuid order by updated_at asc 
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING )last_message_status,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
+    911171279787 as saajha_whatsapp_number, 
+    "onboarding" as wa_number_purpose,
+    external_id,
+from ${ref("911171279787","messages")}
+where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
+qualify row_number()over(partition by uuid order by updated_at desc)=1
+)
+
+
+select *
+from _911171279787
+where date(sent_at)>="2025-04-01"
