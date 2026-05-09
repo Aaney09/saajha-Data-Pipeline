@@ -140,8 +140,9 @@ opt_in as (
 )
 
 ,fln as (
-select parentid,childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
-from ${ref("FLNAchieved")}
+select onboardeduserId as  parentid,ieid as childid, FLNAchievedDate as FLNAchievedOn,FLNStatus
+from ${ref("IE")}
+where FLNStatus  like "%FLN_ACHIEVED%"
 )
 ,
 firstAttemp as (select ParentId,
