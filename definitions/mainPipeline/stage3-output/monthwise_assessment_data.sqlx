@@ -152,7 +152,7 @@ TenantId
 from `platform_commons.tenant`) as tenant_id,
 ie.projectid as project_id,
 ac.parentid as parent_id,
-ac.childid as child_id,
+mf.assesseeActorId as child_id,
 2026 as assessment_year,
 ifnull(mf.mathrounds,0) as assessment_number,
 mf.mathAssessDate as math_assessment_date,
@@ -179,9 +179,9 @@ current_Date("Asia/Kolkata") as data_updated_on
 from all_childid ac
 left join hindi_math mf
 on ac.parentid=mf.parentid
-and ac.childid=mf.assesseeActorId
+-- and ac.childid=mf.assesseeActorId -- commented since some child id are mistmaching in the assessment and roster calling data
 left join ${ref("IE")} ie
-on ie.ieid=ac.childid
+on mf.assesseeActorId  = e.ieid
 -- left join hindi_final hf
 -- on ac.parentid=hf.parentid
 -- and ac.childid=hf.assesseeActorId
