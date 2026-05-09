@@ -343,7 +343,7 @@ TenantId
 from `platform_commons.tenant`) as tenant_id,
 -- 0 as tenantid,
 ie.projectid as project_id,
-c.assesseeActorid as child_id,
+ca.assesseeActorid as child_id,
 c.parentid as parent_id,
 2026 as assessment_year,
 ifnull(ca.Total_rounds_in_current_AY,0) as total_rounds_in_current_ay,
@@ -382,18 +382,20 @@ current_Date("Asia/Kolkata") as data_updated_on
 from all_childid c
 
 left join children_assessed ca
-on ca.assesseeActorid=c.assesseeActorid
+on c.parentid = ca.parentid
 left join hindi_worksheet h
-on c.assesseeActorid = h.childid
+on ca.assesseeActorid = h.childid
 left join math_worksheet m
-on c.assesseeActorid = m.childid
+on ca.assesseeActorid = m.childid
 left join hindi_status hindi
-on c.assesseeActorid = hindi.assesseeActorId
+on ca.assesseeActorid = hindi.assesseeActorId
 left join math_status math
-on c.assesseeActorid = math.assesseeActorId
+on ca.assesseeActorid = math.assesseeActorId
 
 left join `saajhadata.platform_commons.IE` ie
-on ie.ieid=c.assesseeActorId
+on ie.ieid=ca.assesseeActorId
+
+-- where 
 --  = m.parentid
 -- where assesseeActorid = 103230442263472651
 -- where assesseeActorid = 103241243387172779
