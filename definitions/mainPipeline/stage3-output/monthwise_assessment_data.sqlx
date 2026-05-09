@@ -181,7 +181,7 @@ left join hindi_math mf
 on ac.parentid=mf.parentid
 -- and ac.childid=mf.assesseeActorId -- commented since some child id are mistmaching in the assessment and roster calling data
 left join ${ref("IE")} ie
-on mf.assesseeActorId  = e.ieid
+on mf.assesseeActorId  =ie.ieid
 -- left join hindi_final hf
 -- on ac.parentid=hf.parentid
 -- and ac.childid=hf.assesseeActorId
