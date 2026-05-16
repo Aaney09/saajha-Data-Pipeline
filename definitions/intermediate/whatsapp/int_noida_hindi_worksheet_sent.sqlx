@@ -94,5 +94,8 @@ final AS (
 
 SELECT DISTINCT *
 FROM final
-
+union all
+select
+*
+from ${ref("int_noida_gamified_hindi_worksheet_sent")}
 

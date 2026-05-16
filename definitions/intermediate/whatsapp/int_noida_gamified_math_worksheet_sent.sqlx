@@ -1,10 +1,13 @@
+-- THIS NEEDS TO BE STOPPED WHEN WOKSHEET IS STOP FOR THE PILOT
 config {
     type: "table",
     schema:"whatsapp",
-    description:"Contains all Worksheet related data of DELHI from 1st april 2025",
+    description:"Contains all Gamified Worksheet related data of NOIDA from 1st april 2026",
     tags: "wa_daily"
 
     }
+
+--subject=math
 WITH base AS (
   SELECT
     phone_number,
@@ -16,20 +19,16 @@ WITH base AS (
     error_code,
     error_reason,
     saajha_whatsapp_number,
-    uuid,
+    uuid,template_meta_data,
     -- Extract full param string once
     JSON_VALUE(template_meta_data,'$.components[2].parameters[0].text') AS param_text
-  FROM ${ref("std_delhi_fln_template_sent")}
-  WHERE template_name in("mfln_worksheet_v2",
-  "rmfln_not_completed","mfln_worksheet_v2",
-  "rmfln_not_completed",
-  "mfln_worksheet_v2_mtp_v2",
-  "mfln_worksheet_mtp_utility",
-  "fln_math_worksheet_v1")
-OR  (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
-or (lower(template_name) like "%rmfln%")
-OR (lower(template_name) like "%mfln%")
-and date(sent_at)>='2025-04-01'
+  FROM ${ref("std_noida_template_sent")}
+  WHERE template_name in("gpp_worksheet_v25")
+   and lower(template_meta_data) like '%subject=math%'
+-- OR  (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
+-- or (lower(template_name) like "%rmfln%")
+-- OR (lower(template_name) like "%mfln%")
+and date(sent_at)>='2026-04-01'
 ),
 
 -- Split param string into array
@@ -47,16 +46,19 @@ kv AS (
     ARRAY_LENGTH(arr) AS lengthOfSplitedArray,
     (SELECT AS STRUCT
     SPLIT(arr[SAFE_OFFSET(1)],"=")[SAFE_OFFSET(1)] AS worksheet_id,
-    SPLIT(arr[SAFE_OFFSET(2)],"=")[SAFE_OFFSET(1)] AS math_assessment_name,
-    SPLIT(arr[SAFE_OFFSET(3)],"=")[SAFE_OFFSET(1)] AS hindi_assessment_name,
-    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(4)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_math_date,
-    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(5)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_hindi_date,
-    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)] END AS parentid,
-    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(7)],"=")[SAFE_OFFSET(1)] END AS childid,
+    SPLIT(arr[SAFE_OFFSET(4)],"=")[SAFE_OFFSET(1)] AS math_assessment_name,
+    SPLIT(arr[SAFE_OFFSET(5)],"=")[SAFE_OFFSET(1)] AS hindi_assessment_name,
+    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_math_date,
+    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(7)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_hindi_date,
+    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(2)],"=")[SAFE_OFFSET(1)] END AS parentid,
+    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(3)],"=")[SAFE_OFFSET(1)] END AS childid,
     CASE 
-      WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(8)],"=")[SAFE_OFFSET(1)]
-      WHEN ARRAY_LENGTH(arr) = 7 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)]
-    END AS worksheet_link
+  WHEN ARRAY_LENGTH(arr) >= 9 
+  THEN REGEXP_EXTRACT(arr[SAFE_OFFSET(9)], r'r=(.*)')
+  
+  WHEN ARRAY_LENGTH(arr) = 7 
+  THEN REGEXP_EXTRACT(arr[SAFE_OFFSET(7)], r'r=(.*)')
+END AS worksheet_link
 ) AS kv_struct
 
   FROM parts p
@@ -98,7 +100,5 @@ final AS (
 
 SELECT DISTINCT *
 FROM final
-union all
-select *
-from ${ref("int_delhi_gamified_math_worksheet_sent")}
+
 
