@@ -28,7 +28,7 @@ from `platform_commons.IE`
 where ProjectId not in (1103908,1103935)
 )
 
-, assessments as (
+, assessments_v1 as (
   select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
   case  
 when c.childClass = 1 and mathLevel>=2 then TRUE
@@ -47,6 +47,15 @@ using(assesseeActorID,dateOfAssessment)
 inner join childDetails c
 on assesseeActorID=childid
 where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
+)
+, assessments as  (
+select a.*
+from assessments_v1 a
+left join  `adhoc.gamified_worksheet_sample`g 
+on g.parentid=a.parentid
+and a.dateOfAssessment > '2026-04-30'---  WHEN GAMIFIED WORKSHEET STARTED
+where g.parentid is null
+
 )
 
 ,whom_math_worksheet_should_not_go as (

@@ -44,17 +44,17 @@ group by 1
 -------------------------------------------------------------------------------------------
 -- CALL RESOLVE
 --------------------------------------------------------------------------------------------
-, resolves as (select distinct ParentId,childId,Round,cohort
-from `saajhadata.platform_commons.roster` R
+, resolves as (select distinct ParentId,Round,cohort
+from ${ref("roster")} R
 Inner join ${ref("impact_evaluation_main_data")}
-using(parentid,childid)
+using(parentid)
 where FeedbackType like "%RESOLVED%" and date(CallStartDateTime) between "2025-04-01" and "2028-03-31"
 and R.ProjectId=1103935
 --and agentMobile in (9555489577,7303046353,9582377226)
 )
 
 ,year_2025_26_resolved as (
-  select distinct *, row_number()over(partition by parentid,childid order by round Asc) as rounds_since_april_2025
+  select distinct *, row_number()over(partition by parentid order by round Asc) as rounds_since_april_2025
   from resolves
 )
 , pulse_call_reslove as (
