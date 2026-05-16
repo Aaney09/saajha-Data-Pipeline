@@ -1,8 +1,9 @@
 config {
     type: "table",
     schema: "shareable_to_external", 
+    name:"checkin_command_final_data",
     tags: "wa_daily",
-     description: "Table has data of all children schedule in AY 2026 onwards"
+     description: "Table has data of all children schedule in AY 2026 onwards and it is shared with PC for APP"
 }
 
 
