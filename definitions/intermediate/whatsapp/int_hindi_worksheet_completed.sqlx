@@ -21,6 +21,8 @@ SELECT
     hindi_assessment_date,
     childid,
     parentid,
+     platform,
+    origin,
     if(projectid=1103908, 'Noida','Delhi') as region
 FROM
     `whatsapp_tools.hindi_fln_forms`
