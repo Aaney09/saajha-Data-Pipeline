@@ -44,8 +44,8 @@ AND hindilevel <> "4"
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
-from ${ref("std_noida_template_sent")}
-where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
+from ${ref("int_noida_hindi_worksheet_sent")}
+-- where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
 -- and flow_name like "%HFLN Worksheet [Apr2025]%"
 )
 

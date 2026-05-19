@@ -76,16 +76,16 @@ date_diff(profile_updated_date,date(lastmathsWorksheetSentOn),day)=1
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
-from ${ref("std_delhi_fln_template_sent")}
-where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
+from ${ref("int_delhi_hindi_worksheet_sent")}
+-- where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
 -- and flow_name like "%HFLN Worksheet [Apr2025]%"
 union all
 
 select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
-from ${ref("IE_template_sent")}
-where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
+from ${ref("IE_hindi_worksheet_sent")}
+-- where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
 
 )
 
