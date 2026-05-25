@@ -1,0 +1,410 @@
+config {
+    type: "table",
+    schema: "shareable_to_external", 
+    name:"checkin_command_final_data",
+    tags: "wa_daily",
+     description: "Table has data of all children schedule in AY 2026 onwards and it is shared with PC for APP"
+}
+
+
+
+with children_assessed as (select distinct assesseeActorid ,parentid,
+case 
+when Round_12_Assessment is not null then  12
+when Round_11_Assessment is not null then  11
+when Round_10_Assessment is not null  then  10
+when Round_9_Assessment is not null then  9
+when Round_8_Assessment is not null then  8
+when Round_7_Assessment is not null then  7
+when Round_6_Assessment is not null then  6
+when Round_5_Assessment is not null then  5
+when Round_4_Assessment is not null then  4
+when Round_3_Assessment is not null then  3
+when Round_2_Assessment is not null then  2
+when Round_1_Assessment is not null then  1
+else 0
+end as Total_rounds_in_current_AY
+
+
+from ${ref("parent_journey_2026_27")}
+
+union all
+
+select distinct assesseeActorid ,parentid,
+case 
+-- when Round_12_Assessment is not null then  12
+-- when Round_11_Assessment is not null then  11
+-- when Round_10_Assessment is not null  then  10
+-- when Round_9_Assessment is not null then  9
+-- when Round_8_Assessment is not null then  8
+when Round_7_Assessment is not null then  7
+when Round_6_Assessment is not null then  6
+when Round_5_Assessment is not null then  5
+when Round_4_Assessment is not null then  4
+when Round_3_Assessment is not null then  3
+when Round_2_Assessment is not null then  2
+when Round_1_Assessment is not null then  1
+else 0
+end as Total_rounds_in_current_AY
+
+
+from ${ref("IE_parent_journey")}
+
+
+
+
+)
+
+-- ,hindi_last_assessed as (select distinct AssesseeActorId,level as last_hindi_level,date(AssessmentTakenOn)date_of_last_hindi_assessment
+-- from platform_commons.assessment
+-- where QuestionText like "%Ask%" 
+-- qualify row_number()over(partition by AssesseeActorId order by AssessmentTakenOn desc)=1)
+
+-- ,math_last_assessed as (select distinct AssesseeActorId,level as last_math_level,date(AssessmentTakenOn)date_of_last_math_assessment
+-- from platform_commons.assessment
+-- where QuestionText not like "%Ask%" 
+-- qualify row_number()over(partition by AssesseeActorId order by AssessmentTakenOn desc)=1)
+
+, hindi_worksheet_bau as (
+    select 
+    s.childid,
+    -- s.*,c.clicked_time,co.submitted_time,attempt.hindi_attempt_datetime,attempt.hindi_formid
+    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_formid,null   )) as hindi_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
+
+
+ from  (
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_delhi_hindi_worksheet_sent")}
+ 
+ union all
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_noida_hindi_worksheet_sent")}
+
+
+ 
+ ) s
+left join
+${ref("int_hindi_worksheet_clicked")} c
+on s.childid = c.childid
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber 
+and s.monthNumber= c.monthNumber
+left join ${ref("int_hindi_worksheet_completed")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date = co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+
+left join (
+  select 
+  parentid,
+  safe_cast(childid as int64) as child_id,
+  formId as hindi_formid,
+  insertedAt as hindi_attempt_datetime,
+  hindi_assessment_date,
+  maths_assessment_date
+  from whatsapp_tools.attemptrate where lower(formId) like '%hindi%'
+  ) attempt
+on s.childid=attempt.child_id
+and s.hindi_assessment_date=attempt.hindi_assessment_date
+and s.math_assessment_date=attempt.maths_assessment_date
+and s.worksheet_id=attempt.hindi_formid
+
+where s.childid is not null and last_message_status<>"failed"
+group by 1
+)
+, hindi_worksheet_ie as (
+    select 
+    s.childid,
+    -- s.*,c.clicked_time,co.submitted_time,attempt.hindi_attempt_datetime,attempt.hindi_formid
+    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_formid,null   )) as hindi_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.worksheet_completed_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
+
+
+ from  
+ ${ref("IE_hindi_worksheet_sent")} s
+left join
+${ref("IE_worksheet_clicked")} c
+on s.childid = c.childid
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber 
+and s.monthNumber= c.monthNumber
+and subject='hindi'
+left join ${ref("IE_hindi_worksheet_completed")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date = co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+
+left join (
+  select 
+  parentid,
+  safe_cast(childid as int64) as child_id,
+  formId as hindi_formid,
+  insertedAt as hindi_attempt_datetime,
+  hindi_assessment_date,
+  maths_assessment_date
+  from `impact_evaluation.attemptrate` where lower(formId) like '%hindi%'
+  ) attempt
+on s.childid=attempt.child_id
+and s.hindi_assessment_date=attempt.hindi_assessment_date
+and s.math_assessment_date=attempt.maths_assessment_date
+and s.worksheet_id=attempt.hindi_formid
+
+where s.childid is not null and last_message_status<>"failed"
+group by 1
+)
+,hindi_worksheet as (
+  select *
+  from hindi_worksheet_bau
+  union all
+  select *
+  from hindi_worksheet_ie
+)
+------------------------------
+-- MATH WORKSHEET
+-------------------------------
+,math_worksheet_bau as (
+select 
+--s.*,c.clicked_time,co.submitted_time,attempt.math_attempt_datetime,attempt.math_formid
+s.childid
+ ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.math_formid,null   )) as math_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.submitted_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_submitted_in_last_30_Day
+
+
+ from 
+ (  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_delhi_math_worksheet_sent")}
+ 
+ union all
+  select childid,sent_at,hindi_assessment_date,
+  worksheet_id,
+  math_assessment_date,
+  LevelNumber,worksheetNumber,monthNumber,last_message_status 
+ 
+ 
+ from   ${ref("int_noida_math_worksheet_sent")}
+)
+ s
+left join
+${ref("int_math_worksheet_clicked")} c
+on s.childid = c.childid 
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber
+and s.monthNumber= c.monthNumber
+left join ${ref("int_math_worksheet_completed")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date=co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+
+left join (
+  select 
+  parentid,
+  safe_cast(childid as int64) as child_id,
+  formId as math_formid,
+  insertedAt as math_attempt_datetime,
+  hindi_assessment_date,
+  maths_assessment_date
+  from whatsapp_tools.attemptrate where lower(formId) like '%math%'
+  ) attempt
+on s.childid=attempt.child_id
+and s.hindi_assessment_date=attempt.hindi_assessment_date
+and s.math_assessment_date=attempt.maths_assessment_date
+and s.worksheet_id=attempt.math_formid
+
+
+
+where 
+s.childid is not null and 
+last_message_status<>"failed"
+group by 1
+)
+
+,math_worksheet_ie as (
+select 
+--s.*,c.clicked_time,co.submitted_time,attempt.math_attempt_datetime,attempt.math_formid
+s.childid
+ ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.math_formid,null   )) as math_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.worksheet_completed_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_submitted_in_last_30_Day
+
+
+ from ${ref("IE_math_worksheet_sent")} s
+left join
+${ref("IE_worksheet_clicked")} c
+on s.childid = c.childid 
+and s.hindi_assessment_date = c.hindi_assessment_date 
+and s.math_assessment_date = c.maths_assessment_date 
+and s.LevelNumber = c.LevelNumber 
+and s.worksheetNumber= c.worksheetNumber
+and s.monthNumber= c.monthNumber
+and subject='math'
+left join ${ref("IE_math_worksheet_completed")} co 
+on c.childid = co.childid 
+and c.hindi_assessment_date=co.hindi_assessment_date 
+and c.maths_assessment_date=co.maths_assessment_date 
+and c.LevelNumber = co.LevelNumber 
+and c.worksheetNumber= co.worksheetNumber
+and c.monthNumber= co.monthNumber
+
+left join (
+  select 
+  parentid,
+  safe_cast(childid as int64) as child_id,
+  formId as math_formid,
+  insertedAt as math_attempt_datetime,
+  hindi_assessment_date,
+  maths_assessment_date
+  from `impact_evaluation.attemptrate` where lower(formId) like '%math%'
+  ) attempt
+on s.childid=attempt.child_id
+and s.hindi_assessment_date=attempt.hindi_assessment_date
+and s.math_assessment_date=attempt.maths_assessment_date
+and s.worksheet_id=attempt.math_formid
+
+
+
+where 
+s.childid is not null and 
+last_message_status<>"failed"
+group by 1
+)
+, math_worksheet  as(
+  select *
+  from math_worksheet_bau
+  union all
+  select *
+  from math_worksheet_ie
+)
+
+, all_childid as (
+  select distinct childid as assesseeActorid ,parentid 
+  from `platform_commons.futureRoster`
+  where calldate>='2025-04-01'
+  and childid is not null
+)
+, hindi_status as (
+  select * from ${ref("int_current_academic_hindi_assessment_status_of_child")}
+  union all
+  select * from ${ref("ie_current_hindi_assessment_status_of_child")}
+)
+, math_status as (
+  select * from ${ref("int_current_academic_math_assessment_status_of_child")}
+  union all
+  select * from ${ref("ie_current_math_assessment_status_of_child")}
+)
+-- , children_assessment as (select *
+-- from children_assessed
+-- left join hindi_last_assessed
+-- using(assesseeActorid)
+-- left join math_last_assessed
+-- using(assesseeActorid)
+
+-- where date_of_last_math_assessment>"2025-06-01" or date_of_last_hindi_assessment>"2025-06-01"
+-- )
+select distinct
+(select 
+TenantId
+from `platform_commons.tenant`) as tenant_id,
+-- 0 as tenantid,
+ie.projectid as project_id,
+ca.assesseeActorid as child_id,
+c.parentid as parent_id,
+2026 as assessment_year,
+ifnull(ca.Total_rounds_in_current_AY,0) as total_rounds_in_current_ay,
+hindi.first_hindi_assessment_date ,
+hindi.firstHindiLevel as first_hindi_level,
+-- hindi.highestHindiRound,
+hindi.last_hindi_assessment_date,
+hindi.lastHindiLevel as last_hindi_level,
+hindi.shift_in_hindi_level,
+hindi.hindi_improvement_level,
+hindi.hindi_shift_category,
+
+
+math.first_math_assessment_date,
+math.firstMathLevel as first_math_level,
+-- math.highestMathRound,
+math.last_math_assessment_date,
+math.lastMathLevel as last_math_level,
+math.shift_in_math_level,
+math.math_improvement_level,
+math.math_shift_category,
+
+coalesce(hindi_worksheet_sent_in_last_30_Day,0) as hindi_worksheet_sent_in_last_30_days,
+coalesce(hindi_worksheet_clicked_in_last_30_Day,0) as hindi_worksheet_clicked_in_last_30_days,
+coalesce(hindi_worksheet_attempted_in_last_30_day,0) as hindi_worksheet_attempted_in_last_30_days,
+coalesce(hindi_worksheet_submitted_in_last_30_Day,0) as hindi_worksheet_submitted_in_last_30_days,
+
+coalesce(math_worksheet_sent_in_last_30_Day,0) as math_worksheet_sent_in_last_30_days,
+coalesce(math_worksheet_clicked_in_last_30_Day,0) as math_worksheet_clicked_in_last_30_days,
+coalesce(math_worksheet_attempted_in_last_30_day,0) as math_worksheet_attempted_in_last_30_days,
+coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_days,
+
+current_Date("Asia/Kolkata") as data_updated_on
+    
+   
+from all_childid c
+
+left join children_assessed ca
+on c.parentid = ca.parentid
+left join hindi_worksheet h
+on ca.assesseeActorid = h.childid
+left join math_worksheet m
+on ca.assesseeActorid = m.childid
+left join hindi_status hindi
+on ca.assesseeActorid = hindi.assesseeActorId
+left join math_status math
+on ca.assesseeActorid = math.assesseeActorId
+
+left join `saajhadata.platform_commons.IE` ie
+on ie.ieid=ca.assesseeActorId
+
+-- where 
+--  = m.parentid
+-- where assesseeActorid = 103230442263472651
+-- where assesseeActorid = 103241243387172779
+-- where
+-- group by all
+
+--  = m.parentid
+-- where assesseeActorid = 103230442263472651
+-- where assesseeActorid = 103241243387172779
+-- where
+-- group by all

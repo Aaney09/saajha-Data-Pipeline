@@ -2,7 +2,7 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
-    description:"Contains data of all math workhsheet clicked form 1st april 2025"
+    description:"Contains data of all math workhsheet clicked since last financial year"
 }
 
  SELECT
@@ -30,6 +30,6 @@ config {
     AND lower(content_id) LIKE "%math%"
     AND lower(content_id) LIKE "%worksheet%"
     AND SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
-    and date(datetime(time))>='2025-04-01'
+    -- and date(datetime(time))>='2025-04-01'
   ORDER BY
     worksheetNumber ASC 

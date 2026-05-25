@@ -25,7 +25,7 @@ config {
         external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
      },
     bigquery: {
-    partitionBy: "sent_at",
+    partitionBy: "date(sent_at)",
     clusterBy: ["phone_number", "template_name"]
     }
 }

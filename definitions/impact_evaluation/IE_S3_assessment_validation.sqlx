@@ -77,7 +77,7 @@ qualify row_number()over(partition by assesseeActorid,date(AssessmentTakenOn) or
 from ${ref("called" )}r -- inner join user
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
-where CallstartDatetime < CallEndDatetime
+where CallstartDatetime <= CallEndDatetime
 )
 
 ,assessed as (SELECT distinct 
