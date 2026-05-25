@@ -2,7 +2,30 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for template sent to Noida Onbaording and FLN users"
+    uniqueKey: ["id", "uuid"],
+    description: "This table contains data for template sent to Noida Onbaording and FLN users",
+    columns: {
+        phone_number: "phone number to which template was sent (user phone number)",
+        id: "uinque identifier for each user",
+        uuid: "special character identifier to be unique across system and time",
+        chat_id: "chat id generagted in period of 24 hrs",
+        flow_id: "Journey id given to each template",
+        flow_name: "journey or stack name though which template message was sent",
+        flow_type: "Type of the flow. system: automatically sent , stack: part of the journey",
+        template_name: "template name used to send messages",
+        template_meta_data: "Meta data corresponding to the templates",
+        message_content: "Actual content of the message",
+        last_message_status: "Status of the last message e.g., read/delivered",
+        error_reason: "Reason for the occurence of the error (based on meta policy)",
+        error_code: "error code for the respective error. 7 distinct error code (based on meta policy)",
+        sent_at: "Wen was the template sent (IST)",
+        updated_status_at: "When was the status updated (IST)",
+        saajha_whatsapp_number: "The bot number through which conversation took place here: 911171817073 ",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding.",
+        external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+
+
+    }
 }
 
 with _noida073_status as (
