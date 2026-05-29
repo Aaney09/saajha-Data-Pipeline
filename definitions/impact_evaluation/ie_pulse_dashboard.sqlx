@@ -84,7 +84,7 @@ group by all
 --   date(sent_at)sent_date,
 --   last_message_status,
 --   -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
---   from ${ref("allPhoneNumberWithPid")} p
+--   from ${ref("all_phone_numbers_with_parentid")} p
 --   inner join (select * from ${ref("IE_template_sent")} where last_message_status not like 'failed') ts
 --   on number = phone_number
 --   inner join  ${ref("IE")} ie
@@ -189,7 +189,7 @@ end hindiFLnAchievedClassWise,
   date(sent_at)sent_date,
   last_message_status,
   -- ROW_NUMBER() OVER(PARTITION BY rosterparentId ORDER BY DATE(SENT_AT)) AS RN
-  from ${ref("allPhoneNumberWithPid")} p
+  from ${ref("all_phone_numbers_with_parentid")} p
   inner join (select * from ${ref("IE_template_sent")} where last_message_status not like 'failed') ts
   on number = phone_number
   inner join  `saajhadata.platform_commons.IE` ie
@@ -641,7 +641,7 @@ where opt_out_date is not null
   0 as temp4,
   0 as temp5,
   0 as temp6
-  from ${ref("allPhoneNumberWithPid")} p
+  from ${ref("all_phone_numbers_with_parentid")} p
   inner join ${ref("impact_evaluation_main_data")} ie_main
   on ie_main.parentid=p.rosterparentid
   inner join (select * from ${ref("IE_template_sent")}  where template_name in ('ie_calling_number_info2','ie_calling_number_info4')   and last_message_status not like 'failed'    )ts

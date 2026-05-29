@@ -134,7 +134,7 @@ all_opt_ins as (
 opt_in as (
   select distinct rosterparentId,min(opted_in_at) as opted_in_on
   from all_opt_ins
-  inner join ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("all_phone_numbers_with_parentid")}
   on phone_number = number
   group by all
 )

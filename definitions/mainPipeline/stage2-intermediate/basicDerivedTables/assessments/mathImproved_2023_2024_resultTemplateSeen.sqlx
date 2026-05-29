@@ -4,7 +4,7 @@ config {
 with 
 main_data as (   select distinct sent_at, ma.*
     from ${ref("template-sent")}
-    inner join ${ref("allPhoneNumberWithPid")}
+    inner join ${ref("all_phone_numbers_with_parentid")}
     on phone_number=number
     inner join ${ref("mathImprovement_2023_2024")} ma
     on PID=rosterParentId

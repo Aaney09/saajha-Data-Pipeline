@@ -377,7 +377,8 @@ coalesce(math_worksheet_clicked_in_last_30_Day,0) as math_worksheet_clicked_in_l
 coalesce(math_worksheet_attempted_in_last_30_day,0) as math_worksheet_attempted_in_last_30_days,
 coalesce(math_worksheet_submitted_in_last_30_Day,0) as math_worksheet_submitted_in_last_30_days,
 
-current_Date("Asia/Kolkata") as data_updated_on
+current_Date("Asia/Kolkata") as data_updated_on,
+OnboardedDatetime as child_added_on
     
    
 from all_childid c
@@ -392,8 +393,7 @@ left join hindi_status hindi
 on ca.assesseeActorid = hindi.assesseeActorId
 left join math_status math
 on ca.assesseeActorid = math.assesseeActorId
-
-left join `saajhadata.platform_commons.IE` ie
+left join ${ref("IE")} ie
 on ie.ieid=ca.assesseeActorId
 
 -- where 

@@ -4,7 +4,7 @@ config {
 
 with content_template_sent as (select distinct phone_number,message_content,sent_at, date(sent_at) sent_date,rosterParentId
 from ${ref("template-sent")}
-inner join ${ref("allPhoneNumberWithPid")}
+inner join ${ref("all_phone_numbers_with_parentid")}
 on phone_number = number
 where template_name like "fln_content_template%"
              and upper(template_meta_data) like "%MATH%"
@@ -14,7 +14,7 @@ where template_name like "fln_content_template%"
 ,content_clicked as (
 select distinct safe_cast(phone_number as int64)phone_number,content_id,time as clicked_time,date(time) as clicked_date,rosterParentId
 from `redirector.FLN_links`
-inner join ${ref("allPhoneNumberWithPid")}
+inner join ${ref("all_phone_numbers_with_parentid")}
 on safe_cast(phone_number as int64 )= number
 where upper(content_id) like "%MATH%" 
     and upper(content_id) not like "%WORKSHEET%"

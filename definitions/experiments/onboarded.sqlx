@@ -31,7 +31,7 @@ where np.phone_number is null
        ,last_profile_update_on, if(number is null,false,true)call_support,rosterparentid
 
 from ${ref("delhi_profiles")}
-left join ${ref("allPhoneNumberWithPid")}
+left join ${ref("all_phone_numbers_with_parentid")}
 on phone_number = number 
 
 )
