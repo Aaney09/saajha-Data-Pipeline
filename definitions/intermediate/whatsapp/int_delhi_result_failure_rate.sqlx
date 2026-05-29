@@ -54,7 +54,7 @@ where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
 
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
-  from ${ref("allPhoneNumberWithPid")}
+  from ${ref("all_phone_numbers_with_parentid")}
   inner join ${ref("std_delhi_fln_template_sent")}
   on number = phone_number
   where number is not null
@@ -64,7 +64,7 @@ where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
   union all
   
  select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
-  from ${ref("allPhoneNumberWithPid")}
+  from ${ref("all_phone_numbers_with_parentid")}
   inner join ${ref("IE_template_sent")}
   on number = phone_number
   where number is not null

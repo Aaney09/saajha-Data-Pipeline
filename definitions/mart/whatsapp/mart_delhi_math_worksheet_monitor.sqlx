@@ -28,7 +28,7 @@ FROM ${ref("std_delhi_worksheet_profile")}
 select 
 number
 from ${ref("impact_evaluation_main_data")} m
-inner join ${ref("allPhoneNumberWithPid")} p
+inner join ${ref("all_phone_numbers_with_parentid")} p
 on p.rosterparentid=m.parentid
 )
 ,mathProfile_ie_pilot as (
@@ -142,7 +142,7 @@ date_diff(profile_updated_date,date(lasthindiWorksheetSentOn),day)=1
 
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 from ${ref("int_delhi_math_worksheet_sent")}
--- inner join ${ref("allPhoneNumberWithPid")}
+-- inner join ${ref("all_phone_numbers_with_parentid")}
 -- on phone_number = number
 -- where template_name like "%mfln_worksheet%" or template_name like "%rmfln%"  or (template_name ="fln_worksheet" and template_meta_data like "%content_id=Maths%")
 -- and flow_name like "%MFLN Worksheet [Apr2025]%"
@@ -151,7 +151,7 @@ select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason ,
 
 -- `dataform.hindiWorksheetSent`
 from ${ref("IE_math_worksheet_sent")}
--- inner join ${ref("allPhoneNumberWithPid")}
+-- inner join ${ref("all_phone_numbers_with_parentid")}
 -- on phone_number = number
 -- where (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=maths%" )
 

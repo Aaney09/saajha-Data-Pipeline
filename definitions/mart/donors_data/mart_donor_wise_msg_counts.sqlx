@@ -35,7 +35,7 @@ group by all
     -- uuid,
   FROM
     ${ref("911171279787","messages")}
-    Inner join ${ref("allPhoneNumberWithPid")}
+    Inner join ${ref("all_phone_numbers_with_parentid")}
     on safe_cast(regexp_extract(addressees,r'\d+') as int64) = number
     inner join ${ref("mart_all_donor_data_2026_2027")}
     on rosterParentid = parentid
@@ -53,7 +53,7 @@ group by all
     -- uuid, 
   FROM
     ${ref("912250555658","messages")}
-    Inner join ${ref("allPhoneNumberWithPid")}
+    Inner join ${ref("all_phone_numbers_with_parentid")}
     on safe_cast(regexp_extract(addressees,r'\d+') as int64) = number
     inner join ${ref("mart_all_donor_data_2026_2027")}
     on rosterParentid = parentid
