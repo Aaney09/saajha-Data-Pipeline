@@ -7,11 +7,11 @@ config {
 with
 optins as (
   select phone_number, timestamp 
-  from `opt_in_records.opt_in_users`
+  from ${ref("opt_in_records","opt_in_users")}
   
   union distinct
   select distinct phone_number,timestamp 
-  from `process_improvement.opt_in_users`
+  from ${ref("process_improvement","opt_in_users")}
 
 )
 
@@ -22,7 +22,7 @@ qualify row_number() over(partition by phone_number order by timestamp) =1
 
 ,delhi_optin as (select distinct o.*
   from opt_inDateRange  o
-  left join `dataform.noida_profiles` np
+  left join ${ref("noida_profiles")} np
 using(phone_number)
 where np.phone_number is null
 )
