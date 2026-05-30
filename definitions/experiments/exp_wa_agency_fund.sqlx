@@ -2,33 +2,31 @@ config {
     type:"table",
     tags: "agency_fund_WA"
 }
-
 with onboarded as (select phone_number,child_class,opted_in_at,call_support
 from ${ref("onboarded")}
 where opted_in_at is not null
 )
 
 , response as (select  phone_number,responded_at
-from ${ref("template-response")}
+from ${ref("std_delhi_onb_template_response")}
 where template_button_template_name = "wap"
 qualify row_number() over(partition by phone_number order by responded_at)=1
 )
 
-
 ,completed as (select phone_number,sent_at
-from ${ref('otherMessagesSent')}
+from ${ref('std_delhi_onb_messages_sent')}
 where message_content like "%जल्द ही आपके बच्चे का रिजल्ट आपको प्राप्त होगा।%"
 qualify row_number() over(partition by phone_number order by sent_at)=1
 )
 
 ,initiated as (select phone_number,responded_at
-from `dataform.template-response`
+from ${ref("std_delhi_onb_template_response")}
 where template_button_template_name in ("agency_wap_control","agency_wap_t1")
 qualify row_number() over(partition by phone_number order by responded_at)=1
 ),
 submitted as 
 (select  phone_number,sent_at
-from `dataform.otherMessagesSent`
+from ${ref("std_delhi_onb_messages_sent")}
 where message_content like "%भाग लेने के लिए, धन्यवाद! 🙏🏻%")
 
 -- select distinct phone_number

@@ -1,3 +1,4 @@
+-- have to mpve to calls dataset in STD
 config {
     type: "table",
     tags: "call_daily"
