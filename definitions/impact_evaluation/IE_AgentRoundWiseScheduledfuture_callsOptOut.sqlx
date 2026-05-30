@@ -30,7 +30,7 @@ where date(ExtractionDate) >="2025-03-31"
 group by all
 )
 ,opted_out as (select distinct count(distinct o.parentId) parentsOptedOut, safe_cast(concat("91",c.AgentMobile) as int64)agentMobile,Round,cohort
-from ${ref("opted_out_PC")}o
+from ${ref("std_opted_out_pc")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid)
 inner join ${ref("futureRoster")} c
@@ -44,7 +44,7 @@ group by all)
 
 -- with /
 ,opt_out_parents as (select distinct o.parentId,c.agentMobile,c.agentName,round, date(OptedOutDateTime) opted_out_date,cohort
-from ${ref("opted_out_PC")}o
+from ${ref("std_opted_out_pc")}o
 Inner join ${ref("impact_evaluation_main_data")}
 using(parentid,childid)
 inner join ${ref("futureRoster")} c
@@ -57,7 +57,7 @@ where date(OptedOutDateTime) between "2025-04-01" and "2026-12-31" and date(Extr
     select distinct c.agentMobile,c.parentid,callingRound,cohort,
 count(distinct CallstartDatetime) overalltotalDials,
 count(distinct date(CallstartDatetime))overall_number_of_days_called
-from ${ref("called")} c 
+from ${ref("std_called")} c 
 inner join opt_out_parents o
 on c.parentid = o.parentid and c.agentMobile = safe_cast(concat("91",o.agentMobile) as int64) 
 and c.callingRound= o.round 

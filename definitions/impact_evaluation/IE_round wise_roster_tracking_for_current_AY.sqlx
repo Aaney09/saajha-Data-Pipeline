@@ -41,7 +41,7 @@ group by 1,2)
   -- parentid,o.childid,OptedOutDateTime
   from  futureRosters fr
   left JOIN 
-  ${ref("opted_out_PC")} o
+  ${ref("std_opted_out_pc")} o
   using(parentid)
 )
 -- select  *
