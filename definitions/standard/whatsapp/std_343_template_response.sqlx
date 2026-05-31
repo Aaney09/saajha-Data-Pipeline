@@ -2,7 +2,23 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "This table contains data for Inetrnal number users who reponded to the template shared"
+    uniqueKey: ["id", "uuid"],
+    description: "This table contains data for Inetrnal number users who reponded to the template shared",
+    columns: {
+        phone_number: "Phone number from which response  the message was recieved (user)",
+        id:"Unique id to identify parent",
+        uuid: "special standardized identifier to be unique across systems and time",
+        chat_id: "Id of the chat (generated in the period of 24 hrs)",
+        template_button_text: "Actual text given as response",
+        template_button_index: "Index of the button",
+        template_button_payload: "payload details. (not important)",
+        template_button_template_name: "Name of the template. (column name should be template_name)",
+        template_button_template_language: "Meta data corresponding to the templates",
+        responded_at: "when was the response recieved (IST)",
+        saajha_whatsapp_number: "responded to which saajha whatsapp number. Here: 912250323343",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. Here: agents",
+        context_id: "Its a reference (when we quote or reply to a message). Helps to connect to any message"
+    }
 }
 
 select distinct

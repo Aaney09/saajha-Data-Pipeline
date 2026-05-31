@@ -2,7 +2,26 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Outgoing message Info of Internal number 912250323343"
+    uniqueKey: ["uuid","phone_number"],
+    description: "This table contains outgoing message info through 912250323343 whatsapp bot number. Usecase :Tracking outgoing WhatsApp user interaction",
+    columns: {
+    phone_number:"phone number of user",
+    id: "unique id to identify parent",
+    uuid: "special standardized identifier to be unique across systems and time",
+    chat_id:"Id of the chat (generated in the period of 24 hrs)",
+    message_type: "type of message sent",
+    flow_id: "Id assigned to FLow",
+    flow_type: "Type of the flow. system: automatically sent , stack: part of the journey",
+    flow_name: "journey or stack name through which template message was sent",
+    message_content: "Information inside the message sent",
+    last_message_status: "Status of last message sent",
+    sent_at: "Date and time of messagee sent (IST)",
+    last_updated_status_at: "Date and time When was the status updated (IST)",
+    saajha_whatsapp_number: "The bot number through which conversation took place 912250323343 which used by Saajha internal team for onboarding",
+    wa_number_purpose: "Purpose of number  4 distinct values: noida,agent,only fln,onboarding",
+    external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+     }
+
 }
 
 SELECT distinct 
