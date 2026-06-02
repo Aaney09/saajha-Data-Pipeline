@@ -92,7 +92,7 @@ and md.cohort = hd.cohort
 opted_out as (
   select distinct 
   parentId
-   from ${ref("opted_out")}
+   from ${ref("std_opted_out_pc")}
 )
 
 

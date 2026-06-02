@@ -1,5 +1,7 @@
+-- have to mpve to calls dataset in STD
 config {
     type: "table",
+    schema:"calls",
     tags: "call_daily"
 }
 

@@ -63,7 +63,7 @@ on assesseeActorID=childid
 
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, 
-  from ${ref("allPhoneNumberWithPid")}
+  from ${ref("all_phone_numbers_with_parentid")}
   inner join ${ref("IE_template_sent")}
   on number = phone_number
   where number is not null

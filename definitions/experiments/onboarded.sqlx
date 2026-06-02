@@ -7,11 +7,11 @@ config {
 with
 optins as (
   select phone_number, timestamp 
-  from `opt_in_records.opt_in_users`
+  from ${ref("opt_in_records","opt_in_users")}
   
   union distinct
   select distinct phone_number,timestamp 
-  from `process_improvement.opt_in_users`
+  from ${ref("process_improvement","opt_in_users")}
 
 )
 
@@ -22,7 +22,7 @@ qualify row_number() over(partition by phone_number order by timestamp) =1
 
 ,delhi_optin as (select distinct o.*
   from opt_inDateRange  o
-  left join `dataform.noida_profiles` np
+  left join ${ref("std_noida_profiles")} np
 using(phone_number)
 where np.phone_number is null
 )
@@ -30,8 +30,8 @@ where np.phone_number is null
 ,dp as (select distinct phone_number,opt_in_status,opted_in_at,schoolid,child_class,child_name
        ,last_profile_update_on, if(number is null,false,true)call_support,rosterparentid
 
-from ${ref("delhi_profiles")}
-left join ${ref("allPhoneNumberWithPid")}
+from ${ref("std_delhi_profiles")}
+left join ${ref("all_phone_numbers_with_parentid")}
 on phone_number = number 
 
 )

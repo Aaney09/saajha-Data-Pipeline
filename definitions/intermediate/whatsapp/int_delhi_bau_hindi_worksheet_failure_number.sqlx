@@ -17,7 +17,7 @@ FROM ${ref("std_delhi_worksheet_profile")}
 select 
 number
 from ${ref("impact_evaluation_main_data")} m
-inner join ${ref("allPhoneNumberWithPid")} p
+inner join ${ref("all_phone_numbers_with_parentid")} p
 on p.rosterparentid=m.parentid
 )
 ,hindiProfile_ie_pilot as (

@@ -14,7 +14,7 @@ from saajhadata.impact_evaluation.ie_main_randomized_data
 ) q
 
 -- `impact_evaluation.IE_pilot` -- change to main table once we main experiment starts
-inner join ${ref("allPhoneNumberWithPid")} p
+inner join ${ref("all_phone_numbers_with_parentid")} p
 on p.number=phoneno
 inner join ${ref("User")} u
 on userid=rosterparentid

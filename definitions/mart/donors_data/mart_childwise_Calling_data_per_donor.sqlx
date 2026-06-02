@@ -11,7 +11,7 @@ callstartdatetime,callEndDatetime
 -- round(
 --   sum(datetime_diff(callEndDatetime,callstartdatetime,second))
 -- /3600,2)totalCallDurationInHour
-from ${ref("called")}
+from ${ref("std_called")}
 where Recording is not null and 
 date(CallstartDatetime) between "2026-04-01" and "2027-03-31" 
 and CallstartDatetime<CallEndDatetime

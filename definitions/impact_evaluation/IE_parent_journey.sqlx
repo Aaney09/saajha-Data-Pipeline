@@ -134,7 +134,7 @@ all_opt_ins as (
 opt_in as (
   select distinct rosterparentId,min(opted_in_at) as opted_in_on
   from all_opt_ins
-  inner join ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("all_phone_numbers_with_parentid")}
   on phone_number = number
   group by all
 )
@@ -161,7 +161,7 @@ firstAttemp as (select ParentId,
 ),
 opted_out as (
   select distinct parentId,date(OptedOutDateTime) as opted_out_on,opt_out_reason as opted_out_reason
-  from ${ref("opted_out_PC")}
+  from ${ref("std_opted_out_pc")}
 ),
 lastAssessed as  (
 
@@ -287,7 +287,7 @@ left join
 opt_in 
 on m.parentid = opt_in.rosterParentid
 left join (select parentid, AgentName
- as last_dialed_agent from ${ref("called")} 
+ as last_dialed_agent from ${ref("std_called")} 
  where  date(CallStartDateTime) <> "1970-01-01" 
  qualify row_number() over(partition by parentid order by CallStartDateTime desc)=1 ) r
     on r.parentid=m.parentid

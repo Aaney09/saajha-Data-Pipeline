@@ -136,7 +136,7 @@ using (assesseeActorid)
 opt_in as (
   select distinct rosterparentId,min(firstopted_in_on) as opted_in_on
   from all_opt_ins
-  inner join ${ref("allPhoneNumberWithPid")}
+  inner join ${ref("all_phone_numbers_with_parentid")}
   on phone_number = number
   group by all
 )
@@ -162,7 +162,7 @@ firstAttempt as (select ParentId,
 ),
 opted_out as (
   select distinct parentId,date(OptedOutDateTime) as opted_out_on,opt_out_reason as opted_out_reason
-  from ${ref("int_opted_out_pc")}
+  from ${ref("std_opted_out_pc")}
 ),
 lastAssessed as  (
 

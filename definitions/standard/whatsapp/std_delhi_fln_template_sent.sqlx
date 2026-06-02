@@ -28,8 +28,25 @@ config {
 }
 
 with _delhiFLN_status as (
-    select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
-    from ${ref("912250555658_statuses")}
+
+SELECT
+  DISTINCT
+  datetime_add(inserted_at, interval 330 minute)inserted_date,
+--   uuid,
+  status as last_message_status,
+  datetime_add(updated_at, interval 330 minute)updated_status_at,
+  message_uuid,
+  json_value(replace(replace( errors,"[",""),']',""),"$.title")title,
+  json_value(replace(replace( errors,"[",""),']',""),"$.code")code,
+
+FROM
+  ${ref("912250555658","statuses")}
+where date(datetime_add(updated_at, interval 330 minute))<current_date("Asia/Kolkata")
+qualify row_number() over(partition by message_uuid order by updated_at desc)=1
+
+
+    -- select message_uuid,status as last_message_status,updated_date as updated_status_at,code,title
+    -- from ${ref("912250555658_statuses")}
 )
 , fln_number as (
     SELECT distinct 

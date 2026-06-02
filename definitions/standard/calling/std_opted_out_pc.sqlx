@@ -1,5 +1,8 @@
+-- move to calls STD
+
 config {
     type: "table",
+    schema:"calls",
     tags : "call_daily"
 }
 -- add IE table for child id

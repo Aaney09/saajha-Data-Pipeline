@@ -1,5 +1,8 @@
+-- -- move to std whatsapp
+
 config {
     type: "table",
+    schema:"whatsapp",
     tags: "wa_daily"
 }
 
