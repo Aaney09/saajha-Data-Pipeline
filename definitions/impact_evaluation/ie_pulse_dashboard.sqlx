@@ -21,7 +21,9 @@ count(distinct if(rn=2,successfully_general_activity_numbers,null)) as interacti
 count(distinct if(rn=3,successfully_general_activity_numbers,null)) as interaction_3,
 count(distinct if(rn=4,successfully_general_activity_numbers,null)) as interaction_4,
 count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_5,
-count(distinct if(rn=6,successfully_general_activity_numbers,null)) as interaction_6
+count(distinct if(rn=6,successfully_general_activity_numbers,null)) as interaction_6,
+count(distinct if(rn=7,successfully_general_activity_numbers,null)) as interaction_7,
+count(distinct if(rn=8,successfully_general_activity_numbers,null)) as interaction_8,
 from general_activity_raw
 where lower(arm)='treatment'
 group by 1
@@ -36,7 +38,9 @@ count(distinct if(rn=2,successfully_general_activity_numbers,null)) as interacti
 count(distinct if(rn=3,successfully_general_activity_numbers,null)) as interaction_3,
 count(distinct if(rn=4,successfully_general_activity_numbers,null)) as interaction_4,
 count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_5,
-count(distinct if(rn=5,successfully_general_activity_numbers,null)) as interaction_6
+count(distinct if(rn=6,successfully_general_activity_numbers,null)) as interaction_6,
+count(distinct if(rn=7,successfully_general_activity_numbers,null)) as interaction_7,
+count(distinct if(rn=8,successfully_general_activity_numbers,null)) as interaction_8
 from general_activity_raw
 where lower(arm)='control'
 group by 1
@@ -67,6 +71,8 @@ cohort,
  count(distinct if(rounds_since_april_2025=4,parentid,null)) as fourth_round,
  count(distinct if(rounds_since_april_2025=5,parentid,null)) as fifth_round,
  count(distinct if(rounds_since_april_2025=6,parentid,null)) as sixth_round,
+  count(distinct if(rounds_since_april_2025=7,parentid,null)) as seventh_round,
+   count(distinct if(rounds_since_april_2025=8,parentid,null)) as eigth_round,
 --  count(distinct if(rounds_since_april_2025=7,parentid,null)) as seventh_round
 from year_2025_26_resolved
 group by all
@@ -219,7 +225,9 @@ count(distinct if (rounds=2,result_shared_id,null)  ) as round_2,
 count(distinct if (rounds=3,result_shared_id,null)  ) as round_3,
 count(distinct if (rounds=4,result_shared_id,null)  ) as round_4,
 count(distinct if (rounds=5,result_shared_id,null)  ) as round_5,
-count(distinct if (rounds=6,result_shared_id,null)  ) as round_6
+count(distinct if (rounds=6,result_shared_id,null)  ) as round_6,
+count(distinct if (rounds=7,result_shared_id,null)  ) as round_7,
+count(distinct if (rounds=8,result_shared_id,null)  ) as round_8
 from tracking_result
 left join ${ref("impact_evaluation_main_data")} ie_main
 on result_shared_id =ie_main.parentid
@@ -252,7 +260,10 @@ count(distinct if(rn=2,childid,null)) as round_2_result,
 count(distinct if(rn=3,childid,null)) as round_3_result,
 count(distinct if(rn=4,childid,null)) as round_4_result,
 count(distinct if(rn=5,childid,null)) as round_5_result,
-count(distinct if(rn=6,childid,null)) as round_6_result
+count(distinct if(rn=6,childid,null)) as round_6_result,
+count(distinct if(rn=7,childid,null)) as round_7_result,
+count(distinct if(rn=8,childid,null)) as round_8_result
+
   from highest_level_roundwise
   where mathFLnAchievedClassWise is true
   group by all
@@ -266,7 +277,9 @@ count(distinct if(rn=2,childid,null)) as round_2_result,
 count(distinct if(rn=3,childid,null)) as round_3_result,
 count(distinct if(rn=4,childid,null)) as round_4_result,
 count(distinct if(rn=5,childid,null)) as round_5_result,
-count(distinct if(rn=6,childid,null)) as round_6_result
+count(distinct if(rn=6,childid,null)) as round_6_result,
+count(distinct if(rn=7,childid,null)) as round_7_result,
+count(distinct if(rn=8,childid,null)) as round_8_result
   from highest_level_roundwise
   where hindiFLnAchievedClassWise is true
   group by all
@@ -333,7 +346,10 @@ count(distinct if(rn=2,a.parentid,null)) as round_2_result,
 count(distinct if(rn=3,a.parentid,null)) as round_3_result,
 count(distinct if(rn=4,a.parentid,null)) as round_4_result,
 count(distinct if(rn=5,a.parentid,null)) as round_5_result,
-count(distinct if(rn=6,a.parentid,null)) as round_6_result
+count(distinct if(rn=6,a.parentid,null)) as round_6_result,
+count(distinct if(rn=7,a.parentid,null)) as round_7_result,
+count(distinct if(rn=8,a.parentid,null)) as round_8_result
+
 -- count(distinct if(rn=7,a.parentid,null)) as round_7_result
 from hindi_first_worksheet_raw a
 inner join ${ref("impact_evaluation_main_data")} ie_main
@@ -406,7 +422,9 @@ count(distinct if(rn=2,a.parentid,null)) as round_2_result,
 count(distinct if(rn=3,a.parentid,null)) as round_3_result,
 count(distinct if(rn=4,a.parentid,null)) as round_4_result,
 count(distinct if(rn=5,a.parentid,null)) as round_5_result,
-count(distinct if(rn=6,a.parentid,null)) as round_6_result
+count(distinct if(rn=6,a.parentid,null)) as round_6_result,
+count(distinct if(rn=7,a.parentid,null)) as round_7_result,
+count(distinct if(rn=8,a.parentid,null)) as round_8_result
 -- count(distinct if(rn=7,a.parentid,null)) as round_7_result
 from math_first_worksheet_raw a
 inner join ${ref("impact_evaluation_main_data")} ie_main
@@ -461,7 +479,9 @@ MAX(IF(rn = 1, dateOfAssessment, NULL)) AS assessment_1,
   MAX(IF(rn = 4, dateOfAssessment, NULL)) AS assessment_4,
   MAX(IF(rn = 5, dateOfAssessment, NULL)) AS assessment_5,
   MAX(IF(rn = 6, dateOfAssessment, NULL)) AS assessment_6,
-  MAX(IF(rn = 7, dateOfAssessment, NULL)) AS assessment_7
+  MAX(IF(rn = 7, dateOfAssessment, NULL)) AS assessment_7,
+    MAX(IF(rn = 8, dateOfAssessment, NULL)) AS assessment_8,
+      MAX(IF(rn = 9, dateOfAssessment, NULL)) AS assessment_9
 
 from result_mtp
 group by 1
@@ -498,6 +518,15 @@ if(date(mtp.inserted_at)>assessment_6 and date(mtp.inserted_at)<ifnull(assessmen
 ,null )) as iteration_6,
 
 
+max(if(assessment_7 is not null,
+if(date(mtp.inserted_at)>assessment_7 and date(mtp.inserted_at)<ifnull(assessment_8,'2026-12-01'),mtp.parentid,null)
+,null )) as iteration_7,
+
+
+max(if(assessment_8 is not null,
+if(date(mtp.inserted_at)>assessment_8 and date(mtp.inserted_at)<ifnull(assessment_9,'2026-12-01'),mtp.parentid,null)
+,null )) as iteration_8,
+
 
 from mtp_assessement_wise maw
 left join `saajhadata.impact_evaluation.mtp_calls` mtp
@@ -520,7 +549,9 @@ count(distinct if(rn=2,rm.parentid,null)) as round_2_assessment,
 count(distinct if(rn=3,rm.parentid,null)) as round_3_assessment,
 count(distinct if(rn=4,rm.parentid,null)) as round_4_assessment,
 count(distinct if(rn=5,rm.parentid,null)) as round_5_assessment,
-count(distinct if(rn=6,rm.parentid,null)) as round_6_assessment
+count(distinct if(rn=6,rm.parentid,null)) as round_6_assessment,
+count(distinct if(rn=7,rm.parentid,null)) as round_7_assessment,
+count(distinct if(rn=8,rm.parentid,null)) as round_8_assessment
 
 from result_mtp rm
 left join ${ref("impact_evaluation_main_data")} ie_main
@@ -537,7 +568,9 @@ count(distinct iteration_2) as r2_mtp,
 count(distinct iteration_3) as r3_mtp,
 count(distinct iteration_4) as r4_mtp,
 count(distinct iteration_5) as r5_mtp,
-count(distinct iteration_6) as r6_mtp
+count(distinct iteration_6) as r6_mtp,
+count(distinct iteration_7) as r7_mtp,
+count(distinct iteration_8) as r8_mtp,
 from mtp_final
 group by 1
 )
@@ -569,7 +602,10 @@ group by 1
   if(maw.assessment_3 is not null and maw.assessment_3 =u.fln_achieve_date,u.parentid,null) as itr_3,
   if(maw.assessment_4 is not null and maw.assessment_4 =u.fln_achieve_date,u.parentid,null) as itr_4,
   if(maw.assessment_5 is not null and maw.assessment_5 =u.fln_achieve_date,u.parentid,null) as itr_5,
-  if(maw.assessment_6 is not null and maw.assessment_6 =u.fln_achieve_date,u.parentid,null) as itr_6
+  if(maw.assessment_6 is not null and maw.assessment_6 =u.fln_achieve_date,u.parentid,null) as itr_6,
+    if(maw.assessment_7 is not null and maw.assessment_7 =u.fln_achieve_date,u.parentid,null) as itr_7,
+      if(maw.assessment_8 is not null and maw.assessment_8 =u.fln_achieve_date,u.parentid,null) as itr_8
+
   FROM users u
   left join mtp_assessement_wise maw
   on u.parentid=maw.parentid
@@ -584,7 +620,9 @@ group by 1
   count(distinct itr_3) as iteration_3,
   count(distinct itr_4) as iteration_4,
   count(distinct itr_5) as iteration_5,
-  count(distinct itr_6) as iteration_6
+  count(distinct itr_6) as iteration_6,
+    count(distinct itr_7) as iteration_7,
+      count(distinct itr_8) as iteration_8,
   from fln_achieve
   group by 1
 )
@@ -600,7 +638,10 @@ if(maw.assessment_1 is not null   and opt_out_date>maw.assessment_1 and opt_out_
 if(maw.assessment_2 is not null   and opt_out_date>maw.assessment_2 and opt_out_date <= ifnull(maw.assessment_3,'2027-01-01'),u.parentid,null ) as itr_3,
 if(maw.assessment_3 is not null   and opt_out_date>maw.assessment_3 and opt_out_date <= ifnull(maw.assessment_4,'2027-01-01'),u.parentid,null ) as itr_4,
 if(maw.assessment_4 is not null   and opt_out_date>maw.assessment_4 and opt_out_date <= ifnull(maw.assessment_5,'2027-01-01'),u.parentid,null ) as itr_5,
-if(maw.assessment_5 is not null   and opt_out_date>maw.assessment_5 and opt_out_date <= ifnull(maw.assessment_6,'2027-01-01'),u.parentid,null ) as itr_6
+if(maw.assessment_5 is not null   and opt_out_date>maw.assessment_5 and opt_out_date <= ifnull(maw.assessment_6,'2027-01-01'),u.parentid,null ) as itr_6,
+
+if(maw.assessment_6 is not null   and opt_out_date>maw.assessment_6 and opt_out_date <= ifnull(maw.assessment_7,'2027-01-01'),u.parentid,null ) as itr_7,
+if(maw.assessment_7 is not null   and opt_out_date>maw.assessment_7 and opt_out_date <= ifnull(maw.assessment_8,'2027-01-01'),u.parentid,null ) as itr_8,
 
 
 
@@ -621,7 +662,9 @@ where opt_out_date is not null
   count(distinct itr_3) as iteration_3,
   count(distinct itr_4) as iteration_4,
   count(distinct itr_5) as iteration_5,
-  count(distinct itr_6) as iteration_6
+  count(distinct itr_6) as iteration_6,
+  count(distinct itr_7) as iteration_7,
+  count(distinct itr_8) as iteration_8    
   
   from opt_out 
   group by 1
@@ -640,7 +683,9 @@ where opt_out_date is not null
   0 as temp3,
   0 as temp4,
   0 as temp5,
-  0 as temp6
+  0 as temp6,
+  0 as temp7,
+  0 as temp8
   from ${ref("all_phone_numbers_with_parentid")} p
   inner join ${ref("impact_evaluation_main_data")} ie_main
   on ie_main.parentid=p.rosterparentid
@@ -665,7 +710,10 @@ count(distinct if(round=2,fr.parentid,null)) as round_2,
 count(distinct if(round=3,fr.parentid,null)) as round_3,
 count(distinct if(round=4,fr.parentid,null)) as round_4,
 count(distinct if(round=5,fr.parentid,null)) as round_5,
-count(distinct if(round=6,fr.parentid,null)) as round_6
+count(distinct if(round=6,fr.parentid,null)) as round_6,
+
+count(distinct if(round=7,fr.parentid,null)) as round_7,
+count(distinct if(round=8,fr.parentid,null)) as round_8
 
 -- fr.parentid,
 -- cohort,
@@ -687,7 +735,10 @@ count(distinct if(round=2,fr.parentid,null)) as round_2,
 count(distinct if(round=3,fr.parentid,null)) as round_3,
 count(distinct if(round=4,fr.parentid,null)) as round_4,
 count(distinct if(round=5,fr.parentid,null)) as round_5,
-count(distinct if(round=6,fr.parentid,null)) as round_6
+count(distinct if(round=6,fr.parentid,null)) as round_6,
+
+count(distinct if(round=7,fr.parentid,null)) as round_7,
+count(distinct if(round=8,fr.parentid,null)) as round_8,
 
 -- fr.parentid,
 -- cohort,
@@ -730,7 +781,9 @@ count(distinct if(round=2,a.parentid,null)) as round_2,
 count(distinct if(round=3,a.parentid,null)) as round_3,
 count(distinct if(round=4,a.parentid,null)) as round_4,
 count(distinct if(round=5,a.parentid,null)) as round_5,
-count(distinct if(round=6,a.parentid,null)) as round_6
+count(distinct if(round=6,a.parentid,null)) as round_6,
+count(distinct if(round=7,a.parentid,null)) as round_7,
+count(distinct if(round=8,a.parentid,null)) as round_8
 
 from `saajhadata.platform_commons.roster` a
 inner join ${ref("impact_evaluation_main_data")} m

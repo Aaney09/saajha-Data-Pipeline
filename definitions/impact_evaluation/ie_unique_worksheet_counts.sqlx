@@ -58,7 +58,7 @@ Worksheet_Completed AS (
   -- COUNT(DISTINCT TQ.phone_number) AS Completed
 FROM
   Worksheet_Sent WS
-inner join `dataform.allPhoneNumberWithPid`
+inner join ${ref("all_phone_numbers_with_parentid")}
 on WS.Phone_number=number
 -- inner join final_assessed_data fa
 -- on fa.parentid=rosterparentId
@@ -178,7 +178,7 @@ Worksheet_Completed_math AS (
 
 FROM
   Worksheet_Sent_math WS
-inner join `dataform.allPhoneNumberWithPid`
+inner join ${ref("all_phone_numbers_with_parentid")}
 on WS.Phone_number=number
 LEFT JOIN
   Worksheet_Clicked_math WC ON WS.phone_number = WC.phone_number AND

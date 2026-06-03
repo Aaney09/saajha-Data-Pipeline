@@ -77,14 +77,14 @@ from hindiMath
 where hindiRounds = 7)r7
 using(assesseeActorid)
 
-)
--- left join(select assesseeActorid,
--- mathAssessDate m8,hindiAssessdate h8,
--- greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hindiLevel,mathLevel as r8_mathlevel
--- from hindiMath
--- where hindiRounds = 8)r8
--- using(assesseeActorid)
 
+left join(select assesseeActorid,
+mathAssessDate m8,hindiAssessdate h8,
+greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hindiLevel,mathLevel as r8_mathlevel
+from hindiMath
+where hindiRounds = 8)r8
+using(assesseeActorid)
+)
 -- left join(select assesseeActorid,
 -- mathAssessDate m9,hindiAssessdate h9,
 -- greatest(mathassessdate,hindiAssessDate) Round_9_Assessment,hindiLevel as r9_hindiLevel,mathLevel as r9_mathlevel
@@ -194,7 +194,8 @@ opted_out.opted_out_on<Round_3_assessment or
 opted_out.opted_out_on<Round_4_assessment or
 opted_out.opted_out_on<Round_5_assessment or
 opted_out.opted_out_on<Round_6_assessment  or 
-opted_out.opted_out_on<Round_7_assessment
+opted_out.opted_out_on<Round_7_assessment or
+opted_out.opted_out_on<Round_8_assessment
 ,"Yes","No") returnedParent
 from assessmentDetails
 Inner join
@@ -226,6 +227,8 @@ count(distinct if(round=3 ,CallStartDateTime,null))Round_3_calls,
 count(distinct if(round=4 ,CallStartDateTime,null))Round_4_calls,
 count(distinct if(round=5 ,CallStartDateTime,null))Round_5_calls,
 count(distinct if(round=6 ,CallStartDateTime,null))Round_6_calls,
+count(distinct if(round=7 ,CallStartDateTime,null))Round_7_calls,
+count(distinct if(round=8 ,CallStartDateTime,null))Round_8_calls,
 
 
 
@@ -249,6 +252,8 @@ max(if(round_number=3 and subject='hindi', engagement_percentage, 0)) as round_3
 max(if(round_number=4 and subject='hindi', engagement_percentage, 0)) as round_4_hindi_engagement,
 max(if(round_number=5 and subject='hindi', engagement_percentage, 0)) as round_5_hindi_engagement,
 max(if(round_number=6 and subject='hindi', engagement_percentage, 0)) as round_6_hindi_engagement,
+max(if(round_number=7 and subject='hindi', engagement_percentage, 0)) as round_7_hindi_engagement,
+max(if(round_number=8 and subject='hindi', engagement_percentage, 0)) as round_8_hindi_engagement,
 
 -- Math
 max(if(round_number=1 and subject='math', engagement_percentage, 0)) as round_1_math_engagement,
@@ -256,7 +261,9 @@ max(if(round_number=2 and subject='math', engagement_percentage, 0)) as round_2_
 max(if(round_number=3 and subject='math', engagement_percentage, 0)) as round_3_math_engagement,
 max(if(round_number=4 and subject='math', engagement_percentage, 0)) as round_4_math_engagement,
 max(if(round_number=5 and subject='math', engagement_percentage, 0)) as round_5_math_engagement,
-max(if(round_number=6 and subject='math', engagement_percentage, 0)) as round_6_math_engagement
+max(if(round_number=6 and subject='math', engagement_percentage, 0)) as round_6_math_engagement,
+max(if(round_number=7 and subject='math', engagement_percentage, 0)) as round_7_math_engagement,
+max(if(round_number=8 and subject='math', engagement_percentage, 0)) as round_8_math_engagement
 
 from `impact_evaluation.ie_round_cohort_level_wise_worksheet_engagement`
 group by 1
