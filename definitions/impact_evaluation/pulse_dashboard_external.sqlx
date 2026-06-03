@@ -17,7 +17,10 @@ WITH base AS (
     STRUCT(3 AS ip, interaction_3 AS interaction_value),
     STRUCT(4 AS ip, interaction_4 AS interaction_value),
     STRUCT(5 AS ip, interaction_5 AS interaction_value),
-    STRUCT(6 AS ip, interaction_6 AS interaction_value)
+    STRUCT(6 AS ip, interaction_6 AS interaction_value),
+
+        STRUCT(7 AS ip, interaction_7 AS interaction_value),
+            STRUCT(8 AS ip, interaction_8 AS interaction_value)
   ])
   WHERE interaction_value IS NOT NULL
 )
