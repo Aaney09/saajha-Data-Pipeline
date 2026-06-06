@@ -109,72 +109,47 @@ and date(combined_Result_sent_on) between dateOfAssessment and date_Add(dateOfAs
 -- from math_hindiResultSent
 -- where combined_Result_msg_status="failed"
 
--- select  dateOfAssessment,m.city,
--- count(distinct m.parentid)ParentIdAssessed,
---     count(distinct m.childid)ChildiAssessed,
---     count(distinct m.parentid) as result_tobe_processed,
---     count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) ) processedResultsCombinedAsWellFLNAchieved,
---     round(
---       (count(distinct m.parentid)-count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) )
---     ) / nullif(count(distinct m.parentid),0)*100,2) turn_result_failure_Rate,
---     count(distinct if(combined_result_msg_status="failed" and rs.parentid is null ,m.parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
+select  dateOfAssessment,m.city,
+count(distinct m.parentid)ParentIdAssessed,
+    count(distinct m.childid)ChildiAssessed,
+    count(distinct m.parentid) as result_tobe_processed,
+    count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) ) processedResultsCombinedAsWellFLNAchieved,
+    round(
+      (count(distinct m.parentid)-count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) )
+    ) / nullif(count(distinct m.parentid),0)*100,2) turn_result_failure_Rate,
+    count(distinct if(combined_result_msg_status="failed" and rs.parentid is null ,m.parentid,null))metaFailed_ResultsCombinedAsWellFLNAchieved,
 
---     round(count(distinct if(combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))/nullif(count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) ),0)*100
---     ,2) meta_failure_rate,
---     round(
---     (  
---       count(distinct if(combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))
---       +
---       count(distinct m.parentid)-count(distinct if(m.combined_Result_sent_on is not null,m.parentid,null) )
---     )
---       /nullif(count(distinct m.parentid),0)*100
---     ,2)combined_result_and_fln_Achieved_failure_rate,
---     -- count(distinct if(flnAchieved_Result_sent_on is not null,parentid,null)) flnAchieved_Result_sent_onProcessed,
---     -- count(distinct if(combined_Result_sent_on is not null,parentid,null)) combinedResultProcessed,
+    round(count(distinct if(combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))/nullif(count(distinct if(m.combined_Result_sent_on is not null ,m.parentid,null) ),0)*100
+    ,2) meta_failure_rate,
+    round(
+    (  
+      count(distinct if(combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))
+      +
+      count(distinct m.parentid)-count(distinct if(m.combined_Result_sent_on is not null,m.parentid,null) )
+    )
+      /nullif(count(distinct m.parentid),0)*100
+    ,2)combined_result_and_fln_Achieved_failure_rate,
+    -- count(distinct if(flnAchieved_Result_sent_on is not null,parentid,null)) flnAchieved_Result_sent_onProcessed,
+    -- count(distinct if(combined_Result_sent_on is not null,parentid,null)) combinedResultProcessed,
 
---        /** combined result meta error details **/
---        count(distinct if(m.combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))combined_result_meta_failed,
---       count(distinct if(m.combined_result_error_code="131050" and rs.parentid is null,m.parentid,null)) as combined_result_131050_User_has_stopped_reciept_of_marketing_messages,
---       count(distinct if(combined_result_error_code="131049" and rs.parentid is null,m.parentid,null)) as combined_result_131049_Meta_chose_not_to_deliver,
---       count(distinct if(combined_result_error_code="131026" and rs.parentid is null ,m.parentid,null)) as combined_result_131026_Message_Undeliverable,
---        count(distinct if(combined_result_error_code="131000" and rs.parentid is null,m.parentid,null)) as combined_result_131000_Something_went_wrong,
---       count(distinct if(combined_result_error_code="130472" and rs.parentid is null ,m.parentid,null)) as combined_result_130472_User_number_is_part_of_an_experiment,
+       /** combined result meta error details **/
+       count(distinct if(m.combined_result_msg_status="failed" and rs.parentid is null,m.parentid,null))combined_result_meta_failed,
+      count(distinct if(m.combined_result_error_code="131050" and rs.parentid is null,m.parentid,null)) as combined_result_131050_User_has_stopped_reciept_of_marketing_messages,
+      count(distinct if(combined_result_error_code="131049" and rs.parentid is null,m.parentid,null)) as combined_result_131049_Meta_chose_not_to_deliver,
+      count(distinct if(combined_result_error_code="131026" and rs.parentid is null ,m.parentid,null)) as combined_result_131026_Message_Undeliverable,
+       count(distinct if(combined_result_error_code="131000" and rs.parentid is null,m.parentid,null)) as combined_result_131000_Something_went_wrong,
+      count(distinct if(combined_result_error_code="130472" and rs.parentid is null ,m.parentid,null)) as combined_result_130472_User_number_is_part_of_an_experiment,
 
--- from math_hindiResultSent m
--- left join result_success rs
--- on m.parentid=rs.parentid
--- and date(rs.combined_Result_sent_on) between date(m.dateOfAssessment) and date_add(date(m.dateOfAssessment),interval 1 day)
--- group by all
--- order by dateOfAssessment desc
--- -- -- left join whom_math_worksheet_should_not_go g
--- -- -- using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel,hindilevel)
--- -- -- left join hindi_first_worksheet_success hs
--- -- -- using(parentid,childid)
--- -- -- left join math_first_worksheet_success ws
--- -- -- using(parentid,childid)
-
-, assessed as (
-    select distinct parentid
-    from assessments
-    where dateOfAssessment = '2026-05-29'
-),
-
-processed as (
-    select distinct a.parentid
-    from assessments a
-    inner join combinedResult c
-        on a.parentid = c.parentid
-       and date(c.combined_Result_sent_on)
-            between a.dateOfAssessment
-                and date_add(a.dateOfAssessment, interval 1 day)
-    where a.dateOfAssessment = '2026-05-29'
-)
-
-select parentid
-from assessed
-
-except distinct
-
-select parentid
-from processed
+from math_hindiResultSent m
+left join result_success rs
+on m.parentid=rs.parentid
+and date(rs.combined_Result_sent_on) between date(m.dateOfAssessment) and date_add(date(m.dateOfAssessment),interval 1 day)
+group by all
+order by dateOfAssessment desc
+-- -- left join whom_math_worksheet_should_not_go g
+-- -- using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel,hindilevel)
+-- -- left join hindi_first_worksheet_success hs
+-- -- using(parentid,childid)
+-- -- left join math_first_worksheet_success ws
+-- -- using(parentid,childid)
 
