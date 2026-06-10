@@ -344,7 +344,7 @@ TenantId
 from `platform_commons.tenant`) as tenant_id,
 -- 0 as tenantid,
 ie.projectid as project_id,
-ca.assesseeActorid as child_id,
+ifNULL(ca.assesseeActorId, c.assesseeActorid)as child_id,
 c.parentid as parent_id,
 2026 as assessment_year,
 ifnull(ca.Total_rounds_in_current_AY,0) as total_rounds_in_current_ay,
