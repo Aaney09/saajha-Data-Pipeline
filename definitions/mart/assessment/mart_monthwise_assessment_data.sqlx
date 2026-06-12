@@ -153,7 +153,7 @@ TenantId
 from `platform_commons.tenant`) as tenant_id,
 ie.projectid as project_id,
 ac.parentid as parent_id,
-mf.assesseeActorId as child_id,
+ifNULL(mf.assesseeActorId, ac.childid)as child_id,
 2026 as assessment_year,
 ifnull(mf.mathrounds,0) as assessment_number,
 mf.mathAssessDate as math_assessment_date,
