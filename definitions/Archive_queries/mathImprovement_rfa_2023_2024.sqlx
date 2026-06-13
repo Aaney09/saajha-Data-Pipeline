@@ -1,6 +1,7 @@
 config {
     type: "table",
-    tags:"archieve"
+    tags:"archieve",
+    schema:"Archive"
 }
 with 
     assessmentDetails as (
