@@ -7,9 +7,13 @@ config {
   tags:"Donor"
 }
 
-with all_donor_data as (select distinct *
-from `adhoc.donor_proportion` 
-inner join ${ref("mart_donor_allocation")} 
+with all_donor_data as (select distinct 
+dp.*,
+dl.* except(donor_name),
+pj.* except(parentid,first_hindi_assessment_date,last_hindi_assessment_date,shift_in_hindi_level,shift_in_math_level,first_math_assessment_date,last_math_assessment_date),
+h.*except(assesseeActorId),m.*except(assesseeActorId)
+from `donor.donor_proportion` dp 
+inner join ${ref("mart_donor_allocation")} dl
 using(donor_name)
 inner join ${ref("parent_journey_2026_27")} pj
 using(parentid)
