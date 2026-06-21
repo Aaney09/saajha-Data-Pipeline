@@ -1,0 +1,52 @@
+config {
+    type: "table",
+      schema:"donor",
+    tags: "wa_daily"
+
+
+
+}
+-- to be move to mart
+
+
+
+
+with bau_child_id as (select  distinct assesseeActorID as childId
+from ${ref("parent_journey_2026_27")}
+-- where Projectid in (1103005,1103213,1103233,1103641)
+)
+
+,math_completed as (select childid,sum(total_questions)total_question_answered_math
+from ${ref("whatsapp_tools","maths_react_forms")}
+where date(inserted_at) between "2026-04-01" and "2027-03-31"
+group by 1)
+
+,hindi_completed as (select childid,sum(total_questions)total_question_answered_hindi
+from ${ref("whatsapp_tools","hindi_fln_forms")}
+where date(inserted_at) between "2026-04-01" and "2027-03-31"
+group by 1)
+,
+attempt_rate as (
+    select childId,
+    sum(attemptedQuestions) as attempted_question
+    from ${ref("whatsapp_tools","attemptrate")}
+    where date(insertedat) between "2026-04-01" and "2027-03-31"
+ group by 1
+
+)
+
+
+
+
+select distinct c.childid, ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0) as totalQuestionAnswered,
+ifnull(ar.attempted_question,0) as attemptedquestions
+from bau_child_id c
+left join hindi_completed h
+on c.childid = h.childid
+left join math_completed m
+on c.childid = m.childid
+left join attempt_rate ar
+on c.childid=safe_cast(ar.childid as int64)
+where ar.attempted_question>0
+
+-- where ifnull(total_question_answered_math,0)+ifnull(total_question_answered_hindi,0)>0

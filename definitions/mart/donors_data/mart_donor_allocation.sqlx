@@ -38,7 +38,7 @@ group_targets AS (
     -- improvement,
     proportion,
     CAST(d.proportion * t.total AS INT64) AS target_count
-  FROM `adhoc.donor_proportion` d
+  FROM `donor.donor_proportion` d
   CROSS JOIN total_pids_never_allocated_counts t
 ),
 ranked_pids AS (
@@ -70,7 +70,7 @@ current_datetime("Asia/Kolkata")as allocated_on,
 FROM ranked_pids p
 JOIN group_ranges g
   ON p.rn BETWEEN g.start_rn AND g.cumulative
-JOIN `adhoc.donor_proportion` dp
+JOIN `donor.donor_proportion` dp
 on g.donor_name  =dp.donor_name
  
 -- )
