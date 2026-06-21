@@ -6,8 +6,8 @@ config {
     description: "This table contains data for template sent to Delhi FLN users",
     columns: {
         phone_number: "phone number to which template was sent (user phone number)",
-        id: "uinque identifier for each user",
-        uuid: "special character identifier to be unique across system and time",
+        id: "uinque message ID",
+        uuid: "special character identifier for each message conversation to be unique across system and time",
         chat_id: "chat id generagted in period of 24 hrs",
         flow_id: "Journey id given to each template",
         flow_name: "journey or stack name though which template message was sent",
@@ -21,7 +21,7 @@ config {
         sent_at: "Wen was the template sent (IST)",
         updated_status_at: "When was the status updated (IST)",
         saajha_whatsapp_number: "The bot number through which conversation took place here: 912250555658 ",
-        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding.",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding.HERE: only FLN",
         external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
 
     }

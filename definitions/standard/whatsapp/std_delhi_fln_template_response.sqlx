@@ -6,8 +6,8 @@ config {
     description: "This table displays users data that responded to templates of Delhi FLN number",
     columns: {
         phone_number: "Phone number from which response  the message was recieved (user)",
-        id:"Unique id to identify parent",
-        uuid: "special standardized identifier to be unique across systems and time",
+        id:"Unique message id",
+        uuid: "special standardized identifier for each message conversation to be unique across systems and time",
         chat_id: "Id of the chat (generated in the period of 24 hrs)",
         template_button_text: "Actual text given as response",
         template_button_index: "Index of the button",

@@ -6,8 +6,8 @@ config {
     description: "Incoming message details of users on Delhi FLN Number; Usecase : Tracking incoming WhatsApp user interactions for Delhi FLN number",
     columns: {
     phone_number: "Phone number of user(parent)",
-    id: "unique id to identify parent ",
-    uuid: "special standardized identifier to be unique across systems and time",
+    id: "unique message id  ",
+    uuid: "special standardized identifier fro each message conversation to be unique across systems and time",
     chat_id: "Id of the chat (generated in the period of 24 hrs)",
     message_type:"type of message e.g., text, image, audio, document",
     message_content: "Content of incoming message",
