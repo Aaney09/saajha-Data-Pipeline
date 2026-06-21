@@ -6,8 +6,8 @@ config {
     description: "This table contains outgoing message info through 912250323343 whatsapp bot number. Usecase :Tracking outgoing WhatsApp user interaction",
     columns: {
     phone_number:"phone number of user",
-    id: "unique id to identify parent",
-    uuid: "special standardized identifier to be unique across systems and time",
+    id: "Unique message ID",
+    uuid: "special standardized identifier for each message conversation to be unique across systems and time",
     chat_id:"Id of the chat (generated in the period of 24 hrs)",
     message_type: "type of message sent",
     flow_id: "Id assigned to FLow",
@@ -17,8 +17,8 @@ config {
     last_message_status: "Status of last message sent",
     sent_at: "Date and time of messagee sent (IST)",
     last_updated_status_at: "Date and time When was the status updated (IST)",
-    saajha_whatsapp_number: "The bot number through which conversation took place 912250323343 which used by Saajha internal team for onboarding",
-    wa_number_purpose: "Purpose of number  4 distinct values: noida,agent,only fln,onboarding",
+    saajha_whatsapp_number: "The bot number among 4 Chat BOT number through which conversation took place HERE: 912250323343",
+    wa_number_purpose: "Purpose of number  4 distinct values: noida,agent,only fln,onboarding; HERE: Agents (used by Internal Team for Onboarding)",
     external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
      }
 
