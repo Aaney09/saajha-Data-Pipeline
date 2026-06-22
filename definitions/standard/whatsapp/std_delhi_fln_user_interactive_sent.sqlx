@@ -2,7 +2,21 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Details regarding the interactive messsages sent from Delhi FLN Number,after 1st April 2025"
+    description: "Details regarding the interactive messsages sent from Delhi FLN Number,after 1st April 2025",
+    columns: {
+        phone_number: "Phone number of Parent",
+        id: "Unique message ID",
+        uuid: "special character identifier for each message conversation to be unique across system and time",
+        chat_id: "chat id generagted in period of 24 hrs",
+        interactive_sent_metadata: "Sent message metadata",
+        interactiveType: "Which type of interactive message it is (list/button/flow)",
+        last_message_status: "Status of the last message that was sent (read/failed etc)",
+        sent_at: "Date and Time When was the template sent (IST)",
+        last_updated_status_at: "Dateand Time When was the status updated (IST)",
+        saajha_whatsapp_number: "Saajha whatsapp number used for sending the message. HERE: 912250555658",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding. HERE: only FLN",
+        external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+    }
    
 }
 
