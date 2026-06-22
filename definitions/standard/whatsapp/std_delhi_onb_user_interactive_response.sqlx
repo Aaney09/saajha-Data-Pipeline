@@ -2,7 +2,25 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Details regarding the interactive messsages response to Delhi Onboarding Number,after 1st April 2025"
+    description: "Details regarding the interactive messsages response to Delhi Onboarding Number,after 1st April 2025",
+    columns: {
+        phone_number: "Phone Number of Parent",
+        id: "Unique Message ID",
+        uuid: "Unique Identifier for each message conversation",
+        chat_id: "ID for each chat (used in a period of 24 hrs.)",
+        interactive_response_metadata: "Meta data regarding the response of the interactive message",
+        responseType: "Type of resposne given (list/button/nfm)",
+        responded_at: "Date and time when did the user responded(IST)",
+        list_reply_description: "NULL values",
+        list_reply_id: "id of the list element to which they have replied Only for list type of interactive messages NULL for others(button/nfm)",
+        list_reply_title: "title of the list element choosen for reply. Exist only for list type",
+        button_reply_id: "id of the button replied to. Exist only for button type",
+        button_reply_title: "title of the button selected. Exist only for button type",
+        saajha_whatsapp_number: "responded to which saajha whatsapp number. Does not contain the Impact evaluation bot number. HERE: 911171279787 ",
+        wa_number_purpose: "Purpose for which that particular whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding. HERE: onboarding (Used for Delhi onboarding)",
+        context_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+ 
+    }
 }
 
 with _911171279787 as (SELECT distinct 
