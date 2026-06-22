@@ -2,7 +2,24 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Details regarding the interactive messsages sent from Internal Number 912250323343, after 1st April 2025"
+    description: "Details regarding the interactive messsages sent from Internal Number 912250323343, after 1st April 2025",
+    columns: {
+        phone_number: "Phone number of Parent",
+        id: "Unique message ID",
+        uuid: "Unique id (alphanumeric hence used for primary key) for each message conversation",
+        chat_id: "Id of the chat (used in the period of 24 hrs)",
+        flow_id: "Journey id given to each template",
+        flow_name: "Name of the flow",
+        flow_type: "Type of the flow. system: automatically sent , stack: part of the journey",
+        interactiveType: "Which type of interactive message it is (list/button/flow)",
+        interactive_sent_metadata: "Sent message metadata",
+        last_message_status: "Status of the last message that was sent (read/failed etc)",
+        sent_at: "When was the template sent",
+        last_updated_status_at: "When was the status updated",
+        saajha_whatsapp_number: "Saajha whatsapp number used for sending the message. Does not contain the Impact evaluation bot number HERE: 912250323343",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding.HERE: agents",
+        external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+    }
 }
 
 with  _912250323343 as (SELECT distinct 

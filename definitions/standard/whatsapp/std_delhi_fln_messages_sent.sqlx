@@ -2,7 +2,25 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Outgoing messages info from Delhi FLN Nnumber"
+    uniqueKey: ["id", "uuid"],
+    description: "Outgoing messages info from Delhi FLN Nnumber",
+    columns: {
+        phone_number:"phone number of user",
+        id: "unique message ID",
+        uuid: "special standardized identifier fro Each message conversation to be unique across systems and time",
+        chat_id:"Id of the chat (generated in the period of 24 hrs)",
+        message_type: "type of message sent",
+        flow_id: "Id assigned to FLow",
+        flow_type: "Type of the flow. system: automatically sent , stack: part of the journey",
+        flow_name: "journey or stack name through which template message was sent",
+        message_content: "Information inside the message sent",
+        last_message_status: "Status of last message sent",
+        sent_at: "Date and time of messagee sent (IST)",
+        last_updated_status_at: "Date and time When was the status updated (IST)",
+        saajha_whatsapp_number: "The bot number through which conversation took place HERE: 912250555658 used for Delhi FLN number",
+        wa_number_purpose: "Purpose of number  4 distinct values: noida,agent,only fln,onboarding HERE: only FLN",
+        external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+    }
 }
 
 SELECT distinct 

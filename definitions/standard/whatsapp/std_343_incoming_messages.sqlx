@@ -2,7 +2,21 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Incoming message details of users on Internal Number 912250323343"
+    uniqueKey: ["uuid"],
+    description: "This table contains incoming message details of 912250323343 whatsapp bot number. Usecase : Tracking incoming WhatsApp user interactions",
+    columns: {
+    phone_number: "Phone number of user(parent)",
+    id: "unique message ID",
+    uuid: "special standardized identifier for each message conversation to be unique across systems and time",
+    chat_id: "Id of the chat (generated in the period of 24 hrs)",
+    message_type:"type of message e.g., text, image, audio",
+    message_content: "Content of incoming message",
+    sent_at: "Date and time the message was sent by user(IST)",
+    saajha_whatsapp_number: "This Data is for 912250323343 Bot Number",
+    wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding HERE: agent; used by internal team for Onboarding",
+    context_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
+    }
+
 }
 
 SELECT distinct 
