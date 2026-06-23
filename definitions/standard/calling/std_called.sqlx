@@ -2,7 +2,27 @@
 config {
     type: "table",
     schema:"calls",
-    tags: "call_daily"
+    tags: "call_daily",
+    description: "This table contains calling",
+    columns: {
+      agentMobile: "Agent Mobuile Number",
+      agentName: "Name of agent",
+      ProjectId: "Project Id",
+      ParentId: "Assigned ID to Parent",
+      childId: "ID assigned to child",
+      ParentMobile: "Mobile number of parent",
+      CallstartDatetime: "Date and Time of call starting (UTC)",
+      CallEndDatetime: "Date and Time of call ending (UTC)",
+      Feedbacktype: "Feedback given by agent (Resolved/Rescheduled/OptedOut)",
+      Feedbackreason: "Reason of feedback",
+      isAutoDialerCall: "Is the call from Auto Dialer (0/1)",
+      Recording: "Call Recording",
+      callingRound: "Calling Round",
+      rosterCallstatus: "Status of call (Resolved/Rescheduled)",
+      callFlowType: "Flow of Call (Incoming/Outgoing)",
+      agentRemarks: "Remarks from Agent",
+      rosterCallSequence: "Call Sequence in roster"
+    }
 }
 
 SELECT
