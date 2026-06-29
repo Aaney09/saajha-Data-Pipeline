@@ -1,0 +1,529 @@
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema:"whatsapp"
+    
+}
+
+-- create or replace table `adhoc.star_parent_activity_dashboard` as
+
+WITH optins AS (
+  SELECT
+    ts.phone_number AS consent_number,
+    DATE(tr.responded_at) AS optin_date
+  FROM ${ref("std_delhi_onb_template_sent")} ts
+  INNER JOIN (SELECT *
+      FROM ${ref("std_delhi_onb_template_response")}
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY context_id ORDER BY responded_at) = 1
+  ) tr
+    ON ts.external_id = tr.context_id
+  WHERE ts.template_name = 'star_parent_optin_msg'
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY tr.phone_number ORDER BY responded_at) = 1
+),
+
+--  blast 
+blast_config AS (
+  SELECT 1 AS activity_number, 'sp_test_1' AS template_name, 1 AS day_offset
+  UNION ALL
+  SELECT 2, '1sp_act_32', 11
+  UNION ALL
+  SELECT 3, NULL, 21   
+  -- UNION ALL
+  -- SELECT 4,NULL,31
+),
+
+-- optins with blast schedule
+scheduled_blasts AS (
+  SELECT
+    o.consent_number,
+    o.optin_date,
+    b.activity_number,
+    b.template_name,
+    CASE
+      WHEN o.optin_date <= DATE '2026-01-03'
+           AND b.activity_number = 1 THEN DATE '2026-01-04'
+      WHEN o.optin_date <= DATE '2026-01-03'
+           AND b.activity_number = 2 THEN DATE '2026-01-18'
+      WHEN o.optin_date <= DATE '2026-01-03'
+           AND b.activity_number = 3 THEN DATE '2026-01-28'
+      WHEN o.optin_date <= DATE '2026-01-03'
+           AND b.activity_number = 4 THEN DATE '2026-01-07'
+      ELSE DATE_ADD(o.optin_date, INTERVAL b.day_offset DAY)
+
+    END AS tobe_sent_date
+  FROM optins o
+  CROSS JOIN blast_config b
+  WHERE DATE_ADD(o.optin_date, INTERVAL b.day_offset DAY)
+        < CURRENT_DATE("Asia/Kolkata")
+),
+
+-- All template send + response data 
+all_templates AS (
+  SELECT
+    ts.phone_number AS sent_number,
+    DATE(ts.sent_at) AS sent_date,
+    ts.template_name,
+    SAFE_CAST(REGEXP_EXTRACT(ts.template_meta_data, r'गतिविधि\s*(\d+)') AS INT64)
+        AS activity_number_from_meta,
+    ts.last_message_status,
+    ts.error_code,
+    tr.phone_number AS response_number,
+    DATE(tr.responded_at) AS response_date
+  FROM ${ref("std_delhi_onb_template_sent")} ts
+  LEFT JOIN (
+      SELECT *
+      FROM ${ref("std_delhi_onb_template_response")}
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY context_id ORDER BY responded_at) = 1
+  ) tr
+    ON ts.external_id = tr.context_id
+    where template_name in ('sp_test_1',
+'2sp_act_32',
+'1sp_act_32',
+'sp_act_30',
+'sp_act_poster',
+'2sp_act_33')
+)
+
+-- 
+, cte_final_1 as (
+SELECT DISTINCT
+  s.consent_number as concent_given_numbers,
+  s.optin_date,
+  s.activity_number,
+  s.tobe_sent_date,
+  t.sent_date AS template_sent_date,
+
+  IF(t.sent_number IS NULL, s.consent_number, NULL) AS turn_failure_number,
+  IF(t.last_message_status LIKE 'failed', t.sent_number, NULL) AS meta_failure_numbers,
+  IF(t.last_message_status NOT LIKE 'failed', t.sent_number, NULL) AS success_template_shared_numbers,
+
+  t.error_code,
+  t.template_name as templatename,
+  t.response_number AS number_responded
+
+FROM scheduled_blasts s
+LEFT JOIN all_templates t
+  ON s.consent_number = t.sent_number
+ AND (
+       (s.activity_number IN (1,2) AND t.template_name = s.template_name)
+       OR
+       (s.activity_number = 3 AND t.activity_number_from_meta = 3)
+       OR
+      (s.activity_number = 4 AND t.activity_number_from_meta = 4)
+     )
+ AND t.sent_date BETWEEN s.tobe_sent_date
+                     AND DATE_ADD(s.tobe_sent_date, INTERVAL 1 DAY)
+
+)
+, cte_final_2 as (
+select 
+distinct
+safe_cast(trim(urn, '+') as int64) as number,
+date(profile_opted_in_at) as optin_date,
+safe_cast(profile_spactivityindex as int64)-1 as gatividhi_number,
+-- updated_at,
+date(datetime_Add(updated_At, interval 330 minute)) as Tobe_sent,
+ t.sent_date AS template_sent_date,
+
+
+  IF(t.sent_number IS NULL, safe_cast(trim(urn, '+') as int64) , NULL) AS turn_failure_number,
+  IF(t.last_message_status LIKE 'failed', t.sent_number, NULL) AS meta_failure_numbers,
+  IF(t.last_message_status NOT LIKE 'failed', t.sent_number, NULL) AS success_template_shared_numbers,
+
+  t.error_code,
+  t.template_name as templatename,
+  t.response_number AS number_responded
+
+
+
+-- profile_lastspactivitysentat
+from `dataform.911171279787_contacts_all_raw_data`
+
+left join all_templates t
+on t.sent_number=safe_cast(trim(urn, '+') as int64)
+and t.activity_number_from_meta=safe_cast(profile_spactivityindex as int64)-1
+and t.sent_date between date(datetime_Add(updated_At, interval 330 minute))-1 and date(datetime_Add(updated_At, interval 330 minute))+1  
+left join optins o
+on o.consent_number=safe_cast(trim(urn, '+') as int64)
+
+where profile_spactivityindex is not null
+
+qualify row_number() over(partition by urn,profile_spactivityindex order by updated_at )=1
+)
+select
+*
+from cte_final_1
+union distinct
+select *
+from cte_final_2
+where cte_final_2.Tobe_sent<current_date("Asia/Kolkata")
+
+
+
+
+
+
+
+-- WITH optins AS (
+--   SELECT
+--     ts.phone_number AS consent_number,
+--     DATE(tr.responded_at) AS optin_date
+--   FROM `dataform.template-sent` ts
+--   INNER JOIN (SELECT *
+--       FROM `dataform.template-response`
+--       QUALIFY ROW_NUMBER() OVER (PARTITION BY context_id ORDER BY responded_at) = 1
+--   ) tr
+--     ON ts.external_id = tr.context_id
+--   WHERE ts.template_name = 'star_parent_optin_msg'
+--   QUALIFY ROW_NUMBER() OVER (PARTITION BY tr.phone_number ORDER BY responded_at) = 1
+-- ),
+
+-- --  blast 
+-- blast_config AS (
+--   SELECT 1 AS activity_number, 'sp_test_1' AS template_name, 1 AS day_offset
+--   UNION ALL
+--   SELECT 2, '1sp_act_32', 11
+--   UNION ALL
+--   SELECT 3, NULL, 21   
+--   -- UNION ALL
+--   -- SELECT 4,NULL,31
+-- ),
+
+-- -- optins with blast schedule
+-- scheduled_blasts AS (
+--   SELECT
+--     o.consent_number,
+--     o.optin_date,
+--     b.activity_number,
+--     b.template_name,
+--     CASE
+--       WHEN o.optin_date <= DATE '2026-01-03'
+--            AND b.activity_number = 1 THEN DATE '2026-01-04'
+--       WHEN o.optin_date <= DATE '2026-01-03'
+--            AND b.activity_number = 2 THEN DATE '2026-01-18'
+--       WHEN o.optin_date <= DATE '2026-01-03'
+--            AND b.activity_number = 3 THEN DATE '2026-01-28'
+--       WHEN o.optin_date <= DATE '2026-01-03'
+--            AND b.activity_number = 4 THEN DATE '2026-01-07'
+--       ELSE DATE_ADD(o.optin_date, INTERVAL b.day_offset DAY)
+
+--     END AS tobe_sent_date
+--   FROM optins o
+--   CROSS JOIN blast_config b
+--   WHERE DATE_ADD(o.optin_date, INTERVAL b.day_offset DAY)
+--         < CURRENT_DATE("Asia/Kolkata")
+-- ),
+
+-- -- All template send + response data 
+-- all_templates AS (
+--   SELECT
+--     ts.phone_number AS sent_number,
+--     DATE(ts.sent_at) AS sent_date,
+--     ts.template_name,
+--     SAFE_CAST(REGEXP_EXTRACT(ts.template_meta_data, r'गतिविधि\s*(\d+)') AS INT64)
+--         AS activity_number_from_meta,
+--     ts.last_message_status,
+--     ts.error_code,
+--     tr.phone_number AS response_number,
+--     DATE(tr.responded_at) AS response_date
+--   FROM `dataform.template-sent` ts
+--   LEFT JOIN (
+--       SELECT *
+--       FROM `dataform.template-response`
+--       QUALIFY ROW_NUMBER() OVER (PARTITION BY context_id ORDER BY responded_at) = 1
+--   ) tr
+--     ON ts.external_id = tr.context_id
+--     where template_name in ('sp_test_1',
+-- '2sp_act_32',
+-- '1sp_act_32',
+-- 'sp_act_30',
+-- 'sp_act_poster')
+-- )
+
+-- -- 
+-- SELECT DISTINCT
+--   s.consent_number as concent_given_numbers,
+--   s.optin_date,
+--   s.activity_number,
+--   s.tobe_sent_date,
+--   t.sent_date AS template_sent_date,
+
+--   IF(t.sent_number IS NULL, s.consent_number, NULL) AS turn_failure_number,
+--   IF(t.last_message_status LIKE 'failed', t.sent_number, NULL) AS meta_failure_numbers,
+--   IF(t.last_message_status NOT LIKE 'failed', t.sent_number, NULL) AS success_template_shared_numbers,
+
+--   t.error_code,
+--   t.template_name as templatename,
+--   t.response_number AS number_responded
+
+-- FROM scheduled_blasts s
+-- LEFT JOIN all_templates t
+--   ON s.consent_number = t.sent_number
+--  AND (
+--        (s.activity_number IN (1,2) AND t.template_name = s.template_name)
+--        OR
+--        (s.activity_number = 3 AND t.activity_number_from_meta = 3)
+--        OR
+--       (s.activity_number = 4 AND t.activity_number_from_meta = 4)
+--      )
+--  AND t.sent_date BETWEEN s.tobe_sent_date
+--                      AND DATE_ADD(s.tobe_sent_date, INTERVAL 1 DAY)
+-- ;
+
+
+
+
+-- WITH optins_number AS (
+--   SELECT 
+--     ts.phone_number AS concent_given_numbers,
+--     DATE(ts.sent_at) AS sent_date,
+--     ts.last_message_status,
+--     tr.phone_number AS response_number,
+--     DATE(tr.responded_at) AS responded_date,
+--     IF(DATE(tr.responded_at) <= DATE '2026-01-03',DATE '2026-01-04',DATE_ADD(DATE(tr.responded_at), INTERVAL 1 DAY)) AS first_blast_date,
+
+--     IF(DATE(tr.responded_at) <= DATE '2026-01-03',DATE '2026-01-18',DATE_ADD(DATE(tr.responded_at), INTERVAL 11 DAY)) AS second_blast_date
+
+--   FROM `dataform.template-sent` ts
+--  Inner JOIN (select * from `dataform.template-response` qualify row_number() over(partition by context_id order by responded_at)=1)  tr
+--     ON ts.external_id = tr.context_id
+--   WHERE ts.template_name = 'star_parent_optin_msg'
+--   QUALIFY ROW_NUMBER() OVER(PARTITION BY tr.phone_number ORDER BY responded_at) = 1
+-- ),
+
+-- blast_types AS (
+--   SELECT 'first' AS blast, 'sp_test_1' AS template_name
+--   UNION ALL
+--   SELECT 'second',       '1sp_act_32'
+-- ),
+
+-- expanded AS (
+--   SELECT
+--     o.concent_given_numbers,
+--     o.responded_date AS optin_date,
+--     b.blast,
+--     b.template_name,
+--     CASE 
+--       WHEN b.blast = 'first'  THEN o.first_blast_date
+--       ELSE o.second_blast_date
+--     END AS tobe_sent_date
+--   FROM optins_number o
+--   CROSS JOIN blast_types b
+--   WHERE (
+--     (b.blast = 'first'  AND o.first_blast_date  < CURRENT_DATE("Asia/Kolkata"))
+--     OR
+--     (b.blast = 'second' AND o.second_blast_date < CURRENT_DATE("Asia/Kolkata"))
+--   )
+-- ),
+
+-- sent_response AS (
+--   SELECT 
+--     ts.phone_number AS template_sent_number,
+--     DATE(ts.sent_at) AS template_sent_date,
+--     tr.phone_number AS template_response_number,
+--     ts.template_name,
+--     ts.last_message_status,
+--     ts.error_code,
+--     DATE(tr.responded_at) AS template_response_date
+--   FROM `dataform.template-sent` ts
+--   LEFT JOIN (select * from `dataform.template-response` qualify row_number() over(partition by context_id order by responded_at)=1) tr
+--     ON ts.external_id = tr.context_id
+-- )
+-- , final_data1 as(
+
+-- SELECT distinct 
+--   e.concent_given_numbers,
+--   e.tobe_sent_date,
+--   sr.template_sent_date,
+--   e.optin_date,
+--   IF(sr.template_sent_number IS NULL, e.concent_given_numbers, NULL) AS turn_failure_number,
+--   IF(sr.last_message_status LIKE 'failed', sr.template_sent_number, NULL) AS meta_failure_numbers,
+--   IF(sr.last_message_status NOT LIKE 'failed', sr.template_sent_number, NULL) AS success_template_shared_numbers,
+--   sr.error_code,
+--   case when   e.template_name='sp_test_1' then 1 
+--   when e.template_name='1sp_act_32' then 2
+--   end as activity_number,
+--   e.template_name as templatename,
+--   sr.template_response_number AS number_responded
+-- FROM expanded e
+-- LEFT JOIN sent_response sr
+--   ON e.concent_given_numbers = sr.template_sent_number
+--  AND sr.template_name       = e.template_name
+--  AND sr.template_sent_date BETWEEN e.tobe_sent_date 
+--                                AND DATE_ADD(e.tobe_sent_date, INTERVAL 1 DAY)
+-- )
+
+
+-- ---------------------------------------------------------------------------------------------
+-- -- create or replace table `adhoc.star_parent_activity_dashboard` as
+-- , optins_numbers AS (
+--   SELECT 
+--     ts.phone_number AS concent_given_numbers,
+--     DATE(ts.sent_at) AS sent_date,
+--     ts.last_message_status,
+--     tr.phone_number AS response_number,
+--     DATE(tr.responded_at) AS responded_date,
+--     IF(DATE(tr.responded_at) <= DATE '2026-01-03',DATE '2026-01-28',DATE_ADD(DATE(tr.responded_at), INTERVAL 21 DAY)) AS third_blast_date,
+
+--     -- IF(DATE(tr.responded_at) <= DATE '2026-01-03',DATE '2026-01-18',DATE_ADD(DATE(tr.responded_at), INTERVAL 12 DAY)) AS second_blast_date
+
+--   FROM `dataform.template-sent` ts
+--  Inner JOIN (select * from `dataform.template-response` qualify row_number() over(partition by context_id order by responded_at)=1)  tr
+--     ON ts.external_id = tr.context_id
+--   WHERE ts.template_name = 'star_parent_optin_msg'
+--   QUALIFY ROW_NUMBER() OVER(PARTITION BY tr.phone_number ORDER BY responded_at) = 1
+-- ),
+
+-- blast_types2 AS (
+--   SELECT 'third' AS blast, 3 AS activity_number
+--   -- UNION ALL
+--   -- SELECT 'second',       '1sp_act_32'
+-- ),
+
+-- expanded2 AS (
+--   SELECT
+--     o.concent_given_numbers,
+--     o.responded_date AS optin_date,
+--     b.blast,
+--     b.activity_number,
+--     CASE 
+--       WHEN b.blast = 'third'  THEN o.third_blast_date
+--       -- ELSE o.second_blast_date
+--     END AS tobe_sent_date
+--   FROM optins_numbers o
+--   CROSS JOIN blast_types2 b
+--   WHERE (
+--     (b.blast = 'third'  AND o.third_blast_date  < CURRENT_DATE("Asia/Kolkata"))
+--     -- OR
+--     -- (b.blast = 'second' AND o.second_blast_date < CURRENT_DATE("Asia/Kolkata"))
+--   )
+-- ),
+
+-- sent_responses AS (
+--   SELECT 
+--     ts.phone_number AS template_sent_number,
+--     DATE(ts.sent_at) AS template_sent_date,
+--     tr.phone_number AS template_response_number,
+--     ts.template_name,
+--   safe_cast(REGEXP_EXTRACT(template_meta_data, r'गतिविधि\s*(\d+)') as int64) AS gatividhi_number,
+--     ts.last_message_status,
+--     ts.error_code,
+--     DATE(tr.responded_at) AS template_response_date
+--   FROM `dataform.template-sent` ts
+--   LEFT JOIN (select * from `dataform.template-response` qualify row_number() over(partition by context_id order by responded_at)=1) tr
+--     ON ts.external_id = tr.context_id
+--     where template_name in ('sp_test_1',
+-- '2sp_act_32',
+-- '1sp_act_32',
+-- 'sp_act_30',
+-- 'sp_act_poster')
+-- )
+-- , final_data2 as (
+-- SELECT distinct 
+--   e.concent_given_numbers,
+--   e.tobe_sent_date,
+--   sr.template_sent_date,
+--   e.optin_date,
+--   IF(sr.template_sent_number IS NULL, e.concent_given_numbers, NULL) AS turn_failure_number,
+--   IF(sr.last_message_status LIKE 'failed', sr.template_sent_number, NULL) AS meta_failure_numbers,
+--   IF(sr.last_message_status NOT LIKE 'failed', sr.template_sent_number, NULL) AS success_template_shared_numbers,
+--   sr.error_code,
+--   -- e.template_name as templatename,
+--   e.activity_number,
+--   sr.template_name,
+--   sr.template_response_number AS number_responded
+-- FROM expanded2 e
+-- LEFT JOIN sent_responses sr
+--   ON e.concent_given_numbers = sr.template_sent_number
+--  AND sr.gatividhi_number       = e.activity_number
+--  AND sr.template_sent_date BETWEEN e.tobe_sent_date 
+--                                AND DATE_ADD(e.tobe_sent_date, INTERVAL 1 DAY)
+-- )
+-- select *
+-- from final_data1
+-- union all
+-- select *
+-- from final_data2
+
+-- with optins_number as (
+-- select 
+-- ts.phone_number as optin_message_sent_numbers,
+-- date(ts.sent_at) as sent_date, 
+-- ts.last_message_status,
+-- tr.phone_number as concent_given_numbers,
+-- date(tr.responded_at) as reponded_date,
+-- if(date(tr.responded_at)<=DATE '2026-01-03',DATE "2026-01-04",  date_add(date(responded_at),interval 1 day )) as first_blast_date,
+-- if(date(tr.responded_at)<=DATE '2026-01-03',DATE "2026-01-14",date_Add(date(responded_at),interval 10 day)) as second_blast_date,
+-- from `dataform.template-sent` ts
+-- inner join `dataform.template-response` tr
+-- on ts.external_id=tr.context_id
+-- where ts.template_name='star_parent_optin_msg'
+-- qualify row_number() over(partition by tr.phone_number order by responded_at)=1
+-- )
+-- select distinct 
+-- concent_given_numbers,
+-- first_blast_date as tobe_sent_date,
+-- first_temp.template_sent_date,
+-- reponded_date as optin_date,
+-- if(first_temp.template_sent_number is null,onum.concent_given_numbers,null) as turn_failure_number,
+-- if(first_temp.last_message_status like 'failed',first_temp.template_sent_number,null) meta_failure_numbers,
+-- if(first_temp.last_message_status not like 'failed',first_temp.template_sent_number,null) success_template_shared_numbers,
+-- error_code,
+-- template_name,
+-- first_temp.template_response_number as number_responded
+
+-- from optins_number onum
+-- left join (select 
+--             ts.phone_number as template_sent_number,
+--             ts.template_name,
+--             date(ts.sent_at) as template_sent_date,
+--             tr.phone_number as template_response_number,
+--             last_message_status,
+--             error_code,
+--             date(tr.responded_at) as template_response_date
+
+--             from `dataform.template-sent` ts   
+--             left join `dataform.template-response` tr
+--             on ts.external_id=tr.context_id
+--             where template_name='sp_test_1') first_temp
+--             on onum.concent_given_numbers=first_temp.template_sent_number
+--             and first_temp.template_sent_date between onum.first_blast_date and date_add(onum.first_blast_date,interval 1 day)
+--             where onum.first_blast_date< current_date("Asia/Kolkata")
+
+
+--             union all
+--             select distinct 
+-- concent_given_numbers,
+-- second_blast_date as tobe_sent_date,
+-- first_temp.template_sent_date,
+-- reponded_date as optin_date,
+-- if(first_temp.template_sent_number is null,onum.concent_given_numbers,null) as turn_failure_number,
+-- if(first_temp.last_message_status like 'failed',first_temp.template_sent_number,null) meta_failure_numbers,
+-- if(first_temp.last_message_status not like 'failed',first_temp.template_sent_number,null) success_template_shared_numbers,
+-- error_code,
+-- template_name,
+-- first_temp.template_response_number as number_responded
+
+-- from optins_number onum
+-- left join (select 
+--             ts.phone_number as template_sent_number,
+--             date(ts.sent_at) as template_sent_date,
+--             tr.phone_number as template_response_number,
+--             last_message_status,
+--             ts.template_name,
+--             error_code,
+--             date(tr.responded_at) as template_response_date
+
+--             from `dataform.template-sent` ts   
+--             left join `dataform.template-response` tr
+--             on ts.external_id=tr.context_id
+--             where template_name='sp_act_poster') first_temp
+--             on onum.concent_given_numbers=first_temp.template_sent_number
+--             and first_temp.template_sent_date between onum.second_blast_date and date_add(onum.second_blast_date,interval 1 day)
+--             where onum.second_blast_date< current_date("Asia/Kolkata")           
+            
+            
+            
+
+
+
