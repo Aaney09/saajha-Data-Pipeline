@@ -3,7 +3,31 @@ config {
     schema: "shareable_to_external", 
     name:"monthwise_assessment_data",
     tags: "wa_daily",
-     description: "Table has data of all children schedule in AY 2026 onwards and there shift in level"
+    description: "Table has data of all children schedule in AY 2026 onwards and there shift in level",
+    columns: {
+      tenant_id: "Saajha unique ID",
+      project_id: "Project ID user belongs to",
+      child_id: "Unique child ID",
+      parent_id: "Id assigned to parent",
+      assessment_year: "year of assessment",
+      assessment_number: "number of assessments",
+      math_assessment_date: "Date of assessment of child in math ",
+      math_level: "Levelof child in Math",
+      math_aia_id: "ID generated for each math assessment (NULL)",
+      prrevious_math_level: "Last level of child in maths",
+      shift_in_math_level: "Shift in level of maths; Logic: [(last- first) level] ",
+      math_improvement_level: "Improvement of level in Math",
+      math_shift_category: "Shift Category :increased/decreased/same",
+      hindi_assessment_date: "Date of assessment of child in hindi ",
+      hindi_level: "Levelof child in Hindi",
+      hindi_aia_id: "ID generated for each Hindi assessment(NULL) ",
+      previous_hindi_level: "last level of child in hindi",
+      shift_in_hindi_level: "Shift of level in Hindi (current - previous)",
+      hindi_improvement_level: "Improvement of level in Hindi",
+      hindi_shift_category: "Shift category: ncreased/decreased/same",
+      data_updated_on: "Date of Data last updated on *(updated daily)"
+
+    }
 }
 
 

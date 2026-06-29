@@ -4,7 +4,32 @@ config {
     type: "table",
     tags: "call_daily",
     schema:"calls",
-    description: "Daily roster calling Agentwise for academic year 2026-27, BAU "
+    description: "Daily roster calling Agentwise for academic year 2026-27, BAU ",
+    columns: {
+      agentMobile: "Phone number of agent",
+      calldate: "Date of call",
+      project_name: "Project name child is associated to",
+      unique_scheduledParents: "Number of unique Parent scheduled",
+      uniqueParentsDialed: "Number of unique parents dialed",
+      totalDials: "Total number of calls made on a particular day",
+      ParentsResolved: "Numbers of parents resolved by a particular agent",
+      ChildrenResolved: "Number of children resolved by a particular agent on a aprticular day",
+      R1_ParentsResolved: "Parents resolved in Round 1",
+      R2_ParentsResolved: "Parents resolved in Round 2",
+      R3_ParentsResolved: "Parents resolved in Round 3",
+      R4_ParentsResolved: "Parents resolved in Round 4",
+      R5_ParentsResolved: "Parents resolved in Round 5",
+      R6_ParentsResolved: "Parents resolved in Round 6",
+      R7_ParentsResolved: "Parents resolved in Round 7",
+      R8_ParentsResolved: "Parents resolved in Round 8",
+      R9_ParentsResolved: "Parents resolved in Round 9",
+      R10_ParentsResolved: "Parents resolved in Round 10",
+      R11_ParentsResolved: "Parents resolved in Round 11",
+      R12_ParentsResolved: "Parents resolved in Round 12",
+      R13_ParentsResolved: "Parents resolved in Round 13",
+      R14_ParentsResolved: "Parents resolved in Round 14", 
+      agent_name: "Name of Agent"
+    }
 }
 
 
