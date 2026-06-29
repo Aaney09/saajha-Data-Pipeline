@@ -25,7 +25,7 @@ config {
       shift_in_hindi_level: "Shift of level in Hindi (current - previous)",
       hindi_improvement_level: "Improvement of level in Hindi",
       hindi_shift_category: "Shift category: ncreased/decreased/same",
-      data_updated_on: "Date of Data last updated on"
+      data_updated_on: "Date of Data last updated on *(updated daily)"
 
     }
 }
