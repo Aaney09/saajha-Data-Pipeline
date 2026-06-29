@@ -1,0 +1,616 @@
+config {
+     type: "table",
+    tags: "IE"
+}
+
+
+-- create or replace table `impact_evaluation.mtp_daily_monitor_volunteer` as
+with hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+from ${ref("assessment")}
+where QuestionText like "%Ask%" and AssessmentId<>6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+, math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+from ${ref("assessment")}
+where QuestionText not like  "%Ask%" and AssessmentId <> 6
+qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+)
+
+, childDetails as (select 
+distinct 
+IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+from ${ref("IE")}
+where  projectid=1103935
+)
+
+, assessments as (
+  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  case  
+when c.childClass = 1 and mathLevel>=2 then TRUE
+when c.childClass = 2 and mathLevel>=3 then TRUE
+when c.childClass >=3 and mathLevel>=4 then TRUE
+Else false
+end mathFLnAchievedClassWise,
+case  
+when c.childClass = 1 and hindiLevel>=3 then TRUE
+when c.childClass >=2 and hindiLevel>=4 then TRUE
+Else false
+end hindiFLnAchievedClassWise
+from hindi_assessment h
+inner join math_assessment m
+using(assesseeActorID,dateOfAssessment)
+inner join childDetails c
+on assesseeActorID=childid)
+
+, lag_dates_mtp as (
+  select 
+  parentid,
+  childid,
+  dateOfAssessment,
+  lag(dateOfAssessment) over(partition by childid order by dateOfAssessment) as assessmentlagdate
+  from assessments
+  order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
+)
+
+,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+from lag_dates_mtp
+where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
+
+UNION ALL
+(select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+from lag_dates_mtp
+where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
+order by parentid  desc)
+
+
+ ,result_mtp as (select *, row_number() over(partition by childid order by dateOfAssessment asc)rn
+from resultData_mtp
+order by parentid asc,rn asc)
+
+
+
+
+
+
+
+
+
+
+,mtp_assessement_wise as (
+select 
+parentid,
+childid,
+MAX(IF(rn = 1, dateOfAssessment, NULL)) AS assessment_1,
+  MAX(IF(rn = 2, dateOfAssessment, NULL)) AS assessment_2,
+  MAX(IF(rn = 3, dateOfAssessment, NULL)) AS assessment_3,
+  MAX(IF(rn = 4, dateOfAssessment, NULL)) AS assessment_4,
+  MAX(IF(rn = 5, dateOfAssessment, NULL)) AS assessment_5,
+  MAX(IF(rn = 6, dateOfAssessment, NULL)) AS assessment_6,
+  MAX(IF(rn = 7, dateOfAssessment, NULL)) AS assessment_7
+
+from result_mtp
+group by 1,2
+)
+
+, extraction_dates as (
+select 
+       DATE(r.extractionDate)
+    -- ELSE DATE(r.rescheduledTime)
+   extractionDate,
+cohort,
+r.assignedTo as volunteer_schedule,
+count(distinct r.childid) as total_call_schedule
+-- r.childid,
+-- r.category
+-- count(distinct r.childid) as total_call_schedule
+from `impact_evaluation.mtp_daily_roster` r
+
+inner join ${ref("impact_evaluation_main_data")} ie_main
+on safe_cast(r.parentid as int64)=ie_main.parentid
+where date(r.rescheduledTime) between '2025-12-25' and current_date("Asia/Kolkata")
+and LOWER(r.category) LIKE '%floating%' 
+
+group by all
+
+union all
+  select 
+       DATE(r.rescheduledTime)
+    -- ELSE DATE(r.rescheduledTime)
+   extractionDate,
+cohort,
+r.assignedTo as volunteer_schedule,
+count(distinct r.childid) as total_call_schedule
+-- r.childid,
+-- r.category
+-- count(distinct r.childid) as total_call_schedule
+from `impact_evaluation.mtp_daily_roster` r
+
+inner join ${ref("impact_evaluation_main_data")} ie_main
+on safe_cast(r.parentid as int64)=ie_main.parentid
+where date(r.rescheduledTime) between '2025-12-25' and current_date("Asia/Kolkata")
+and LOWER(r.category) not LIKE '%floating%' 
+
+group by all
+
+-- where extractionDate=current_date("Asia/Kolkata")
+)
+
+
+-- ,mtp_final as (
+, all_attempts as (  
+select
+maw.parentid,
+maw.childid,
+date(mtp.inserted_at) as attempted_date,
+mtp.assignedto as volunteer_number,
+cohort,
+max(
+if(assessment_1 is not null,
+if(date(mtp.inserted_at)>assessment_1 and date(mtp.inserted_at)<ifnull(assessment_2,'2026-12-01'),mtp.parentid,null) 
+,null)) as attempted_calls_R1,
+
+max(if(assessment_2 is not null,
+if(date(mtp.inserted_at)>assessment_2 and date(mtp.inserted_at)<ifnull(assessment_3,'2026-12-01'),mtp.parentid,null)
+,null )) as attempted_calls_R2,
+
+max(if(assessment_3 is not null,
+if(date(mtp.inserted_at)>assessment_3 and date(mtp.inserted_at)<ifnull(assessment_4,'2026-12-01'),mtp.parentid,null)
+,null )) as attempted_calls_R3,
+
+max(if(assessment_4 is not null,
+if(date(mtp.inserted_at)>assessment_4 and date(mtp.inserted_at)<ifnull(assessment_5,'2026-12-01'),mtp.parentid,null)
+,null )) as attempted_calls_R4,
+
+max(if(assessment_5 is not null,
+if(date(mtp.inserted_at)>assessment_5 and date(mtp.inserted_at)<ifnull(assessment_6,'2026-12-01'),mtp.parentid,null)
+,null )) as attempted_calls_R5,
+
+
+max(if(assessment_6 is not null,
+if(date(mtp.inserted_at)>assessment_6 and date(mtp.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp.parentid,null)
+,null )) as attempted_calls_R6,
+-----------------------------------------------------------------------------------------------------------------------------
+--RESOLVED 
+-----------------------------------------------------------------------------------------------------------------------------
+-- max(
+-- if(assessment_1 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_1 and date(mtp_resolve.inserted_at)<ifnull(assessment_2,'2026-12-01'),mtp_resolve.parentid,null) 
+-- ,null)) as resolved_calls_R1,
+
+-- max(if(assessment_2 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_2 and date(mtp_resolve.inserted_at)<ifnull(assessment_3,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R2,
+
+-- max(if(assessment_3 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_3 and date(mtp_resolve.inserted_at)<ifnull(assessment_4,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R3,
+
+-- max(if(assessment_4 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_4 and date(mtp_resolve.inserted_at)<ifnull(assessment_5,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R4,
+
+-- max(if(assessment_5 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_5 and date(mtp_resolve.inserted_at)<ifnull(assessment_6,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R5,
+
+
+-- max(if(assessment_6 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_6 and date(mtp_resolve.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R6,
+
+from mtp_assessement_wise maw
+left join (select * from `saajhadata.impact_evaluation.mtp_calls` where date(inserted_at)>'2025-11-25') mtp
+on maw.parentid=safe_cast(mtp.parentid as int64)
+
+-- left join (select * from `saajhadata.impact_evaluation.mtp_calls` 
+-- where status like 'RESOLVED' and date(inserted_at)>'2025-11-25' ) mtp_resolve
+-- on maw.parentid=safe_cast(mtp_resolve.parentid as int64)
+
+left join ${ref("impact_evaluation_main_data")} ie_main
+on maw.parentid=ie_main.parentid
+
+group by all
+)
+, all_resolved as (
+  select
+  maw.parentid,
+maw.childid,
+date(mtp_resolve.inserted_at) as resolved_date,
+mtp_resolve.assignedto as volunteer_number,
+cohort,
+  -----------------------------------------------------------------------------------------------------------------------------
+--RESOLVED 
+-----------------------------------------------------------------------------------------------------------------------------
+max(
+if(assessment_1 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_1 and date(mtp_resolve.inserted_at)<ifnull(assessment_2,'2026-12-01'),mtp_resolve.parentid,null) 
+,null)) as resolved_calls_R1,
+
+max(if(assessment_2 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_2 and date(mtp_resolve.inserted_at)<ifnull(assessment_3,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R2,
+
+max(if(assessment_3 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_3 and date(mtp_resolve.inserted_at)<ifnull(assessment_4,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R3,
+
+max(if(assessment_4 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_4 and date(mtp_resolve.inserted_at)<ifnull(assessment_5,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R4,
+
+max(if(assessment_5 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_5 and date(mtp_resolve.inserted_at)<ifnull(assessment_6,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R5,
+
+
+max(if(assessment_6 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_6 and date(mtp_resolve.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R6,
+
+from mtp_assessement_wise maw
+-- left join (select * from `saajhadata.impact_evaluation.mtp_calls` where date(inserted_at)>'2025-11-25') mtp
+-- on maw.parentid=safe_cast(mtp.parentid as int64)
+
+left join (select * from `saajhadata.impact_evaluation.mtp_calls` 
+where status like 'RESOLVED' and date(inserted_at)>'2025-11-25' ) mtp_resolve
+on maw.parentid=safe_cast(mtp_resolve.parentid as int64)
+
+left join ${ref("impact_evaluation_main_data")} ie_main
+on maw.parentid=ie_main.parentid
+
+group by all 
+)
+, volunteer_details_resolved as 
+(select
+volunteer_number,
+cohort,
+resolved_date,
+-- count(distinct attempted_calls_R1 ) as round_1_attempted,
+-- count(distinct attempted_calls_R2 ) as round_2_attempted,
+-- count(distinct attempted_calls_R3 ) as round_3_attempted,
+-- count(distinct attempted_calls_R4 ) as round_4_attempted,
+-- count(distinct attempted_calls_R5 ) as round_5_attempted,
+-- count(distinct attempted_calls_R6 ) as round_6_attempted,
+
+-------------------------------------------------------------------------
+
+count(distinct resolved_calls_R1 ) as round_1_resolved,
+count(distinct resolved_calls_R2 ) as round_2_resolved,
+count(distinct resolved_calls_R3 ) as round_3_resolved,
+count(distinct resolved_calls_R4 ) as round_4_resolved,
+count(distinct resolved_calls_R5 ) as round_5_resolved,
+count(distinct resolved_calls_R6 ) as round_6_resolved,
+
+from all_resolved
+
+group by all
+)
+-- select * from all_attempts
+-- select *
+-- from all_attempts
+-- where childid in (103260143738005984,
+-- 103260143738127111,
+-- 103260143738764436,
+-- 103260143739198759,
+-- 103260143739473702,
+-- 103260143739541801)
+,volunteer_details as (
+select
+volunteer_number,
+cohort,
+attempted_date,
+count(distinct attempted_calls_R1 ) as round_1_attempted,
+count(distinct attempted_calls_R2 ) as round_2_attempted,
+count(distinct attempted_calls_R3 ) as round_3_attempted,
+count(distinct attempted_calls_R4 ) as round_4_attempted,
+count(distinct attempted_calls_R5 ) as round_5_attempted,
+count(distinct attempted_calls_R6 ) as round_6_attempted,
+
+-------------------------------------------------------------------------
+
+-- count(distinct resolved_calls_R1 ) as round_1_resolved,
+-- count(distinct resolved_calls_R2 ) as round_2_resolved,
+-- count(distinct resolved_calls_R3 ) as round_3_resolved,
+-- count(distinct resolved_calls_R4 ) as round_4_resolved,
+-- count(distinct resolved_calls_R5 ) as round_5_resolved,
+-- count(distinct resolved_calls_R6 ) as round_6_resolved,
+
+from all_attempts
+
+group by all
+
+)
+-- select * from volunteer_details
+
+select
+ed.extractiondate as calldate,
+ed.cohort,
+ed.volunteer_schedule as volunteer_number,
+case when ed.volunteer_schedule="9650647320" then 'Geeta'
+		when 	 ed.volunteer_schedule="9971923615" then 'Monia'
+    when 	 ed.volunteer_schedule="9669926580" then "Deepika"
+end as volunteer_name,
+
+ed.total_call_schedule,
+-----------------------------------------
+vd.round_1_attempted,
+vd.round_2_attempted,
+vd.round_3_attempted,
+vd.round_4_attempted,
+vd.round_5_attempted,
+vd.round_6_attempted,
+-------------------------------------------
+vdr.round_1_resolved,
+vdr.round_2_resolved,
+vdr.round_3_resolved,
+vdr.round_4_resolved,
+vdr.round_5_resolved,
+vdr.round_6_resolved
+from extraction_dates ed
+left join volunteer_details vd
+on ed.extractionDate=vd.attempted_date
+and ed.cohort=vd.cohort
+and ed.volunteer_schedule=vd.volunteer_number
+
+left join volunteer_details_resolved vdr
+on ed.extractionDate=vdr.resolved_date
+and ed.cohort=vdr.cohort
+and ed.volunteer_schedule=vdr.volunteer_number
+
+order by 1 desc
+
+
+
+
+
+
+
+
+
+
+-- create or replace table `impact_evaluation.mtp_daily_monitor_volunteer` as
+-- with hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+-- from ${ref("assessment")}
+-- where QuestionText like "%Ask%" and AssessmentId<>6
+-- qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+-- )
+-- , math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+-- from ${ref("assessment")}
+-- where QuestionText not like  "%Ask%" and AssessmentId <> 6
+-- qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+-- )
+
+-- , childDetails as (select 
+-- distinct 
+-- IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+-- safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+-- from ${ref("IE")}
+-- where  projectid=1103935
+-- )
+
+-- , assessments as (
+--   select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+--   case  
+-- when c.childClass = 1 and mathLevel>=2 then TRUE
+-- when c.childClass = 2 and mathLevel>=3 then TRUE
+-- when c.childClass >=3 and mathLevel>=4 then TRUE
+-- Else false
+-- end mathFLnAchievedClassWise,
+-- case  
+-- when c.childClass = 1 and hindiLevel>=3 then TRUE
+-- when c.childClass >=2 and hindiLevel>=4 then TRUE
+-- Else false
+-- end hindiFLnAchievedClassWise
+-- from hindi_assessment h
+-- inner join math_assessment m
+-- using(assesseeActorID,dateOfAssessment)
+-- inner join childDetails c
+-- on assesseeActorID=childid)
+
+-- , lag_dates_mtp as (
+--   select 
+--   parentid,
+--   childid,
+--   dateOfAssessment,
+--   lag(dateOfAssessment) over(partition by childid order by dateOfAssessment) as assessmentlagdate
+--   from assessments
+--   order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
+-- )
+
+-- ,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
+
+-- UNION ALL
+-- (select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
+-- order by parentid  desc)
+
+
+--  ,result_mtp as (select *, row_number() over(partition by childid order by dateOfAssessment asc)rn
+-- from resultData_mtp
+-- order by parentid asc,rn asc)
+
+
+
+
+
+
+
+
+
+
+-- ,mtp_assessement_wise as (
+-- select 
+-- parentid,
+-- childid,
+-- MAX(IF(rn = 1, dateOfAssessment, NULL)) AS assessment_1,
+--   MAX(IF(rn = 2, dateOfAssessment, NULL)) AS assessment_2,
+--   MAX(IF(rn = 3, dateOfAssessment, NULL)) AS assessment_3,
+--   MAX(IF(rn = 4, dateOfAssessment, NULL)) AS assessment_4,
+--   MAX(IF(rn = 5, dateOfAssessment, NULL)) AS assessment_5,
+--   MAX(IF(rn = 6, dateOfAssessment, NULL)) AS assessment_6,
+--   MAX(IF(rn = 7, dateOfAssessment, NULL)) AS assessment_7
+
+-- from result_mtp
+-- group by 1,2
+-- )
+
+-- , extraction_dates as (
+--   select 
+
+-- date(r.rescheduledTime) as    extractionDate,
+-- cohort,
+-- r.assignedTo as volunteer_schedule,
+-- count(distinct r.childid) as total_call_schedule
+-- from `impact_evaluation.mtp_daily_roster` r
+
+-- inner join `dataform.impact_evaluation_main_data` ie_main
+-- on safe_cast(r.parentid as int64)=ie_main.parentid
+-- where date(r.rescheduledTime) between '2025-12-25' and current_date("Asia/Kolkata")
+-- group by all
+-- -- where extractionDate=current_date("Asia/Kolkata")
+-- )
+
+
+-- -- ,mtp_final as (
+-- , all_attempts as (  
+-- select
+-- maw.parentid,
+-- maw.childid,
+-- date(mtp.inserted_at) as attempted_date,
+-- mtp.assignedto as volunteer_number,
+-- cohort,
+-- max(
+-- if(assessment_1 is not null,
+-- if(date(mtp.inserted_at)>assessment_1 and date(mtp.inserted_at)<ifnull(assessment_2,'2026-12-01'),mtp.parentid,null) 
+-- ,null)) as attempted_calls_R1,
+
+-- max(if(assessment_2 is not null,
+-- if(date(mtp.inserted_at)>assessment_2 and date(mtp.inserted_at)<ifnull(assessment_3,'2026-12-01'),mtp.parentid,null)
+-- ,null )) as attempted_calls_R2,
+
+-- max(if(assessment_3 is not null,
+-- if(date(mtp.inserted_at)>assessment_3 and date(mtp.inserted_at)<ifnull(assessment_4,'2026-12-01'),mtp.parentid,null)
+-- ,null )) as attempted_calls_R3,
+
+-- max(if(assessment_4 is not null,
+-- if(date(mtp.inserted_at)>assessment_4 and date(mtp.inserted_at)<ifnull(assessment_5,'2026-12-01'),mtp.parentid,null)
+-- ,null )) as attempted_calls_R4,
+
+-- max(if(assessment_5 is not null,
+-- if(date(mtp.inserted_at)>assessment_5 and date(mtp.inserted_at)<ifnull(assessment_6,'2026-12-01'),mtp.parentid,null)
+-- ,null )) as attempted_calls_R5,
+
+
+-- max(if(assessment_6 is not null,
+-- if(date(mtp.inserted_at)>assessment_6 and date(mtp.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp.parentid,null)
+-- ,null )) as attempted_calls_R6,
+-- -----------------------------------------------------------------------------------------------------------------------------
+-- --RESOLVED 
+-- -----------------------------------------------------------------------------------------------------------------------------
+-- max(
+-- if(assessment_1 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_1 and date(mtp_resolve.inserted_at)<ifnull(assessment_2,'2026-12-01'),mtp_resolve.parentid,null) 
+-- ,null)) as resolved_calls_R1,
+
+-- max(if(assessment_2 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_2 and date(mtp_resolve.inserted_at)<ifnull(assessment_3,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R2,
+
+-- max(if(assessment_3 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_3 and date(mtp_resolve.inserted_at)<ifnull(assessment_4,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R3,
+
+-- max(if(assessment_4 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_4 and date(mtp_resolve.inserted_at)<ifnull(assessment_5,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R4,
+
+-- max(if(assessment_5 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_5 and date(mtp_resolve.inserted_at)<ifnull(assessment_6,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R5,
+
+
+-- max(if(assessment_6 is not null,
+-- if(date(mtp_resolve.inserted_at)>assessment_6 and date(mtp_resolve.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp_resolve.parentid,null)
+-- ,null )) as resolved_calls_R6,
+
+-- from mtp_assessement_wise maw
+-- left join (select * from `saajhadata.impact_evaluation.mtp_calls` where date(inserted_at)>'2025-11-25') mtp
+-- on maw.parentid=safe_cast(mtp.parentid as int64)
+
+-- left join (select * from `saajhadata.impact_evaluation.mtp_calls` 
+-- where status like 'RESOLVED' and date(inserted_at)>'2025-11-25' ) mtp_resolve
+-- on maw.parentid=safe_cast(mtp_resolve.parentid as int64)
+
+-- left join `dataform.impact_evaluation_main_data` ie_main
+-- on maw.parentid=ie_main.parentid
+
+-- group by all
+-- )
+-- ,volunteer_details as (
+-- select
+-- volunteer_number,
+-- cohort,
+-- attempted_date,
+-- count(distinct attempted_calls_R1 ) as round_1_attempted,
+-- count(distinct attempted_calls_R2 ) as round_2_attempted,
+-- count(distinct attempted_calls_R3 ) as round_3_attempted,
+-- count(distinct attempted_calls_R4 ) as round_4_attempted,
+-- count(distinct attempted_calls_R5 ) as round_5_attempted,
+-- count(distinct attempted_calls_R6 ) as round_6_attempted,
+
+-- -------------------------------------------------------------------------
+
+-- count(distinct resolved_calls_R1 ) as round_1_resolved,
+-- count(distinct resolved_calls_R2 ) as round_2_resolved,
+-- count(distinct resolved_calls_R3 ) as round_3_resolved,
+-- count(distinct resolved_calls_R4 ) as round_4_resolved,
+-- count(distinct resolved_calls_R5 ) as round_5_resolved,
+-- count(distinct resolved_calls_R6 ) as round_6_resolved,
+
+-- from all_attempts
+
+-- group by all
+
+-- )
+
+-- select
+-- ed.extractiondate as calldate,
+-- ed.cohort,
+-- ed.volunteer_schedule as volunteer_number,
+-- case when ed.volunteer_schedule="9650647320" then 'Geeta'
+-- 		when 	 ed.volunteer_schedule="9971923615" then 'Monia'
+-- end as volunteer_name,
+
+-- ed.total_call_schedule,
+-- -----------------------------------------
+-- vd.round_1_attempted,
+-- vd.round_2_attempted,
+-- vd.round_3_attempted,
+-- vd.round_4_attempted,
+-- vd.round_5_attempted,
+-- vd.round_6_attempted,
+-- -------------------------------------------
+-- vd.round_1_resolved,
+-- vd.round_2_resolved,
+-- vd.round_3_resolved,
+-- vd.round_4_resolved,
+-- vd.round_5_resolved,
+-- vd.round_6_resolved
+-- from extraction_dates ed
+-- left join volunteer_details vd
+-- on ed.extractionDate=vd.attempted_date
+-- and ed.cohort=vd.cohort
+-- and ed.volunteer_schedule=vd.volunteer_number
+-- order by 1 desc
+
+
+
+
+
+
+
+

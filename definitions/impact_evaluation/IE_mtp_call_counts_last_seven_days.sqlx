@@ -1,0 +1,47 @@
+
+config {
+     type: "table",
+    tags: "IE",
+    description:"Getting average number of calls attmepted by volunteer for MTP in last 7 days"
+}
+ 
+
+
+-- create or replace table adhoc.ie_mtp_exotel_call_count as 
+with ie_numbers as (
+select
+REGEXP_REPLACE(safe_CAST(phone_number AS STRING), r'^91', '') AS phonenumber
+from `impact_evaluation.enrolled_users`
+union all
+select
+alternate_phone_number
+from `impact_evaluation.enrolled_users`
+where alternate_phone_number is not null and alternate_phone_number <> ""
+union all
+
+select 
+REGEXP_REPLACE(safe_CAST(pid.number AS STRING), r'^91', '')
+from `calls.all_phone_numbers_with_parentid` pid
+inner join `impact_evaluation.mtp_calls`
+on rosterparentid=safe_cast(parentId as int64)
+
+)
+
+select 
+distinct
+count(distinct starttime) as total_attempts_last_seven_Days,
+count(distinct case when RecordingUrl is not null and RecordingUrl != "" then starttime end) as successful_attempts_last_seven_days
+-- StartTime as call_start_time,
+-- endtime as call_end_time,
+-- duration as call_duration,
+-- RecordingUrl,
+-- e.to as parent_number,
+-- e.from as volunteer_number
+from `exotel_calls.exotel_calls` e
+where 
+e.from in (9650647320,9971923615,9669926580,9873564947)
+-- and RecordingUrl is not null
+-- and RecordingUrl != ""
+and date(starttime) between date_sub(current_date("Asia/Kolkata"), interval 7 day) and date_sub(current_date("Asia/Kolkata"), interval 1 day)    
+and e.to in (select safe_Cast(phonenumber as int64) from ie_numbers)
+order by 1 desc
