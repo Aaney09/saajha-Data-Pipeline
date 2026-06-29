@@ -1,0 +1,148 @@
+-- missed call initial template: missed_call_reminder_v2
+-- optin template: star_parent_optin_msg
+
+-- User data Journey name [parent name,class, chilname, schoolid]: Initial Registration - Star Parent
+
+-- select distinct flow_name
+-- from `dataform.template-sent`
+-- where lower(message_content) like '%registration%';
+
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema:"whatsapp",
+    description: "Table contains data of star parent optins step by step"
+}
+
+
+-- create or replace table adhoc.star_parent_dashboard_25 as (
+with misscall_flow_start as ( 
+select
+phone_number as miss_call_phone_numbers,
+sent_at as misscall_given_at,
+last_message_status as message_status_at_miss_call,
+error_code,
+error_reason,
+if(error_code='131050',phone_number,null) as code_050_User_has_stopped_reciept_of_marketing_messages,
+if(error_code='131049',phone_number,null) as code_049_Meta_chose_not_to_deliver,
+if(error_code='131026',phone_number,null) as code_026_Message_Undeliverable,
+if(error_code='131000',phone_number,null) as code_000_Something_went_wrong,
+if(error_code='130472',phone_number,null) as code_472_User_number_is_part_of_an_experiment
+
+from ${ref("std_delhi_onb_template_sent")}
+where template_name in ('missed_call_reminder_v2','missed_call_reminder_v15','missed_call_reminder_v21')
+and date(sent_at)>='2025-09-01'
+and phone_number<>919873873646
+)
+
+ ,parent_or_teacher_interactive_response as (
+select 
+s.phone_number as parent_teacher_template_sent_number,
+s.sent_at,
+r.button_reply_title as parent_or_teacher_indentification,
+-- r.list_reply_title,
+r.phone_number as parent_or_teacher_template_response_number
+from ${ref("std_delhi_onb_user_interactive_sent")} s 
+left join ${ref("std_delhi_onb_user_interactive_response")} r
+on s.external_id=r.context_id
+where flow_name like '%Initial Registration - Star Parent%'
+and (interactive_sent_metadata  like '%कृपया हमे बताएँ कि क्या आप एक टीचर/प्रिंसिपल हैं, या कक्षा 1 से 5 में पढ़ने वाले बच्चे के माता-पिता हैं?%' or interactive_sent_metadata like '%कृपया हमे बताएँ कि क्या आप एक *टीचर/प्रिंसिपल* हैं, या कक्षा 1 से 5 में पढ़ने वाले बच्चे के *माता-पिता* हैं?%')
+
+)
+, parent_or_teacher_final as (
+select
+parent_teacher_template_sent_number,
+case when parent_or_teacher_indentification like 'माता-पिता' then 'Parents'
+when parent_or_teacher_indentification like 'टीचर/प्रिंसिपल' then 'Teacher'
+else parent_or_teacher_indentification end as parent_or_teacher_indentification,
+parent_or_teacher_template_response_number
+from parent_or_teacher_interactive_response
+)
+
+, school_id_message_Sent as (
+select 
+phone_number as schoold_id_number_template_sent,
+sent_at
+from ${ref("std_delhi_onb_messages_sent")} s
+where s.message_content like '%कृपया हमे बच्चे की सात अंकों की *स्कूल आईडी* लिख कर भेजें।%'
+and flow_name ='Initial Registration - Star Parent'
+qualify row_number() over(partition by phone_number order by sent_at desc )=1 -- kyuki multiple times bheji gayi h kai cases m
+)
+, inbound_message as (
+select 
+    s.*,
+    safe_cast(i.message_content as int64) as schoold_id,
+    i.sent_at as inbound_sent_at,
+    row_number() over(
+      partition by s.schoold_id_number_template_sent
+      order by i.sent_at asc
+    ) as rn
+  from school_id_message_Sent s
+  left join ${ref("std_delhi_onb_incoming_messages")} i
+    on s.schoold_id_number_template_sent = i.phone_number
+   and i.sent_at >= s.sent_at
+)
+, getting_School_id as (
+select *
+from inbound_message
+where rn = 1
+)
+, final_consent_given as (
+select 
+-- ts.phone_number as optin_message_sent_numbers,
+-- ts.last_message_status,
+tr.phone_number as concent_given_numbers
+from ${ref("std_delhi_onb_template_sent")} ts
+left join ${ref("std_delhi_onb_template_response")} tr
+on ts.external_id=tr.context_id
+where ts.template_name='star_parent_optin_msg'
+
+union distinct 
+
+select
+     safe_cast(trim(urn, '+') as int64) as phone_number,
+    --  profile_starparent,
+    --  profile_opted_in,
+     
+    from `dataform.911171279787_contacts_all_raw_data`
+    where profile_starparent is true and profile_opted_in is true
+qualify row_number() over(partition by urn order by updated_at desc)=1
+
+
+)
+
+select
+miss_call_phone_numbers,
+date(misscall_given_at) as miss_call_given_at,
+message_status_at_miss_call,
+code_050_User_has_stopped_reciept_of_marketing_messages,
+code_049_Meta_chose_not_to_deliver,
+code_026_Message_Undeliverable,
+code_000_Something_went_wrong,
+code_472_User_number_is_part_of_an_experiment,
+----------------------------------------------------------------
+ptf.parent_teacher_template_sent_number,
+ptf.parent_or_teacher_indentification,
+ptf.parent_or_teacher_template_response_number,
+---------------------------------------------------------------
+gsi.schoold_id_number_template_sent,
+gsi.schoold_id,
+-------------------------------------------------
+fcg.concent_given_numbers
+
+
+
+from misscall_flow_start mfs
+
+left join parent_or_teacher_final ptf
+on mfs.miss_call_phone_numbers=ptf.parent_teacher_template_sent_number
+ 
+
+left join getting_School_id gsi
+on mfs.miss_call_phone_numbers=gsi.schoold_id_number_template_sent
+
+left join final_consent_given fcg
+on mfs.miss_call_phone_numbers=fcg.concent_given_numbers
+
+
+

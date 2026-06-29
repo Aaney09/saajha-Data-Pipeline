@@ -1,0 +1,292 @@
+/* THIS QUERY IS USED TO TRACK THE WORKSHEET PERFORMACNE IN LAST 10 DAYS*/
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema:"whatsapp",
+    description: "Last 10 days worksheet performance of children"
+}
+-- drop view `adhoc.worksheet_dashboard_data_25`
+-- create or replace table `adhoc.worksheet_dashboard_data_25` as 
+-- with newMathContent as (select distinct
+-- phone_number,sent_at, saajha_whatsapp_number
+-- from `dataform.template-sent`
+-- where template_meta_data like "%Y25%"
+-- -- and saajha_whatsapp_number <> 911171817073 -- removing noida count
+-- )
+with Worksheet_Sent_math AS (
+  SELECT 
+    Distinct worksheetNumber AS math_Worksheet_number_sent, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at, 
+    saajha_whatsapp_number
+  FROM ${ref("int_delhi_math_worksheet_sent")}
+  WHERE DATE(sent_at) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+    and last_message_status not like 'failed'
+union all
+  SELECT 
+    Distinct worksheetNumber AS math_Worksheet_number_sent, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at, 
+    saajha_whatsapp_number
+  FROM ${ref("int_noida_math_worksheet_sent")}
+  WHERE DATE(sent_at) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+    and last_message_status not like 'failed'
+
+
+
+),
+Worksheet_Clicked_math AS (
+  SELECT 
+    Distinct worksheetNumber AS math_Worksheet_number_clicked, 
+    phone_number ,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    clicked_time
+  FROM ${ref("int_math_worksheet_clicked")} 
+  WHERE DATE(clicked_time) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+),
+Worksheet_Completed_math AS (
+  SELECT 
+    Distinct worksheetNumber AS math_Worksheet_number_completed, 
+    phone_number ,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    submitted_time,
+  FROM ${ref("int_math_worksheet_completed")}
+  WHERE DATE(submitted_time) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+)
+
+,math_ as (SELECT rosterparentId,saajha_whatsapp_number,ws.Level,WS.sent_at,wc.clicked_time,tq.submitted_time, WS.math_Worksheet_number_sent,WC.math_Worksheet_number_clicked,TQ.math_Worksheet_number_completed, WS.phone_number ,WC.phone_number as clickedBy, TQ.phone_number as completedBy
+  -- Distinct WS.Worksheet,
+  -- COUNT(DISTINCT WS.phone_number) AS Sent,
+  -- COUNT(DISTINCT WC.phone_number) AS Clicked,
+  -- COUNT(DISTINCT TQ.phone_number) AS Completed
+FROM
+  Worksheet_Sent_math WS
+inner join `calls.all_phone_numbers_with_parentid`
+on WS.Phone_number=number
+LEFT JOIN
+  Worksheet_Clicked_math WC ON WS.phone_number = WC.phone_number AND
+  WS.math_Worksheet_number_sent = WC.math_Worksheet_number_clicked
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+LEFT JOIN
+  Worksheet_Completed_math TQ ON WC.phone_number = TQ.phone_number AND
+  WC.math_Worksheet_number_clicked = TQ.math_Worksheet_number_completed
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+-- GROUP BY WS.Worksheet
+)
+
+,main_math as (select distinct *
+from math_
+-- inner join math_
+-- using(phone_number,sent_at))
+)
+/** worksheet wise**/
+-- select Worksheet,count(distinct phone_number) as UniqueUserSentTo, count(distinct clickedBy)UniqueUserclickedBy,count(distinct completedBy)uniqueUserCompletedBy
+-- from main_
+-- group by 1 
+-- order by 1 
+
+/** Level wise **/
+,new_math_worksheet_count as (
+select distinct 
+level,
+math_worksheet_number_sent as worksheet_number_sent,
+math_worksheet_number_clicked as worksheet_number_clicked,
+math_worksheet_number_completed as worksheet_number_completed,
+case when saajha_whatsapp_number=912250555658 then 'Delhi'
+  when saajha_whatsapp_number=911171817073 then 'Noida'
+  else safe_cast(saajha_whatsapp_number as string) end as city,
+'MATH' as subject,
+date(sent_at) as sent_at,
+date(clicked_time) as clicked_time,
+date(submitted_time) as submitted_time,
+phone_number as UsernumberSentTo,
+clickedBy as UsernumberclickedBy,
+completedBy as UsernumberCompletedBy
+from main_math
+group by all
+order by 1 ,2,3
+)
+-------------------------------------------------------------------------------------------------------------------------------- Hindi
+------------------------------------------------------------------------------------------------------------------------------
+-- , hindi_content as (select distinct
+-- phone_number,sent_at,saajha_whatsapp_number
+-- from `dataform.template-sent`
+-- where saajha_whatsapp_number = 911171817073 --  noida count
+-- )
+,Worksheet_Sent_hindi AS (
+  SELECT 
+    Distinct worksheetNumber AS hindi_Worksheet_number_sent, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+    saajha_whatsapp_number
+  FROM ${ref("int_delhi_hindi_worksheet_sent")} 
+  WHERE DATE(sent_at) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+    and last_message_status not like 'failed'
+union all
+  SELECT 
+    Distinct worksheetNumber AS hindi_Worksheet_number_sent, 
+    phone_number , 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+    saajha_whatsapp_number
+  FROM ${ref("int_noida_hindi_worksheet_sent")} 
+  WHERE DATE(sent_at) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+    and last_message_status not like 'failed'
+
+
+),
+Worksheet_Clicked_hindi AS (
+  SELECT 
+    Distinct worksheetNumber AS hindi_Worksheet_number_clicked, 
+    phone_number ,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    clicked_time
+  FROM ${ref("int_hindi_worksheet_clicked")}
+  WHERE DATE(clicked_time) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+),
+Worksheet_Completed_hindi AS (
+  SELECT 
+    Distinct worksheetNumber AS hindi_Worksheet_number_completed, 
+    phone_number ,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    submitted_time
+
+  FROM ${ref("int_hindi_worksheet_completed")} 
+  WHERE DATE(submitted_time) BETWEEN DATE_SUB(DATE(CURRENT_DATETIME("Asia/Kolkata")), INTERVAL 11 DAY)
+    AND DATE(CURRENT_DATETIME("Asia/Kolkata"))
+)
+
+,hindi_ as (SELECT rosterparentId,saajha_whatsapp_number,ws.Level,WS.sent_at,wc.clicked_time,tq.submitted_time, WS.hindi_Worksheet_number_sent,WC.hindi_Worksheet_number_clicked,TQ.hindi_Worksheet_number_completed, WS.phone_number ,WC.phone_number as clickedBy, TQ.phone_number as completedBy
+  -- Distinct WS.Worksheet,
+  -- COUNT(DISTINCT WS.phone_number) AS Sent,
+  -- COUNT(DISTINCT WC.phone_number) AS Clicked,
+  -- COUNT(DISTINCT TQ.phone_number) AS Completed
+FROM
+  Worksheet_Sent_hindi WS
+inner join `calls.all_phone_numbers_with_parentid`
+on WS.Phone_number=number
+LEFT JOIN
+  Worksheet_Clicked_hindi WC ON WS.phone_number = WC.phone_number AND
+  WS.hindi_Worksheet_number_Sent = WC.hindi_Worksheet_number_clicked
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+LEFT JOIN
+  Worksheet_Completed_hindi TQ ON WC.phone_number = TQ.phone_number AND
+  WC.hindi_Worksheet_number_clicked = TQ.hindi_Worksheet_number_completed
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+-- GROUP BY WS.Worksheet
+)
+
+,main_hindi as (select distinct *
+from hindi_
+-- inner join hindi_
+-- using(phone_number,sent_at))
+)
+/** worksheet wise**/
+-- select Worksheet,count(distinct phone_number) as UniqueUserSentTo, count(distinct clickedBy)UniqueUserclickedBy,count(distinct completedBy)uniqueUserCompletedBy
+-- from main_
+-- group by 1 
+-- order by 1 
+
+/** Level wise **/
+, hindi_worksheet_count as (
+select distinct 
+level,
+hindi_Worksheet_number_sent,
+hindi_Worksheet_number_clicked,
+hindi_Worksheet_number_completed,
+case when saajha_whatsapp_number=912250555658 then 'Delhi'
+  when saajha_whatsapp_number=911171817073 then 'Noida'
+  else safe_cast(saajha_whatsapp_number as string) end as city,
+'Hindi' as subject, 
+date(sent_at) as sent_at,
+date(clicked_time) as clicked_time,
+date(submitted_time) as submitted_time,
+phone_number as UsernumberSentTo,
+clickedBy as UsernumberclickedBy, 
+completedBy as UsernumberCompletedBy
+from main_hindi
+order by 1 ,2,3
+) 
+select *,  DATETIME(TIMESTAMP(CURRENT_TIMESTAMP()), "Asia/Kolkata") AS data_refreshed_at 
+from new_math_worksheet_count 
+union all
+select *, DATETIME(TIMESTAMP(CURRENT_TIMESTAMP()), "Asia/Kolkata") AS data_refreshed_at
+from hindi_worksheet_count
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
