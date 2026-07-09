@@ -308,6 +308,71 @@ on ie.ieid=all_child.assesseeactorid
 -- where ie.is_active=1
 ) 
 
+
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+--Subject-wise Regress or Both
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+,hindi_regress as(
+select 
+c.*
+from ${ref("int_current_academic_hindi_assessment_status_of_child")}  c
+INNER join parent_journey_main_table as pa
+on c.assesseeActorId=pa.assesseeActorid
+where highestHindiRound>=3 and c.shift_in_hindi_level<0 and pa.Round_3_Assessment is not null
+)
+, math_regress as (
+  select
+  c.*
+  from ${ref("int_current_academic_math_assessment_status_of_child")}  c
+  INNER join parent_journey_main_table as pa
+on c.assesseeActorId=pa.assesseeActorid
+  where highestMathRound>=3 and c.shift_in_math_level<0 and pa.Round_3_Assessment is not null
+)
+
+,all_child_regress as (
+  select assesseeactorid
+  from hindi_regress
+
+  union distinct 
+
+  select assesseeactorid
+  from math_regress
+)
+
+, regress as (
+select distinct
+all_child_regress.assesseeactorid as childid,
+ie.ProjectId,
+case 
+when hi.assesseeactorid is not null and mi.assesseeactorid is not null then "Both"
+ when hi.assesseeactorid is not null and mi.assesseeactorid is null then 'Hindi'
+ when mi.assesseeactorid is not null and hi.assesseeactorid is null then 'Math'
+ end as regress_subject,      --name of the subject where improvement occured
+
+from all_child_regress
+left join hindi_regress hi
+on all_child_regress.assesseeactorid=hi.assesseeactorid
+
+left join math_regress mi
+on all_child_regress.assesseeactorid=mi.assesseeactorid
+
+left join ${ref("IE")} as ie
+on ie.ieid=all_child_regress.assesseeactorid
+-- where ie.is_active=1
+) 
+
+
+
+
+
+
+
+
+
+
 ----------------------------------------------------------------------------------------------------------------------------------------------------- 
 -- Atleast 3 Assessment Hindi and Math
 ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -388,6 +453,7 @@ where highestRound >= 3
 select distinct
 parent_journey_main_table.*,
 im.improved_subject, 
+r.regress_subject,
 (case
 when hh.highestRound >= 3 then 'Yes'
 else 'No' end ) as atLeast3HindiAssessment,
@@ -399,7 +465,8 @@ else 'No' end ) as atLeast3MathAssessment,
 from parent_journey_main_table
 left join improvement as im
 on parent_journey_main_table.assesseeActorid=im.childid 
-
+left join regress r
+on parent_journey_main_table.assesseeActorid=r.childid
 
 left join highestHindiAssessment as hh
 using (assesseeActorid)
