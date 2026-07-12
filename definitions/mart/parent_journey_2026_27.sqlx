@@ -444,7 +444,34 @@ from highestMathAssessment
 where highestRound >= 3
 )
 
+, ws_engagement as (
+  select 
+childid,
+-- subject,
+-- Hindi
+max(if(round_number=1 and subject='hindi', engagement_percentage, 0)) as round_1_hindi_engagement,
+max(if(round_number=2 and subject='hindi', engagement_percentage, 0)) as round_2_hindi_engagement,
+max(if(round_number=3 and subject='hindi', engagement_percentage, 0)) as round_3_hindi_engagement,
+max(if(round_number=4 and subject='hindi', engagement_percentage, 0)) as round_4_hindi_engagement,
+max(if(round_number=5 and subject='hindi', engagement_percentage, 0)) as round_5_hindi_engagement,
+max(if(round_number=6 and subject='hindi', engagement_percentage, 0)) as round_6_hindi_engagement,
+max(if(round_number=7 and subject='hindi', engagement_percentage, 0)) as round_7_hindi_engagement,
+max(if(round_number=8 and subject='hindi', engagement_percentage, 0)) as round_8_hindi_engagement,
+max(if(round_number=9 and subject='hindi', engagement_percentage, 0)) as round_9_hindi_engagement,
+-- Math
+max(if(round_number=1 and subject='math', engagement_percentage, 0)) as round_1_math_engagement,
+max(if(round_number=2 and subject='math', engagement_percentage, 0)) as round_2_math_engagement,
+max(if(round_number=3 and subject='math', engagement_percentage, 0)) as round_3_math_engagement,
+max(if(round_number=4 and subject='math', engagement_percentage, 0)) as round_4_math_engagement,
+max(if(round_number=5 and subject='math', engagement_percentage, 0)) as round_5_math_engagement,
+max(if(round_number=6 and subject='math', engagement_percentage, 0)) as round_6_math_engagement,
+max(if(round_number=7 and subject='math', engagement_percentage, 0)) as round_7_math_engagement,
+max(if(round_number=8 and subject='math', engagement_percentage, 0)) as round_8_math_engagement,
+max(if(round_number=9 and subject='math', engagement_percentage, 0)) as round_9_math_engagement
 
+from whatsapp.childwise_roundwise_worksheet_engagement
+group by 1
+)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 --   QUERY
@@ -452,6 +479,7 @@ where highestRound >= 3
 
 select distinct
 parent_journey_main_table.*,
+ws.* except(childid),
 im.improved_subject, 
 r.regress_subject,
 (case
@@ -474,6 +502,8 @@ using (assesseeActorid)
 left join highestMathAssessment as hm
 using (assesseeActorid)
 
+left join ws_engagement ws
+on ws.childid=parent_journey_main_table.assesseeActorid
 
 
 

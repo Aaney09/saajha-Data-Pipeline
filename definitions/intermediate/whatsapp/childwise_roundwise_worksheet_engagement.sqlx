@@ -1,0 +1,955 @@
+
+-----------------------------------------------------------------------------------------
+-- HINDI WORKSHEET
+-----------------------------------------------------------------------------------------
+config {
+    type:"table",
+    tags: "wa_daily",
+    schema:"whatsapp",
+    description:"This table contains worksheet engagement details of each child on each round for 26-27AY"
+}
+
+with Worksheet_Sent AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    childid, 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("int_noida_hindi_worksheet_sent")} s 
+   
+  WHERE childid is not null 
+  and date(sent_at)>='2026-04-01'
+  and last_message_status not like 'failed'
+union all
+
+
+
+
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    childid, 
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("int_delhi_hindi_worksheet_sent")} s 
+   
+  WHERE childid is not null 
+  and lower(worksheet_id) not like '%websitegp%'
+  and last_message_status not like 'failed'
+  and date(sent_at)>='2026-04-01'
+
+
+),
+Worksheet_Clicked AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    clicked_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    
+  FROM ${ref("int_hindi_worksheet_clicked")}
+   where upper(link_clicked) not  like '%GPWEBSITE%' 
+   and date(clicked_time)>='2026-04-01'
+  
+)--select * from Worksheet_Clicked
+,Worksheet_Completed AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    submitted_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    --hindi_assessment AS HindiAssessedName,
+    --maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    
+  FROM ${ref("int_hindi_worksheet_completed")} 
+  where upper(platform) not like '%GPWEBSITE%'
+  and date(submitted_time)>='2026-04-01'
+)
+
+,hindi_ as (
+  SELECT 
+  childid,
+  ws.Level,
+  ws.month,
+  WS.sent_at, 
+  WS.Worksheet,
+  clicked_time,
+  submitted_time, 
+  WS.phone_number ,
+  WC.phone_number as clickedBy, 
+  TQ.phone_number as completedBy, 
+
+FROM
+  Worksheet_Sent WS
+inner join ${ref("parent_journey_2026_27")}  pj
+-- left join ${ref("allPhoneNumberWithPid")} 
+-- on WS.Phone_number=number
+on WS.childid=pj.assesseeactorid
+
+LEFT JOIN Worksheet_Clicked WC 
+  ON WS.phone_number = WC.phone_number 
+  AND WS.Worksheet = WC.Worksheet
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+
+LEFT JOIN Worksheet_Completed TQ 
+  ON WC.phone_number = TQ.phone_number 
+  AND WC.Worksheet = TQ.Worksheet
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+) 
+
+,main_hindi as (select distinct *
+
+from hindi_ h
+
+)
+
+--counting unique user worksheet sent, clicked and completed
+,cte_hindi as (
+select 
+childid,
+date(sent_at) as sent_at,
+-- month,
+-- fa.*,
+level,
+worksheet,
+count(distinct phone_number) as UniqueUserSentTo, 
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
+
+from main_hindi m
+
+group by all
+) 
+
+----------------------------------------------------------------------------------------
+-- gam worksheet hindi
+---------------------------------------------------------------------------------------
+
+, hindi_worksheet_sent_gam as (
+select 
+phone_number,
+sent_at as sent_time,
+date(sent_at) as sent_date,
+math_assessment_date,
+hindi_assessment_date,
+childid,
+
+from ${ref("int_delhi_hindi_worksheet_sent")}
+
+where lower(worksheet_id) like '%websitegp%'
+and last_message_status not like 'failed'
+and date(sent_at)>='2026-04-01'
+)
+,link_clicked_hindi as (
+  select 
+  phone_number,
+  time as link_clicked_time,
+  date(time) as link_clicked_date,
+  maths_assessment_date,
+  hindi_assessment_date,
+  maths_assessment,
+  hindi_assessment,
+  childid,
+  REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') AS subject,
+  date(REGEXP_EXTRACT(link_clicked, r'unique=([^&]+)')) AS worksheet_sent_date
+  from `redirector.FLN_links`
+ where content_id='WebsiteGP'
+and lower(REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') ) like '%hindi%'
+and date(time)>='2026-04-01'
+
+)
+, hindi_worksheet_clicked_gam as (
+select
+phone_number,
+parentid as clicked_id,
+childid,
+clicked_time as worksheet_click_time,
+date(clicked_time) as worksheet_clicked_date,
+worksheet_id,
+LevelNumber,
+worksheetNumber,
+maths_assessment,
+hindi_assessment,
+maths_assessment_date,
+hindi_assessment_date
+
+from ${ref("int_hindi_worksheet_clicked")}
+where upper(link_clicked) like '%GPWEBSITE%'
+and date(clicked_time)>='2026-04-01'
+
+
+
+)
+, hindi_worksheet_completed_gam as (
+select 
+phone_number,
+parentid as submitted_id,
+childid,
+submitted_time as worksheet_submit_time,
+date(submitted_time) as worksheet_submitted_date,
+worksheet_id,
+LevelNumber,
+worksheetNumber,
+maths_assessment,
+hindi_assessment,
+maths_assessment_date,
+hindi_assessment_date
+from ${ref("int_hindi_worksheet_completed")}
+where upper(platform) like '%GPWEBSITE%'
+and date(submitted_time)>='2026-04-01'
+
+
+)
+,hindi_gam as (
+select
+distinct 
+rosterparentid,
+hs.childid,
+hs.phone_number,
+hs.sent_date,
+date(hs.math_assessment_date) as sent_table_math_assessed_date,
+hwc.worksheetnumber,
+hwc.levelnumber,
+clicked_id,
+submitted_id,
+
+
+lch.worksheet_sent_date as hindi_worksheet_sent_date_derived,
+lch.link_clicked_time,
+lch.link_clicked_date,
+date(hwc.maths_assessment_date) as math_assessed_Date,
+date(hwc.hindi_assessment_date) as hindi_assessed_Date,
+hwc.worksheet_click_time,
+hwc.worksheet_clicked_date,
+hw_completed.worksheet_submit_time,
+hw_completed.worksheet_submitted_date
+
+from hindi_worksheet_sent_gam hs
+inner join ${ref("all_phone_numbers_with_parentid")} p
+on p.number=hs.phone_number
+
+left join link_clicked_hindi lch
+on safe_cast(lch.phone_number as int64)=hs.phone_number
+and sent_date=worksheet_sent_date
+and date(lch.maths_assessment_date) = date(hs.math_assessment_date)
+and date(lch.hindi_assessment_date) = date(hs.hindi_assessment_date)
+
+
+left join hindi_worksheet_clicked_gam hwc
+on safe_Cast(lch.phone_number as int64)= hwc.phone_number 
+and lch.link_clicked_date=hwc.worksheet_clicked_date
+and date(lch.maths_assessment_date) = date(hwc.maths_assessment_Date) 
+and date(lch.hindi_assessment_date) =date(hwc.hindi_assessment_date)
+
+
+
+left join hindi_worksheet_completed_gam hw_completed
+on hwc.phone_number=hw_completed.phone_number
+and hwc.worksheet_id=hw_completed.worksheet_id
+and date(hwc.maths_assessment_Date)=date(hw_completed.maths_assessment_date) 
+and date(hwc.hindi_assessment_date)=date(hw_completed.hindi_Assessment_Date)
+
+
+)
+, unique_click_completed_hindi_levelwise_game as (
+  select 
+  childid,
+  math_assessed_Date,
+  levelnumber,
+  worksheetnumber,
+  -- count(distinct sent_date) as unique_sent,
+  count(distinct clicked_id) as unique_clicked,
+  count(distinct submitted_id) as unique_submitted
+  from hindi_gam
+  group by all
+)
+
+,hindi_click_complete_game as (
+select
+childid,
+math_assessed_Date,
+'hindi' AS subject,
+sum(unique_clicked) as unique_worksheet_clicked,
+sum(unique_submitted) as unique_worksheet_submitted
+from unique_click_completed_hindi_levelwise_game
+group by all
+)
+
+, unique_sent_hindi_gam as (
+  select
+  childid,
+  sent_table_math_assessed_date,
+  15 as  unique_sent_hindi_worksheet_gam -- This was fixed to 15 because at a time user get 15 worksheet
+  from hindi_gam
+  group by all
+)
+
+-- select *
+-- from unique_sent_hindi_gam
+-- where childid=103260143767216983
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------
+-- MATH WORKSHEET
+-----------------------------------------------------------------------------------------
+, Worksheet_Sent_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number , 
+    childid,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("int_noida_math_worksheet_sent")} s 
+  
+  WHERE childid is not null 
+  and last_message_status not like 'failed'
+  and date(sent_at)>='2026-04-01'
+union all
+
+
+SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number , 
+    childid,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment_name AS HindiAssessedName,
+    math_assessment_name AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(math_assessment_date) AS MathAssessedDate ,
+    sent_at,
+  FROM ${ref("int_delhi_math_worksheet_sent")} s 
+  
+  WHERE childid is not null 
+  and last_message_status not like 'failed'
+  and lower(worksheet_id) not like '%websitegp%'
+  and date(sent_at)>='2026-04-01'
+
+
+
+),
+Worksheet_Clicked_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    clicked_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    hindi_assessment AS HindiAssessedName,
+    maths_assessment AS MathAssessedName,
+    Date(hindi_assessment_date) AS HindiAssessedDate,
+    Date(maths_assessment_date) AS MathAssessedDate,
+    
+  FROM ${ref("int_math_worksheet_clicked")} 
+  where upper(link_clicked) not  like '%GPWEBSITE%'  
+  and date(clicked_time)>='2026-04-01'
+),
+Worksheet_Completed_math AS (
+  SELECT 
+    Distinct worksheetNumber AS Worksheet, 
+    phone_number ,
+    submitted_time,
+    LevelNumber AS Level, 
+    monthNumber AS Month,
+    -- hindi_assessment AS HindiAssessedName,
+    -- maths_assessment AS MathAssessedName,
+    date(hindi_assessment_date) AS HindiAssessedDate,
+    date(maths_assessment_date) AS MathAssessedDate,
+    
+  FROM ${ref("int_math_worksheet_completed")}
+  where upper(platform) not like '%GPWEBSITE%'
+  and date(submitted_time)>='2026-04-01'
+)
+
+,math_ as (
+  SELECT
+  childid,
+  ws.Level,
+  ws.month,
+  WS.sent_at, 
+  WS.Worksheet,
+  clicked_time,
+  submitted_time, 
+  WS.phone_number ,
+  WC.phone_number as clickedBy, 
+  TQ.phone_number as completedBy
+
+FROM
+  Worksheet_Sent_math WS
+inner join ${ref("parent_journey_2026_27")} pj
+-- left join ${ref("allPhoneNumberWithPid")} 
+-- on WS.Phone_number=number
+on WS.childid=pj.assesseeactorid
+
+LEFT JOIN Worksheet_Clicked_math WC 
+  ON WS.phone_number = WC.phone_number 
+  AND WS.Worksheet = WC.Worksheet
+  AND WS.Level = WC.Level
+  AND WS.Month = WC.Month
+  AND WS.HindiAssessedDate = WC.HindiAssessedDate
+  AND WS.MathAssessedDate = WC.MathAssessedDate
+
+LEFT JOIN Worksheet_Completed_math TQ 
+  ON WC.phone_number = TQ.phone_number 
+  AND WC.Worksheet = TQ.Worksheet
+  AND WC.Level = TQ.Level
+  AND WC.Month = TQ.Month
+  AND WC.HindiAssessedDate = TQ.HindiAssessedDate
+  AND WC.MathAssessedDate = TQ.MathAssessedDate
+
+)
+
+,main_math as (select distinct *
+
+from math_ m
+)
+
+--counting unique user worksheet sent, clicked and completed
+,cte_math as (
+select 
+childid,
+date(sent_at) as sent_at,
+-- month,
+-- fa.*,
+level,
+worksheet,
+count(distinct phone_number) as UniqueUserSentTo, 
+count(distinct if(date_diff(date(clicked_time),date(sent_at),day) between 0 and 20, clickedBy,null)) as UniqueUserclickedBy,
+count(distinct if(date_diff(date(submitted_time),date(sent_at),day) between 0 and 20 ,completedBy,null)) as uniqueUserCompletedBy
+
+from main_math m
+group by all
+)
+---------------------------------------------------------------------------------------------------
+
+,math_worksheet_sent_gam as (
+select 
+phone_number,
+sent_at as sent_time,
+date(sent_at) as sent_date,
+math_assessment_date,
+hindi_assessment_date,
+childid,
+
+from ${ref("int_delhi_math_worksheet_sent")}
+
+where lower(worksheet_id) like '%websitegp%'
+and last_message_status not like 'failed'
+and date(sent_at)>='2026-04-01'
+)
+,link_clicked_math as (
+  select 
+  phone_number,
+  time as link_clicked_time,
+  date(time) as link_clicked_date,
+  maths_assessment_date,
+  hindi_assessment_date,
+  maths_assessment,
+  hindi_assessment,
+  childid,
+  REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') AS subject,
+  date(REGEXP_EXTRACT(link_clicked, r'unique=([^&]+)')) AS worksheet_sent_date
+  from `redirector.FLN_links`
+ where content_id='WebsiteGP'
+and lower(REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') ) like '%math%'
+
+
+)
+, math_worksheet_clicked_gam as (
+select
+phone_number,
+parentid as clicked_id,
+childid,
+clicked_time as worksheet_click_time,
+date(clicked_time) as worksheet_clicked_date,
+worksheet_id,
+LevelNumber,
+worksheetNumber,
+maths_assessment,
+hindi_assessment,
+maths_assessment_date,
+hindi_assessment_date
+
+from ${ref("int_math_worksheet_clicked")}
+where upper(link_clicked) like '%GPWEBSITE%'
+and date(clicked_time)>='2026-04-01'
+
+)
+, math_worksheet_completed_gam as (
+select 
+phone_number,
+parentid as submitted_id,
+childid,
+submitted_time as worksheet_submit_time,
+date(submitted_time) as worksheet_submitted_date,
+worksheet_id,
+LevelNumber,
+worksheetNumber,
+maths_assessment,
+hindi_assessment,
+maths_assessment_date,
+hindi_assessment_date
+from ${ref("int_math_worksheet_completed")}
+where upper(platform) like '%GPWEBSITE%'
+and date(submitted_time)>='2026-04-01'
+
+
+)
+,math_gam as (
+select
+distinct 
+rosterparentid,
+ms.childid,
+ms.phone_number as sent_number,
+date(ms.math_assessment_date) as sent_table_math_assessed_date,
+ms.sent_date,
+mwc.worksheetnumber,
+mwc.levelnumber,
+clicked_id,
+submitted_id,
+
+
+lcm.worksheet_sent_date as math_worksheet_sent_date_derived,
+lcm.link_clicked_time,
+lcm.link_clicked_date,
+date(mwc.maths_assessment_date) as math_assessed_Date,
+date(mwc.hindi_assessment_date) as hindi_assessed_Date,
+mwc.worksheet_click_time,
+mwc.worksheet_clicked_date,
+mw_completed.worksheet_submit_time,
+mw_completed.worksheet_submitted_date
+
+from math_worksheet_sent_gam ms
+inner join ${ref("all_phone_numbers_with_parentid")} p
+on p.number=ms.phone_number
+
+left join link_clicked_math lcm
+on safe_cast(lcm.phone_number as int64)=ms.phone_number
+and sent_date=worksheet_sent_date
+and date(lcm.maths_assessment_date) = date(ms.math_assessment_date)
+and date(lcm.hindi_assessment_date) = date(ms.hindi_assessment_date)
+
+
+left join math_worksheet_clicked_gam mwc
+on safe_Cast(lcm.phone_number as int64)= mwc.phone_number 
+and lcm.link_clicked_date=mwc.worksheet_clicked_date
+and date(lcm.maths_assessment_date) = date(mwc.maths_assessment_Date) 
+and date(lcm.hindi_assessment_date) =date(mwc.hindi_assessment_date)
+
+
+
+left join math_worksheet_completed_gam mw_completed
+on mwc.phone_number=mw_completed.phone_number
+and mwc.worksheet_id=mw_completed.worksheet_id
+and date(mwc.maths_assessment_Date)=date(mw_completed.maths_assessment_date) 
+and date(mwc.hindi_assessment_date)=date(mw_completed.hindi_Assessment_Date)
+
+
+)
+, math_unique_click_completed_levelwise_gam as (
+  select 
+  childid,
+  math_assessed_Date, -- cant use worksheet sent date here as all 15 worksheet is sent at one go
+  levelnumber,
+  worksheetnumber,
+  -- count(distinct sent_date) as unique_sent,
+  count(distinct clicked_id) as unique_clicked,
+  count(distinct submitted_id) as unique_submitted
+  from math_gam
+  group by all
+)
+,math_click_complete_game as (
+select
+childid,
+math_assessed_Date,
+'math' AS subject,
+sum(unique_clicked) as unique_worksheet_clicked,
+sum(unique_submitted) as unique_worksheet_submitted
+from math_unique_click_completed_levelwise_gam
+group by all
+)
+, unique_sent_math_gam as (
+  select
+  childid,
+  sent_table_math_assessed_date,
+  15 as unique_sent_math_worksheet_gam
+  from math_gam
+  group by all
+)
+
+,sent_worksheet_gam as (
+  select
+  childid,
+  sent_table_math_assessed_date as sent_date,
+    unique_sent_math_worksheet_gam as worksheet_sent_gam,
+    'math' as subject
+  from unique_sent_math_gam
+union all
+  select
+  childid,
+  sent_table_math_assessed_date,
+    unique_sent_hindi_worksheet_gam,
+    'hindi' as subject
+  from unique_sent_hindi_gam
+
+)
+,click_complete_game as
+(
+  select
+  childid,
+  subject,
+  math_assessed_Date,
+  unique_worksheet_clicked,
+  unique_worksheet_submitted
+  from math_click_complete_game
+union all
+select
+ childid,
+  subject,
+  math_assessed_Date,
+  unique_worksheet_clicked,
+  unique_worksheet_submitted
+from hindi_click_complete_game
+) 
+
+,final_game_cte as (
+  select
+  sent.childid,
+  sent_date,
+  worksheet_sent_gam,
+  sent.subject,
+click.unique_worksheet_clicked,
+  click.unique_worksheet_submitted,
+
+
+  from sent_worksheet_gam sent
+  left join click_complete_game click
+  on sent.childid=click.childid
+  and sent.subject=click.subject
+  and sent.sent_date=click.math_assessed_Date
+
+
+
+)
+
+-- , total_uniques_math_gam as (
+--   select 
+--   rosterparentid,
+--   sum(unique_clicked) as unique_math_clicked,
+--   sum(unique_submitted) as unique_math_submitted
+--   from math_unique_click_completed_gam
+-- group by 1
+
+
+-- )
+
+
+
+---------------------------------------------------------------------------------------------------
+--Combining the child,level-wise and worksheet sent_date-wise math and hindi worksheet 
+,worksheet_cte_all as (
+
+select
+childid,
+level,
+worksheet,
+sent_at as sent_date,
+UniqueUserSentTo,
+UniqueUserclickedBy,
+uniqueUserCompletedBy,
+"hindi" as subject
+from cte_hindi
+
+union all
+
+select
+childid,
+level,
+worksheet,
+sent_at as sent_date,
+UniqueUserSentTo,
+UniqueUserclickedBy,
+uniqueUserCompletedBy,
+"math" as subject
+from cte_math
+
+
+) 
+
+
+,parent_rounds as (
+select
+safe_cast(assesseeActorId as int64) as childid,
+
+
+date(Round_1_Assessment) as r1,
+date(Round_2_Assessment) as r2,
+date(Round_3_Assessment) as r3,
+date(Round_4_Assessment) as r4,
+date(Round_5_Assessment) as r5,
+date(Round_6_Assessment) as r6,
+date(Round_7_Assessment) as r7,
+date(Round_8_Assessment) as r8,
+date(Round_9_Assessment) as r9,
+date(Round_10_Assessment) as r10
+
+from ${ref("parent_journey_2026_27")}
+where assesseeActorId is not null
+)
+
+--combining child's worksheet and round details together
+,base_round as (
+select
+w.*,
+-- p.cohort,
+p.r1,p.r2,p.r3,p.r4,p.r5,p.r6,p.r7,p.r8 ,p.r9,p.r10 --rounds assessment date
+
+from worksheet_cte_all as w
+inner join parent_rounds as p  
+on w.childid = p.childid
+
+) 
+
+
+--assigning round number based on the worksheet-sent date
+,round_tag as (
+
+select 
+*,
+case
+when r2 is null and sent_date >= r1 then 1
+when r2 is not null and sent_date between r1 and r2 then 1
+
+when r3 is null and sent_date >= r2 then 2
+when r3 is not null and sent_date between r2 and r3 then 2
+
+when r4 is null and sent_date >= r3 then 3
+when r4 is not null and sent_date between r3 and r4 then 3
+
+when r5 is null and sent_date >= r4 then 4
+when r5 is not null and sent_date between r4 and r5 then 4
+
+when r6 is null and sent_date >= r5 then 5
+when r6 is not null and sent_date between r5 and r6 then 5
+
+when r7 is null and sent_date >= r6 then 6
+when r7 is not null and sent_date between r6 and r7 then 6
+
+
+when r8 is null and sent_date >= r7 then 7
+when r8 is not null and sent_date between r7 and r8 then 7
+
+
+when r9 is null and sent_date >= r8 then 8
+when r9 is not null and sent_date between r8 and r9 then 8
+
+
+when r9 is null and sent_date >= r8 then 8
+when r9 is not null and sent_date between r8 and r9 then 8
+
+
+
+
+when sent_date >= r9 then 9
+
+end as round_number
+
+from base_round
+) 
+----------------------------------------------------------------------------
+-- FOR GAMIFIED WORKSHEET SENT COUNT
+----------------------------------------------------------------------------
+
+,base_round_gam as (
+select
+w.*,
+
+p.r1,p.r2,p.r3,p.r4,p.r5,p.r6,p.r7,p.r8 ,p.r9,p.r10 --rounds assessment date
+
+from final_game_cte as w
+inner join parent_rounds as p  
+on w.childid = p.childid
+
+) 
+
+
+--assigning round number based on the worksheet-sent date
+,round_tag_gam as (
+
+select 
+*,
+CASE
+  WHEN r2 IS NULL AND sent_date >= r1 THEN 1
+  WHEN r2 IS NOT NULL AND sent_date >= r1 AND sent_date < r2 THEN 1
+
+  WHEN r3 IS NULL AND sent_date >= r2 THEN 2
+  WHEN r3 IS NOT NULL AND sent_date >= r2 AND sent_date < r3 THEN 2
+
+  WHEN r4 IS NULL AND sent_date >= r3 THEN 3
+  WHEN r4 IS NOT NULL AND sent_date >= r3 AND sent_date < r4 THEN 3
+
+  WHEN r5 IS NULL AND sent_date >= r4 THEN 4
+  WHEN r5 IS NOT NULL AND sent_date >= r4 AND sent_date < r5 THEN 4
+
+  WHEN r6 IS NULL AND sent_date >= r5 THEN 5
+  WHEN r6 IS NOT NULL AND sent_date >= r5 AND sent_date < r6 THEN 5
+
+  WHEN r7 IS NULL AND sent_date >= r6 THEN 6
+  WHEN r7 IS NOT NULL AND sent_date >= r6 AND sent_date < r7 THEN 6
+
+  WHEN r8 IS NULL AND sent_date >= r7 THEN 7
+  WHEN r8 IS NOT NULL AND sent_date >= r7 AND sent_date < r8 THEN 7
+
+  WHEN r9 IS NULL AND sent_date >= r8 THEN 8
+  WHEN r9 IS NOT NULL AND sent_date >= r8 AND sent_date < r9 THEN 8
+
+  WHEN sent_date >= r9 THEN 9
+
+end as round_number
+
+from base_round_gam
+) 
+-- select * from round_tag_gam
+-- where childid=103260143767216983
+-------------------------------------------------------------------------------------------------------------
+
+
+--count of worksheet sent,clicked and completed,cohort,round,level,subject wise
+,round_level_metrics as (
+
+select
+childid,
+
+round_number,
+subject,
+level,
+
+
+sum(if(UniqueUserSentTo>1,1,UniqueUserSentTo)) as worksheet_sent,
+sum(if(UniqueUserclickedBy>1,1,UniqueUserclickedBy)) as worksheet_clicked,
+sum(if(uniqueUserCompletedBy>1,1,uniqueUserCompletedBy)) as worksheet_completed
+
+from round_tag
+where round_number is not null
+group by 1,2,3,4
+)
+,round_gam_metrics AS (
+SELECT
+    childid,
+    round_number,
+    subject,
+    worksheet_sent_gam,
+    unique_worksheet_clicked,
+ unique_worksheet_submitted
+
+FROM round_tag_gam
+WHERE round_number IS NOT NULL
+-- GROUP BY 1,2,3
+)
+
+-- select *
+-- from round_gam_metrics
+-- where childid=103260143767216983
+, all_child_round as (
+  select
+  childid,
+  round_number,
+  subject
+  from round_level_metrics
+  union all 
+  select
+  childid,
+  round_number,
+  subject
+  from round_gam_metrics
+
+)
+----------------------------------------------------------------
+--QUERY
+----------------------------------------------------------------
+, final_data as (
+select
+distinct all_id.childid,
+-- cohort,
+all_id.round_number,
+all_id.subject,
+-- worksheet_sent_gam,
+-- level,
+ifnull(rtg.worksheet_sent_gam,0)+ifnull(rlm.worksheet_sent,0) as worksheet_sent,
+
+-- worksheet_sent,
+   ifnull(rlm.worksheet_clicked,0)+ifnull(rtg.unique_worksheet_clicked,0) as worksheet_clicked,
+   ifnull(rlm.worksheet_completed,0)+ifnull(rtg.unique_worksheet_submitted,0) as worksheet_completed
+
+-- round((worksheet_completed/worksheet_sent)*100,2) as engagement_percentage,  --engagement percentage
+
+-- case
+-- when round((worksheet_completed/worksheet_sent)*100,2)>70.0 then "High"
+-- when round((worksheet_completed/worksheet_sent)*100,2) between 40.0 and 70.0 then "Medium"
+-- else "Low"
+-- end as bucket
+
+from all_child_round all_id
+
+left join round_level_metrics rlm
+on all_id.childid=rlm.childid
+and all_id.subject=rlm.subject
+and all_id.round_number=rlm.round_number
+
+left join round_gam_metrics rtg
+
+on all_id.childid=rtg.childid 
+and all_id.subject=rtg.subject
+and all_id.round_number=rtg.round_number
+-- and all_id.round_number is not null
+order by round_number,subject
+)
+select
+*,
+
+round((worksheet_completed/worksheet_sent)*100,2) as engagement_percentage,  --engagement percentage
+
+case
+when round((worksheet_completed/worksheet_sent)*100,2)>70.0 then "High"
+when round((worksheet_completed/worksheet_sent)*100,2) between 40.0 and 70.0 then "Medium"
+else "Low"
+end as bucket
+
+from final_data
