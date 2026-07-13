@@ -203,7 +203,11 @@ and safe_cast(activity_num as int64)=activity_number
 where p.activity_number is not null
 and p.profile_updated_date <= current_date("Asia/Kolkata")-2
  AND p.profile_updated_date >= DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 20 DAY)-- picking only last 20 days response
-
+and p.activity_number <> 0
+  AND (
+        city <> 'Bihar'
+        OR p.profile_updated_date > '2026-07-03'
+      )
 
 group by all
 ) s
