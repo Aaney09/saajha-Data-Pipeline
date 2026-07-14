@@ -2,7 +2,14 @@
 config {
   type: "table",
   schema:"donor",
-  tags:"Donor"
+  tags:"Donor",
+  description: "Table contains Combined donor data related to call duration and message details for AY 2026-27",
+  columns: {
+    month: "Number of Month",
+    MessageSentCountForNonefailed: "Message-sent Count for all successfully delivered messages",
+    monthYear: "Name of Month and Current Year",
+    totalCallDurationInHour: "Total Call durations (IN hours ) "
+  }
 }
 with callduration as (select distinct 
 extract(month from date(callstartdatetime ))Month,childid,

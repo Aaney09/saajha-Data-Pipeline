@@ -1,10 +1,13 @@
 config {
     type: "table",
       schema:"donor",
-    tags: "wa_daily"
-
-
-
+    tags: "wa_daily",
+    description: "The table consist worksheet related data to donor",
+    columns: {
+        childid: "Id assigned to child",
+        totalQuestionAnswered: "Total number of questions answered",
+        attemptedquestions: "total number of attempted questions"
+    }
 }
 -- to be move to mart
 

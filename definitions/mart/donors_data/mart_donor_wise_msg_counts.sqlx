@@ -2,7 +2,15 @@
 config {
   type: "table",
   schema:"donor",
-  tags:"Donor"
+  tags:"Donor",
+  description: "This table contains the monthly message count for each donor for AY 2026–27 ",
+  columns: {
+    month: "Number of month",
+    donor_name: "Name of Donor",
+    MessageExchanged: "Number of messsage exchanged",
+    monthYear: "Month name and Year",
+    totalCallDurationInHour: "TOtal call duration (In hours)"
+  }
 }
 with callduration as (select distinct 
 extract(month from date(callstartdatetime ))Month,parentid,
