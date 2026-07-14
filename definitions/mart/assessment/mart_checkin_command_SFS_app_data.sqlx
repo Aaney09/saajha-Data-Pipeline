@@ -83,7 +83,7 @@ from ${ref("IE_parent_journey")}
  
  
  from   ${ref("int_delhi_hindi_worksheet_sent")}
- 
+ where lower(worksheet_id) not like '%websitegp%'
  union all
   select childid,sent_at,hindi_assessment_date,
   worksheet_id,
@@ -92,7 +92,7 @@ from ${ref("IE_parent_journey")}
  
  
  from   ${ref("int_noida_hindi_worksheet_sent")}
-
+ where lower(worksheet_id) not like '%websitegp%'
 
  
  ) s
@@ -160,7 +160,7 @@ and lower(REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') ) like '%hindi%'
 , gamified_child_HINDI as (
 select 
 ms.childid,
-if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0) as hindi_worksheet_sent_count,
+max(if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0)) as hindi_worksheet_sent_count,
 
 count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.clicked_time,null)) as   hindi_worksheet_click_count,
 count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_attempt_datetime,null   )) as hindi_worksheet_attempted_in_last_30_day
@@ -216,7 +216,7 @@ and mwc.worksheet_id=attempt.hindi_formid
 where ms.childid is not null
 and lower(ms.worksheet_id) like '%websitegp%'
 and ms.last_message_status not like 'failed'
-group by 1,2
+group by 1
 )
 
 
@@ -310,7 +310,7 @@ s.childid
  
  
  from   ${ref("int_delhi_math_worksheet_sent")}
- 
+  where lower(worksheet_id) not like '%websitegp%'
  union all
   select childid,sent_at,hindi_assessment_date,
   worksheet_id,
@@ -319,6 +319,7 @@ s.childid
  
  
  from   ${ref("int_noida_math_worksheet_sent")}
+  where lower(worksheet_id) not like '%websitegp%'
 )
  s
 left join
@@ -387,7 +388,7 @@ and lower(REGEXP_EXTRACT(link_clicked, r'subject=([^&]+)') ) like '%math%'
 , gamified_child_math as (
 select 
 ms.childid,
-if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0) as math_worksheet_sent_count,
+max(if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0)) as math_worksheet_sent_count,
 
 count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.clicked_time,null)) as   math_worksheet_click_count,
 count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_attempt_datetime,null   )) as math_worksheet_attempted_in_last_30_day
@@ -443,7 +444,7 @@ and mwc.worksheet_id=attempt.hindi_formid
 where ms.childid is not null
 and lower(ms.worksheet_id) like '%websitegp%'
 and ms.last_message_status not like 'failed'
-group by 1,2
+group by 1
 )
 ,math_worksheet_ie as (
 select 
