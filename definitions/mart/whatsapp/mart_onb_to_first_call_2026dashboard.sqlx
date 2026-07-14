@@ -82,9 +82,32 @@ and date(datetime_Add(updated_At, interval 330 minute))>=fc.first_Call_date
 where fc.parentmobile is  null
 -- safe_cast(trim(urn, '+') as int64)=917408096186
  and date(updated_At)>='2026-02-24'
+ and profile_biharuser is not true
 -- and profile_starparent is not true
  qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 
+union all
+
+select 
+distinct
+safe_cast(trim(urn, '+') as int64) as nums,
+date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
+safe_Cast(profile_onboardingday as int64) -1 as activity_number,
+-- safe_Cast(profile_onboardingday as int64)-1,
+profile_lastonbactivitysentat   ,
+cast(null as string) as profile_onbrestart  ,
+"Bihar" as city
+from `dataform.911171817073_contacts_all_raw_data` all_nums
+left join first_call fc
+on fc.parentmobile=safe_cast(trim(urn, '+') as int64)
+and date(datetime_Add(updated_At, interval 330 minute))>=fc.first_Call_date
+
+where fc.parentmobile is  null
+-- safe_cast(trim(urn, '+') as int64)=917408096186
+ and date(updated_At)>='2026-06-24'
+ and profile_biharuser is  true
+-- and profile_starparent is not true
+ qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 
 
 
@@ -180,7 +203,11 @@ and safe_cast(activity_num as int64)=activity_number
 where p.activity_number is not null
 and p.profile_updated_date <= current_date("Asia/Kolkata")-2
  AND p.profile_updated_date >= DATE_SUB(CURRENT_DATE("Asia/Kolkata"), INTERVAL 20 DAY)-- picking only last 20 days response
-
+and p.activity_number <> 0
+  AND (
+        city <> 'Bihar'
+        OR p.profile_updated_date > '2026-07-03'
+      )
 
 group by all
 ) s

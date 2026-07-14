@@ -66,7 +66,7 @@ group_ranges AS (
       - target_count + 1 AS start_rn
   FROM group_targets
 )
-
+, cte as (
 SELECT 
 current_datetime("Asia/Kolkata")as allocated_on,
   p.parentid,
@@ -79,5 +79,17 @@ JOIN group_ranges g
   ON p.rn BETWEEN g.start_rn AND g.cumulative
 JOIN `donor.donor_proportion` dp
 on g.donor_name  =dp.donor_name
- 
+)
+
+select 
+cte.*,
+old.donor_name as old_donor_name,
+safe_cast(null as datetime) as new_allocation_chnaged_on
+from cte 
+left join `Archive.donor_allocation_25_26_AY` old
+using(parentid)
+
+
+
+
 -- )

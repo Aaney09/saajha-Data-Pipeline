@@ -330,6 +330,7 @@ ed.volunteer_schedule as volunteer_number,
 case when ed.volunteer_schedule="9650647320" then 'Geeta'
 		when 	 ed.volunteer_schedule="9971923615" then 'Monia'
     when 	 ed.volunteer_schedule="9669926580" then "Deepika"
+    when  ed.volunteer_schedule="9873564947" then "Richa"
 end as volunteer_name,
 
 ed.total_call_schedule,
