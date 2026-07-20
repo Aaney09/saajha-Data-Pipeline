@@ -3,7 +3,22 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description: "Last 10 days worksheet performance of children"
+    description: "Last 10 days worksheet performance of children",
+    columns: {
+      level: "Level of Child",
+      worksheet_number_sent: "Number of worksheets sent to a user",
+      worksheet_number_completed: "Number of worksheets completed",
+      worksheet_number_clicked: "Number of worksheets clicked",
+      city: "User belongs to which city (Delhi/Noida/IE)",
+      subject: "subject: Math/Hindi ",
+      sent_at: "Date when worksheet was sent",
+      clicked_time: "Time when worksheet was clicked",
+      submitted_time: "Time when worksheet was submitted",
+      UsernumberSentTo: "Phone number of parent worksheet sent to",
+      UsernumberclickedBy: "Phone number of parent worksheets clicked by (NULL)",
+      UsernumberCompletedBy: "Phone number of parent worksheets completed by",
+      data_refreshed_at: "Date and Time data was refreshed (IST) "
+    }
 }
 -- drop view `adhoc.worksheet_dashboard_data_25`
 -- create or replace table `adhoc.worksheet_dashboard_data_25` as 

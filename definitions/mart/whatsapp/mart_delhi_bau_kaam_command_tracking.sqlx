@@ -2,7 +2,22 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"Bau kaam command tracking for the academic year 2026-27."
+    description:"Bau kaam command tracking for the academic year 2026-27.",
+    columns: {
+      worksheet_failure_numbers: "phone number for which worksheet failure occured.",
+      kam_command_number: "phone number kam command: 918586904485, 919625002664, null",
+      kam_command_used_in_days: "Kaam command used in days: (null or after 7 days)",
+      failed_template_numbers: "Numbers from which template failed (all NULL)",
+      successfully_shared_template_numbers: "phone numbers through which templae was sent successfully 918586904485, 91962002664, null",
+      user_sent_kam_message_At: "Date time when kaam message was sent (IST)",
+      worksheet_failure_date: "date when worksheet failed",
+      subject_failed: "name of the subject for which failure occured",
+      last_message_status: "Status of last message(Read/sent/NULL)",
+      template_sent_at: "Date and Time when template was sent(IST)",
+      template_Sent_number: "number used for sending template (918586904485, 91962002664, NULL",
+      kam_command_template_clicked: "Kaam command template clicked (NULL)",
+      correct_subject_clicked: "Whether clicked Correct subject (null or incorrect)"
+    }
 }
 with  math_or_hindi_option_click as (
   select distinct
