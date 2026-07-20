@@ -81,7 +81,7 @@ Worksheet_Clicked AS (
     date(maths_assessment_date) AS MathAssessedDate,
     
   FROM ${ref("int_hindi_worksheet_completed")} 
-  where upper(platform) not like '%GPWEBSITE%'
+  where (upper(platform) not like '%GPWEBSITE%' or platform is null)
   and date(submitted_time)>='2026-04-01'
 )
 
@@ -199,7 +199,7 @@ maths_assessment_date,
 hindi_assessment_date
 
 from ${ref("int_hindi_worksheet_clicked")}
-where upper(link_clicked) like '%GPWEBSITE%'
+where upper(link_clicked) like '%GPWEBSITE%' 
 and date(clicked_time)>='2026-04-01'
 
 
@@ -394,7 +394,7 @@ Worksheet_Completed_math AS (
     date(maths_assessment_date) AS MathAssessedDate,
     
   FROM ${ref("int_math_worksheet_completed")}
-  where upper(platform) not like '%GPWEBSITE%'
+  where (upper(platform) not like '%GPWEBSITE%'or platform is null)
   and date(submitted_time)>='2026-04-01'
 )
 
