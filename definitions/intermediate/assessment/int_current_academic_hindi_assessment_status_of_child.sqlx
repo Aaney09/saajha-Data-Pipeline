@@ -2,7 +2,18 @@ config {
     type: "table",
     tags: ["call_daily"],
     schema: "assessment",
-    description: "Hindi assessment first and last level of a child from april 2026 till march 31st 2027. (created on 04/04/2026)"
+    description: "Hindi assessment first and last level of a child from april 2026 till march 31st 2027. (created on 04/04/2026)",
+    columns: {
+        assesseeActorId: "ID of Assess i.e., Child ID",
+        first_hindi_assessment_date: "Date when First Hindi Assessment was taken",
+        firstHindiLevel: "First Level of Child in Hindi",
+        last_hindi_assessment_date: "Date when Last Hindi Assessment taken",
+        lastHindiLevel: "Last Hindi Level",
+        highestHindiRound: "Highest Round of Child in Hindi",
+        shift_in_hindi_level: "Shift in level of Hindi (Last Level - First Level)",
+        hindi_improvement_level: "Hindi level Imrpvement (Improved by/Decreased by/Round 3 Not assessed)",
+        hindi_shift_category: "Category in Hindi level Shift(Improved/Decreased/Round 3 not assessed)"
+    }
     }
 
 with hindiAss as (select distinct AssesseeActorId,date(AssessmentTakenOn)hindiAssessDate,if(Level= "BEGINNER",0,safe_Cast(right(Level,1) as int64))as hindiLevel,AssessmentInstanceAssesseDRId,QuestionText
