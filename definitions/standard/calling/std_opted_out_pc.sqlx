@@ -3,7 +3,15 @@
 config {
     type: "table",
     schema:"calls",
-    tags : "call_daily"
+    tags : "call_daily",
+    description: "The table contains data regarding Opted out users",
+    columns: {
+        parentid: "ID assigned to Parent",
+        childid: "ID assigned to Child",
+        OptedOutStatus: "Status of opt out",
+        OptedOutDateTime: "Date and Time of Opt out (UTC)",
+        opt_out_reason: "Reason of opting out",
+    }
 }
 -- add IE table for child id
 select distinct userId as parentid,

@@ -2,7 +2,13 @@
 config {
   type: "table",
   schema:"donor",
-  tags:"Donor"
+  tags:"Donor",
+  description: "This table contains donor wise calling time details",
+  columns: {
+    childid: "Id of Child",
+    donor_name: "Name of Donorassociated with particular child id",
+    total_calling_minutes: "Minutes of Calling to a particular child"
+  }
 }
 with callduration as (select distinct 
 extract(month from date(callstartdatetime ))Month,parentid,

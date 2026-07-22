@@ -11,7 +11,22 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description: "Table contains data of star parent optins step by step"
+    description: "Table contains data of star parent optins step by step",
+    columns: {
+      miss_call_phone_numbers: "Phone numbers from which missed call received",
+      miss_call_given_at: "Date when missed call was received",
+      message_status_at_miss_call: "Status of WA message when missed call recieved (read/delivered/sent)",
+      code_050_User_has_stopped_reciept_of_marketing_messages: "Error  code 131050 for both Hindi and Math meta Failure",
+      code_049_Meta_chose_not_to_deliver: "Error  code 131049 for template with reason Meta chose not to deliver",
+      code_026_Message_Undeliverable: "Error  code 131026 for template with reason Message undeliverable",
+      code_000_Something_went_wrong: "Error  code 131000 for template with reason Something went wrong",
+      code_472_User_number_is_part_of_an_experiment: "Error  code 1310472 for template with reason User numberis a part of other experiment",
+      parent_teacher_template_sent_number: "Parent/Teacher phone number for template sent",
+      parent_or_teacher_template_response_number: "Phone number of parent or teacher for template repsonse",
+      schoold_id_number_template_sent: "Template number sent",
+      schoold_id: "Id of Child's school",
+      concent_given_numbers: "Number that has given consent"
+    }
 }
 
 

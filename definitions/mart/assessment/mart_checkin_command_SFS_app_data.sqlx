@@ -3,7 +3,39 @@ config {
     schema: "shareable_to_external", 
     name:"checkin_command_final_data",
     tags: "wa_daily",
-     description: "Table has data of all children schedule in AY 2026 onwards and it is shared with PC for APP"
+     description: "Table has data of all children schedule in AY 2026 onwards and it is shared with PC for APP",
+     columns: {
+      tenant_id: "Saajha unique ID",
+      project_id: "Project ID user belongs to",
+      child_id: "Unique child ID",
+      parent_id: "Id assigned to parent",
+      assessment_year: "year of assessment",
+      total_rounds_in_current_ay: "total rounds of user in current academic year",
+      first_hindi_assessment_date: "Date of First Hindi assessment",
+      first_hindi_level: "First level of child in hindi ",
+      last_hindi_assessment_date: "Date of last hindi assessment",
+      last_hindi_level: "Last Hindi level of child",
+      shift_in_hindi_level: "Shift in level; Logic:[(last-first) hindi level]",
+      hindi_improvement_level: "Improvement in level of hindi",
+      hindi_shift_category: "Shift Category :increased/decreased/same",
+      first_math_assessment_date: "Date of first math assessment",
+      first_math_level: "first Level of child in maths",
+      last_math_assessment_date: "Date of last math assessment",
+      last_math_level: "Last level of child in maths",
+      shift_in_math_level: "Shift in level of maths; Logic: [(last- first) level] ",
+      math_improvement_level: "Improvement of level in Math",
+      math_shift_category: "Shift Category :increased/decreased/same",
+      hindi_worksheet_sent_in_last_30_days: "Number of hindi worksheet sent in last 30 days",
+      hindi_worksheet_clicked_in_last_30_days: "Number of Hindi worksheet clicked in last 30 days",
+      hindi_worksheet_attempted_in_last_30_days: "Number of Hindi worksheet attempted in last 30 days",
+      hindi_worksheet_submitted_in_last_30_days: "Number of hindi worksheets submitted in last 30 days",
+      math_worksheet_sent_in_last_30_days: "Number of math worksheet sent in last 30 days",
+      math_worksheet_clicked_in_last_30_days: "Number of math worksheet clicked in last 30 days",
+      math_worksheet_attempted_in_last_30_days: "Number of Hindi worksheet attempted in last 30 days",
+      math_worksheet_submitted_in_last_30_days: "Number of hindi worksheets submitted in last 30 days",
+      data_updated_on: "Date of Data last updated on",
+      child_added_on: "Date and Time child was added (UTC)"
+     }
 }
 
 

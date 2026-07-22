@@ -4,7 +4,14 @@
 config {
   type: "incremental",
   schema:"donor",
-  tags:"Donor"
+  tags:"Donor",
+  description: "Table contains donor allocation details",
+  columns: {
+    allocated_on: "Date and Time when user was allocated to Donor (IST)",
+    parentid: "ID of parent",
+    donor_name: "Name of Donor to which parent is allocated",
+    target_count: "Target for the donor."
+  }
 }
 with 
 both_sub_3_assessed as (SELECT *
