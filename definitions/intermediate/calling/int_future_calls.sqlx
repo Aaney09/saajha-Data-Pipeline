@@ -2,7 +2,17 @@ config {
     type: "table",
     tags: "call_daily",
     schema: "calls",
-    description: "Details regarding agent calling, from today onwards in future roster. (created on 11/04/2026)"
+    description: "Details regarding agent calling, from today onwards in future roster. (created on 11/04/2026)",
+    columns: {
+        AgentMobile: "Mobile Number of Agent",
+        AgentName: "Name of Agent",
+        Round: "Round of Call",
+        child_class: "Current class of child",
+        project_name: "Name of project child is in",
+        today_scheduled_call: "Number of calls scheduled for today",
+        day_aftertomorrow_and_future_calls: "Number of calls for future",
+        overallCallsFromTodayOnwards: "Total number of calls from today onwards"
+    }
 }
 
 
