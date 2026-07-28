@@ -3,7 +3,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description: "Day-wise assessment to first worksheet details for the academic year 2026-27, in Delhi BAU"
+    description:" Day-wise assessment to first worksheet details for the academic year 2026-27, in Bihar"
 }
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
@@ -57,16 +57,16 @@ rf.* except(dateOfAssessment,city),
 mw.* except(dateOfAssessment,city,ChildiAssessed,ParentIdAssessed),
 hw.* except(dateOfAssessment,city,ChildiAssessed,ParentIdAssessed)
 from assessments a
-left join ${ref("int_delhi_result_failure_rate")} rf
+left join ${ref("int_bihar_result_failure_rate")} rf
 on a.dateOfAssessment=rf.dateOfAssessment
 and a.city=rf.city
 
-left join ${ref("int_delhi_math_assessment_to_first_worksheet")} mw
+left join ${ref("int_bihar_math_assessment_to_first_worksheet")} mw
 on a.dateOfAssessment=mw.dateOfAssessment
 and a.city=mw.city
 
-left join ${ref("int_delhi_hindi_assessment_to_first_worksheet")} hw
+left join ${ref("int_bihar_hindi_assessment_to_first_worksheet")} hw
 on a.dateOfAssessment=hw.dateOfAssessment
 and a.city=hw.city
-where a.city='Delhi'
+where a.city ='Bihar'
 order by 1 desc

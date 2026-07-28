@@ -2,7 +2,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"All hindi worskheet related data for the current academic year 2026-27, in noida"
+    description:"All hindi worskheet related data for the current academic year 2026-27, in bihar"
 }
 
 
@@ -21,7 +21,7 @@ with hindiProfile as (
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
 FROM ${ref("911171817073_contacts")}  	
-inner join ${ref("std_noida_profiles")}
+inner join ${ref("std_bihar_profile")}
 on phone_number=	 safe_cast(trim(urn, '+') as int64)	
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
 )	
@@ -46,7 +46,7 @@ AND hindilevel <> "4"
 ,worksheetTemp as (select phone_number,date(sent_at)worksheet_sent_date,error_code , error_reason , last_message_status
 
 -- `dataform.hindiWorksheetSent`
-from ${ref("int_noida_hindi_worksheet_sent")}
+from ${ref("int_bihar_hindi_worksheet_sent")}
 -- where (template_name like "%hfln_%" )or (template_name ="fln_worksheet" and lower(template_meta_data) like "%content_id=hindi%" )
 -- and flow_name like "%HFLN Worksheet [Apr2025]%"
 )
@@ -108,4 +108,5 @@ order by s.profile_updated_date desc
 
 select * 
 from overall_worksheet_status
+where profile_updated_date>='2026-07-22'
 order by 1 desc

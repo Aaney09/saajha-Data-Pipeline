@@ -22,6 +22,7 @@ distinct
 IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
 case when projectid=1103908 then 'Noida'
     when  projectid=1103935 then 'Impact Evaluation'
+    when  projectid=1104176 then 'Bihar'
     else 'Delhi' end as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
 from `platform_commons.IE`
@@ -178,7 +179,7 @@ using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
 left join math_first_worksheet_success ws
 on m.parentid=ws.parentid and m.childid= ws.childid
 and  date(ws.math_worksheet1_sent_on) between date(m.math_content_to_send_on) and date_Add(m.math_content_to_send_on,interval 1 day)
-
+where m.city='Delhi'
 group by all
 order by 1 desc
 
