@@ -3,7 +3,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:" Day-wise hindi worksheet and assessment details for the academic year 2026-27, in delhi BAU"
+    description:" Day-wise hindi worksheet and assessment details for the academic year 2026-27, in Bihar"
 }
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
@@ -26,12 +26,11 @@ case when projectid=1103908 then 'Noida'
     else 'Delhi' end as city,
 -- if(projectid=1103908,'Noida','Delhi') as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
-from `platform_commons.IE`
-where ProjectId not in (1103908,1103935)
+from ${ref("IE")}
 )
 
 , assessments_v1 as (
-  select * , dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+  select *, dateOfAssessment as hindi_content_to_send_on,dateOfAssessment as math_content_to_send_on,
   case  
 when c.childClass = 1 and mathLevel>=2 then TRUE
 when c.childClass = 2 and mathLevel>=3 then TRUE
@@ -48,9 +47,6 @@ inner join math m
 using(assesseeActorID,dateOfAssessment)
 inner join childDetails c
 on assesseeActorID=childid
-
-
-
 where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
 )
 , assessments as  (
@@ -76,20 +72,11 @@ where g.parentid is null
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
   from ${ref("all_phone_numbers_with_parentid")}
-  inner join ${ref("std_delhi_fln_template_sent")}
+  inner join ${ref("std_bihar_template_sent")}
   on number = phone_number
   where number is not null
   and date(sent_at)>="2026-04-01"
   and saajha_whatsapp_number in (912250555658,911171817073)
-
-  union all
-  
- select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
-  from ${ref("all_phone_numbers_with_parentid")}
-  inner join ${ref("IE_template_sent")}
-  on number = phone_number
-  where number is not null
-  and date(sent_at)>="2026-04-01"
 )
 
 ,hindi_video as (
@@ -98,7 +85,7 @@ where g.parentid is null
   date(sent_at)hindi_1st_video_sent_on,last_message_status as hindi_1st_video_msg_status,error_code as hindi_1st_video_error_code,error_reason as hindi_1st_video_error_reason,location
   from allNumbersPIDtemplatesent
   where (
-(template_name  in ( "hfln_video_template_v2","hfln_no_worksheet")))
+(template_name = "hfln_video_template_v2"))
   -- and last_message_status <> "failed"
 )
 
@@ -107,16 +94,8 @@ where g.parentid is null
   select distinct parentid,childid,
   phone_number as hindi_1st_worksheet_sent_to,
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
-  from ${ref("int_delhi_hindi_worksheet_sent")}
-  where worksheetNumber =1 
-  
-union all
-
-select distinct parentid,childid,
-  phone_number as hindi_1st_worksheet_sent_to,
-  date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
-  from ${ref("IE_hindi_worksheet_sent")}
-  where worksheetNumber =1
+  from ${ref("int_bihar_hindi_worksheet_sent")}
+--   where worksheetNumber =1 
 )
 ,hindi_first_worksheet_success as (
   select distinct parentid,childid,hindi_worksheet1_sent_on
@@ -132,7 +111,7 @@ select distinct parentid,childid,
   from assessments r
   inner join hindi_first_worksheet_Sent h
   using(parentid)
-  where hindi_worksheet1_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on,interval 1 day)
+  where hindi_worksheet1_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on, interval 7 day)
   -- datetime_diff(c.hindi_worksheet1_sent_on,sent_at,day)=1
 )
 
@@ -147,16 +126,16 @@ left join sent_hindi_first_worksheet hw
 -- using(parentid,childid)
 on a.parentid=hw.parentid
 and a.childid=hw.childid
-and a.hindi_content_to_send_on=hw.hindi_worksheet1_sent_on
+and hw.hindi_worksheet1_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on, interval 7 day)
 left join hindi_video hv 
 -- using(parentid)
 on a.parentid=hv.parentid
-and hv.hindi_1st_video_sent_on between a.hindi_content_to_send_on and date_Add(a.hindi_content_to_send_on, interval 1 day)
+and hv.hindi_1st_video_sent_on between hindi_content_to_send_on and date_add(hindi_content_to_send_on, interval 7 day)
 
 )
 
 select  dateOfAssessment,
-m.hindi_content_to_send_on,
+date_add(m.hindi_content_to_send_on, interval 1 day) as hindi_content_to_send_on,
 m.city,
 -- math_content_to_send_on,
 count(distinct m.parentid)ParentIdAssessed,
@@ -197,8 +176,8 @@ left join whom_hindi_worksheet_should_not_go g
 using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,hindilevel)
 left join hindi_first_worksheet_success hs
 on m.parentid=hs.parentid and m.childid= hs.childid
-and   date(hs.hindi_worksheet1_sent_on) between date(m.hindi_content_to_send_on) and date_add(m.hindi_content_to_send_on, interval 1 day)
-where m.city='Delhi'
+and   date(hs.hindi_worksheet1_sent_on) between date(m.hindi_content_to_send_on) and date_add(m.hindi_content_to_send_on, interval 7 day)
+where m.city='Bihar'
 group by all
 order by 1 desc
 

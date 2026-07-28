@@ -24,4 +24,4 @@ config {
 select distinct
    *
    from ${ref("std_7073_template_response")}
-   where wa_number_purpose='Noida'
+   where wa_number_purpose='Bihar'

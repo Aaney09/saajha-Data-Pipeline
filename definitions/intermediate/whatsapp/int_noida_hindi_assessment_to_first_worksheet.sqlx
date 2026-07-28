@@ -22,6 +22,7 @@ distinct
 IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
 case when projectid=1103908 then 'Noida'
     when  projectid=1103935 then 'Impact Evaluation'
+    when  projectid=1104176 then 'Bihar'
     else 'Delhi' end as city,
 -- if(projectid=1103908,'Noida','Delhi') as city,
 safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
