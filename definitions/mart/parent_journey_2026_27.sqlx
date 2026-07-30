@@ -472,13 +472,52 @@ max(if(round_number=9 and subject='math', engagement_percentage, 0)) as round_9_
 from whatsapp.childwise_roundwise_worksheet_engagement
 group by 1
 )
+----------------------------------------------------------------------------
+--  NEW CTE ADDED ON 30TH JULY 26 FOR GETTING COHORTS 
+---------------------------------------------------------------------------
+-- , roster as (
+--   select
+--   distinct ParentId,
+--   safe_cast(null as string) as dateofupload,
+--   "2025 carry forward parent" as category,
+--   "0" as cohort
+--   from `platform_commons.futureRoster`
+--   where ExtractionDate between '2026-03-31' and '2026-04-29'
+--   and ProjectId<>1103935
+-- )
+, uploads as (
+select 
+distinct
+rosterparentId,
+dateofupload,
+category,
+cohort
+from   `adhoc.BAU_cohorts_uploaded_for_calling_26` u
+inner join `calls.all_phone_numbers_with_parentid` pid
+on safe_Cast(concat("91",u.number) as int64)=pid.number
+-- inner join roster 
+-- on parentid=rosterparentid
+where u.number is not null
+)
+-- select * from uploads
+,all_cohorts as (
+select *
+from `adhoc.carry_forward_parent_2025_2026_AY`
+union all
+select *
+from uploads
+)
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 --   QUERY
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 
 select distinct
-parent_journey_main_table.*,
+pj.*,
+case when pj.projectid=1103908 then 'Noida'
+    when  pj.projectid=1103935 then 'Impact Evaluation'
+    when  pj.projectid=1104176 then 'Bihar'
+    else 'Delhi' end as Location,
 ws.* except(childid),
 im.improved_subject, 
 r.regress_subject,
@@ -488,13 +527,15 @@ else 'No' end ) as atLeast3HindiAssessment,
 (case
 when hm.highestRound >= 3 then 'Yes'
 else 'No' end ) as atLeast3MathAssessment,
+ac.dateofupload,
+ac.category,
+ac.cohort
 
-
-from parent_journey_main_table
+from parent_journey_main_table pj
 left join improvement as im
-on parent_journey_main_table.assesseeActorid=im.childid 
+on pj.assesseeActorid=im.childid 
 left join regress r
-on parent_journey_main_table.assesseeActorid=r.childid
+on pj.assesseeActorid=r.childid
 
 left join highestHindiAssessment as hh
 using (assesseeActorid)
@@ -503,7 +544,9 @@ left join highestMathAssessment as hm
 using (assesseeActorid)
 
 left join ws_engagement ws
-on ws.childid=parent_journey_main_table.assesseeActorid
+on ws.childid=pj.assesseeActorid
 
+left join all_cohorts ac
+on ac.parentid=pj.parentid
 
 
