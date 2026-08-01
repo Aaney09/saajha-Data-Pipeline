@@ -485,27 +485,10 @@ group by 1
 --   where ExtractionDate between '2026-03-31' and '2026-04-29'
 --   and ProjectId<>1103935
 -- )
-, uploads as (
-select 
-distinct
-rosterparentId,
-dateofupload,
-category,
-cohort
-from   `adhoc.BAU_cohorts_uploaded_for_calling_26` u
-inner join `calls.all_phone_numbers_with_parentid` pid
-on safe_Cast(concat("91",u.number) as int64)=pid.number
--- inner join roster 
--- on parentid=rosterparentid
-where u.number is not null
-)
--- select * from uploads
+-- 
 ,all_cohorts as (
 select *
-from `adhoc.carry_forward_parent_2025_2026_AY`
-union all
-select *
-from uploads
+from  `adhoc.BAU_cohorts_2026`
 )
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------
