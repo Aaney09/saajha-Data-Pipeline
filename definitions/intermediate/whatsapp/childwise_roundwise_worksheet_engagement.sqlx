@@ -164,6 +164,22 @@ from ${ref("int_delhi_hindi_worksheet_sent")}
 where lower(worksheet_id) like '%websitegp%'
 and last_message_status not like 'failed'
 and date(sent_at)>='2026-04-01'
+union all
+select 
+phone_number,
+sent_at as sent_time,
+date(sent_at) as sent_date,
+math_assessment_date,
+hindi_assessment_date,
+childid,
+
+from ${ref("int_bihar_hindi_worksheet_sent")}
+
+where lower(worksheet_id) like '%websitegp%'
+and last_message_status not like 'failed'
+and date(sent_at)>='2026-04-01'
+
+
 )
 ,link_clicked_hindi as (
   select 
@@ -473,6 +489,22 @@ from ${ref("int_delhi_math_worksheet_sent")}
 where lower(worksheet_id) like '%websitegp%'
 and last_message_status not like 'failed'
 and date(sent_at)>='2026-04-01'
+
+union all
+select 
+phone_number,
+sent_at as sent_time,
+date(sent_at) as sent_date,
+math_assessment_date,
+hindi_assessment_date,
+childid,
+
+from ${ref("int_bihar_math_worksheet_sent")}
+
+where lower(worksheet_id) like '%websitegp%'
+and last_message_status not like 'failed'
+and date(sent_at)>='2026-04-01'
+
 )
 ,link_clicked_math as (
   select 
