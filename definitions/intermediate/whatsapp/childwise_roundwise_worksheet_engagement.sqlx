@@ -6,7 +6,16 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"This table contains worksheet engagement details of each child on each round for 26-27AY"
+    description:"This table contains worksheet engagement details of each child on each round for 26-27AY",
+    columns:  {
+        childid: "ID assigned to child",
+        round_number: "Number of Round of user",
+        subject: "Name of subject",
+        worksheet_sent: "Total Number of worksheets sent",
+        worksheet_clicked: "Total numbers of worksheets clicked",
+        engagement_percentage: "Percentage of engagement with worksheet",
+        bucket: "Which bucket child is currently on: Low/Medium/High"
+    }
 }
 
 with Worksheet_Sent AS (

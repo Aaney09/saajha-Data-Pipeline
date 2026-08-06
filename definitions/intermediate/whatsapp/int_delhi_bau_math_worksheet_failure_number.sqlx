@@ -2,7 +2,14 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"Bau Math worksheet faliure numbers for academic year 2026-27"
+    description:"Bau Math worksheet faliure numbers for academic year 2026-27",
+    columns: {
+      math_failed_date: "Date when meta failure occured",
+      whommathWorksheetHasToProcessFromTurn: "Number of users to whom worksheets has to be processed from Turn",
+      whom_math_worksheet_has_not_processed_from_turn: "Number of user to whom worksheets has not been processed from turn",
+      math_worksheet_meta_failed: "Number to whom Worksheet failed from Meta's end",
+      subject: "Subject: Math"
+    }
 }
 
 with mathProfile as (
