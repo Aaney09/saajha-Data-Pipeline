@@ -62,7 +62,7 @@ where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
 , allNumbersPIDtemplatesent as (
   select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
   from ${ref("all_phone_numbers_with_parentid")}
-  inner join ${ref("std_noida_template_sent")}
+  inner join ${ref("std_bihar_template_sent")}
   on number = phone_number
   where number is not null
   and date(sent_at)>="2026-04-01"
@@ -153,7 +153,7 @@ from math_hindiResultSent m
 left join result_success rs
 on m.parentid=rs.parentid
 and  DATE(rs.combined_Result_sent_on)  BETWEEN m.dateOfAssessment AND DATE_ADD(m.dateOfAssessment, INTERVAL 7 DAY)
-where city='Noida'
+where city='Bihar'
 group by all
 order by dateOfAssessment desc
 

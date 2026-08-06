@@ -3,7 +3,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"Day-wise math worksheet and assessment details for the academic year 2026-27, in Noida"
+    description:"Day-wise math worksheet and assessment details for the academic year 2026-27, in Bihar"
 }
 with 
 hindi as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
@@ -69,9 +69,10 @@ where g.parentid is null
 
 
 , allNumbersPIDtemplatesent as (
-  select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data, if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
+  select distinct phone_number,rosterparentid as parentid,number,template_name,sent_at,date(sent_at)sent_date,last_message_status,error_code,error_reason,template_meta_data
+--   if(saajha_whatsapp_number=911171817073, "Noida","Delhi") location
   from ${ref("all_phone_numbers_with_parentid")}
-  inner join ${ref("std_noida_template_sent")}
+  inner join ${ref("std_bihar_template_sent")}
   on number = phone_number
   where number is not null
   and date(sent_at)>="2026-04-01"
@@ -82,8 +83,8 @@ where g.parentid is null
   select distinct parentid,childid,
   phone_number as math_1st_worksheet_sent_to,
   date(sent_at) as math_worksheet1_sent_on,last_message_status as math_1st_worksheet_msg_status,error_code as math_1st_worksheet_error_code,error_reason as math_1st_worksheet_error_reason,
-  from ${ref("int_noida_math_worksheet_sent")} -- mfln_worksheet_v2
-  where worksheetNumber =1 
+  from ${ref("int_bihar_math_worksheet_sent")} -- mfln_worksheet_v2
+--   where worksheetNumber =1 
 )
 
 ,math_first_worksheet_success as (
@@ -160,7 +161,7 @@ using(parentid,childid,dateOfAssessment,math_content_to_send_on,mathlevel)
 left join math_first_worksheet_success ws
 on m.parentid=ws.parentid and m.childid= ws.childid
 and  date(ws.math_worksheet1_sent_on) between m.math_content_to_send_on and date_add(m.math_content_to_send_on,interval 7 day)
-where m.city ='Noida'
+where m.city ='Bihar'
 group by all
 order by 1 desc
 

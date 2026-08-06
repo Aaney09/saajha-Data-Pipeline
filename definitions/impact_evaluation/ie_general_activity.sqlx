@@ -202,7 +202,7 @@ when cohort =7 and activity_date='2026-06-17' and phoneno in  (919027311357,9188
 when cohort=5 and activity_date='2026-07-03' and  phoneno in (select number from `adhoc.ie_cohort_5_general_activity_error`) then  DATE "2026-07-10"
 when cohort=6 and activity_date='2026-07-10' and  phoneno in (select number from `adhoc.ie_cohort_6_general_activity_error`) then  DATE "2026-07-14"
 when cohort=9 and activity_date='2026-07-01' and  phoneno in (select number from `adhoc.ie_cohort_9_general_activity_error`) then  DATE "2026-07-03"
-
+when cohort =7 and activity_date='2026-07-17' and phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then DATE "2026-07-18"
 
 else activity_date   end  as activity_date
 from ie_pilot_table2
