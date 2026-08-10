@@ -1,0 +1,87 @@
+config {
+
+
+    type:"table",
+    tags: "wa_daily",
+        schema:"whatsapp",
+    description:"This table have onboarding to first call unique counts. Created on 10th Aug"
+}
+
+with  templates as (
+  select
+ts.phone_number as sent_number,
+ts.template_name,
+ts.sent_at,
+ts.error_code,
+ts.last_message_status,
+template_meta_data,
+REGEXP_EXTRACT(
+JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+r'\d+'
+) as activity_num,
+tr.responded_at,
+tr.phone_number as responded_number,
+"Delhi" as city
+
+
+from ${ref("std_delhi_onb_template_sent")} ts
+left join ${ref("std_delhi_onb_template_response")} tr
+on ts.external_id=tr.context_id
+where template_name like 'onboarding_act_v5k'
+
+union all
+  select
+ts.phone_number as sent_number,
+ts.template_name,
+ts.sent_at,
+ts.error_code,
+ts.last_message_status,
+template_meta_data,
+REGEXP_EXTRACT(
+JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+r'\d+'
+) as activity_num,
+tr.responded_at,
+tr.phone_number as responded_number,
+"Noida"
+
+
+from ${ref("std_noida_template_sent")} ts
+left join ${ref("std_noida_template_response")} tr
+on ts.external_id=tr.context_id
+where template_name like 'onboarding_act_v5k'
+
+union all
+  select
+ts.phone_number as sent_number,
+ts.template_name,
+ts.sent_at,
+ts.error_code,
+ts.last_message_status,
+template_meta_data,
+REGEXP_EXTRACT(
+JSON_VALUE(template_meta_data,'$.components[1].parameters[0].text'),
+r'\d+'
+) as activity_num,
+tr.responded_at,
+tr.phone_number as responded_number,
+"Bihar"
+
+
+from ${ref("std_bihar_template_sent")} ts
+left join ${ref("std_bihar_template_response")} tr
+on ts.external_id=tr.context_id
+where template_name like 'onboarding_act_v5k'
+
+
+
+)
+
+select
+city,
+
+count(distinct sent_number) as unique_num_sent,
+count(distinct responded_number ) as unique_num_respond
+from templates
+group by 1
+
