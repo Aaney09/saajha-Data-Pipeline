@@ -7,7 +7,7 @@ config {
         phone_number: "Phone number of User",
         id: "Unique message ID ",
         chat_id: "Id of the chat (generated in the period of 24 hrs)",
-        emplate_name: "Name of last template sent",
+        template_name: "Name of last template sent",
       sent_at: "Date and time when Gamified worksheet sent",
       last_message_status: "Status of last message sent (Read/delivered)",
       error_code: "Code of error if occurred",

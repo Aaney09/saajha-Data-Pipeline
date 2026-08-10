@@ -2,7 +2,25 @@ config {
     type: "table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description: "result utility template for the academic year 2026-27, in Noida"
+    description: "result utility template for the academic year 2026-27, in Bihar",
+    columns: {
+      dateOfAssessment: "Date when assessment was taken",
+      city: "City ofchild here:Bihar",
+      ParentIdAssessed: "Total numberof unique parents assessed",
+      ChildiAssessed: "Total numberof unique child assessed",
+      result_tobe_processed: "ID of parent to whom result is to be processed",
+      processedResultsCombinedAsWellFLNAchieved: "Indicates whether the result was shared with a parent on at least one of their registered numbers; total results processed irrespective of fln achieved",
+      turn_result_failure_Rate: "Rate of Turn failures",
+      metaFailed_ResultsCombinedAsWellFLNAchieved: "total meta failure regardless of fln status",
+      meta_failure_rate: "Rate of Meta failures",
+      combined_result_and_fln_Achieved_failure_rate: "sum of meta failure rate and turn failure rate ",
+      combined_result_meta_failed: "both hindi math meta failure",
+      combined_result_131050_User_has_stopped_reciept_of_marketing_messages: "both hindi math meta failure of error code 131050",
+      combined_result_131049_Meta_chose_not_to_deliver: "both hindi math meta failure of error code 131049",
+      combined_result_131026_Message_Undeliverable: "both hindi math meta failure of error code 131026",
+      combined_result_131000_Something_went_wrong: "both hindi math meta failure of error code 131000",
+      combined_result_130472_User_number_is_part_of_an_experiment: "both hindi math meta failure of error code 1310472"
+    }
     }
 
 
