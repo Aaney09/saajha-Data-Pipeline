@@ -1,0 +1,280 @@
+config {
+    type: "table"
+}
+with _34_status as (
+  SELECT
+  DISTINCT
+  message_uuid,
+  status as last_message_status,
+    datetime_add(updated_at, interval 330 minute)updated_status_at,
+  
+  json_value(replace(replace( errors,"[",""),']',""),"$.title")title,
+  json_value(replace(replace( errors,"[",""),']',""),"$.code")code,
+
+
+  
+
+
+
+FROM
+  ${ref("911171817034","statuses")}
+-- where date(datetime_add(updated_at, interval 330 minute))<current_date("Asia/Kolkata")
+qualify row_number() over(partition by message_uuid order by updated_at desc)=1
+)
+,template_sent as (
+  SELECT distinct 
+    safe_cast(trim(addressees,'""[]+') as int64) phone_number,
+    rosterparentid,
+    -- id,
+    -- uuid, 
+    -- chat_id,
+    -- json_value(author,"$.id")flow_id,
+    json_value(author,"$.name")flow_name,
+    json_value(author,"$.type")flow_type,
+    json_value(template,"$.name")template_name, 
+    -- template template_meta_data, 
+    -- rendered_content as message_content,
+    last_message_status,
+    title as error_reason,
+    code as error_code,
+    datetime_add(inserted_at, Interval 330 minute)sent_at,
+    updated_status_at, 
+    911171817034 saajha_whatsapp_number,
+    "IE" wa_number_purpose,
+    external_id,
+from ${ref("911171817034","messages")}
+   left join ${ref("all_phone_numbers_with_parentid")}
+    on number= safe_cast(trim(addressees,'""[]+') as int64)
+
+left join _34_status
+on uuid = message_uuid
+where message_type = "template" 
+qualify row_number()over(partition by uuid order by updated_at desc)=1
+)
+, ie_pilot_table2 as (
+  select 
+   cohort,
+   rosterparentid,
+  phone_lookup as  phoneno,
+  -- "2028-10-10" as activity_date,
+  Assignment AS `GROUP`,
+
+  -- *
+  activity_date
+  from `impact_evaluation.ie_main_randomized_data` 
+      left join ${ref("all_phone_numbers_with_parentid")}
+    on phone_lookup=number
+    and Assignment='Treatment'
+
+  left join unnest( -- UNCOMMENT THIS
+    CASE 
+    WHEN cohort = 1 THEN [
+
+        DATE "2026-08-12"
+    ]
+
+    WHEN cohort = 2 THEN [
+        DATE "2026-08-12"
+    ]
+
+--     WHEN cohort = 3 THEN [
+--         DATE_ADD(DATE '2025-12-21', INTERVAL 240 DAY)
+--     ]
+
+--     WHEN cohort = 4 THEN [
+--         DATE_ADD(DATE '2025-12-28', INTERVAL 240 DAY)
+--     ]
+
+--     WHEN cohort = 5 THEN [
+--         DATE_ADD(DATE '2026-01-04', INTERVAL 240 DAY)
+--     ]
+
+--     WHEN cohort = 6 THEN [
+--         DATE_ADD(DATE '2026-01-11', INTERVAL 240 DAY)
+--     ]
+
+--     WHEN cohort = 7 THEN [
+--         DATE_ADD(DATE '2026-01-18', INTERVAL 240 DAY)
+--     ]
+    
+--     WHEN cohort = 8 THEN [
+--         DATE_ADD(DATE '2026-01-25', INTERVAL 240 DAY)
+--     ]
+
+--      WHEN cohort = 9 THEN [
+--         DATE_ADD(DATE '2026-02-01', INTERVAL 240 DAY)
+--     ]
+
+--      WHEN cohort = 10 THEN [
+--         DATE_ADD(DATE '2026-02-08', INTERVAL 240 DAY)
+--     ]
+
+END
+) as activity_date 
+  
+  
+)
+-- , treatment_parents as (
+--     select 
+--     distinct 
+--     rosterparentid
+--     from `impact_evaluation.ie_main_randomized_data` 
+--     inner join ${ref("all_phone_numbers_with_parentid")}
+--     on phone_lookup=number
+--     where Assignment='Treatment'
+-- )
+,  ie_pilot_table as ( 
+select * ,
+
+from ie_pilot_table2
+)
+
+, first_status as (
+  select ts.*
+  from template_sent ts
+  where template_name in ('user_reg_code')
+
+  qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At asc)=1
+)
+
+
+, base as (
+select
+iep.Cohort,
+iep.group,
+iep.rosterparentid as parentid,
+iep.phoneNo as phone_numbers_to_be_sent,
+iep.activity_date as endline_activity_date,
+-- fs.sent_at as first_sent_at,
+ fs.phone_number,
+    fs.sent_at,
+    fs.last_message_status,
+    fs.error_code
+
+-- if(fs.phone_number is not null,fs.phone_number,null) as phone_numbers_actually_sent,
+-- if(fs.phone_number is not null and fs.last_message_status not like 'failed',fs.phone_number,null) as phone_numbers_successfully_sent,
+-- if( fs.last_message_status  like 'failed',fs.phone_number,null) as meta_failure_numbers,
+-- if(fs.phone_number is null,iep.phoneno,null) as turn_failure_number,
+-- if(fs.error_code='131050',fs.phone_number,null) as code_050_User_has_stopped_reciept_of_marketing_messages,
+-- if(fs.error_code='131049',fs.phone_number,null) as code_049_Meta_chose_not_to_deliver,
+-- if(fs.error_code='131026',fs.phone_number,null) as code_026_Message_Undeliverable,
+-- if(fs.error_code='131000',fs.phone_number,null) as code_000_Something_went_wrong,
+-- if(fs.error_code='130472',fs.phone_number,null) as code_472_User_number_is_part_of_an_experiment
+-- if(fs.error_code='131050',fs.phone_number,null) as
+
+
+from ie_pilot_table iep
+left join first_status fs
+on fs.rosterparentid=iep.rosterparentid
+and date(fs.sent_at)=date(iep.activity_date)
+where date(iep.activity_date)<current_date("Asia/Kolkata")+1
+
+)
+
+,parent_status AS (
+  SELECT
+    Cohort,
+    `group`,
+    parentid,
+    endline_activity_date,
+    phone_numbers_to_be_sent,
+
+    -- Any number was sent
+    COUNTIF(phone_number IS NOT NULL) > 0 AS actually_sent,
+
+    -- At least one number was successfully sent
+    COUNTIF(
+      phone_number IS NOT NULL
+      AND last_message_status NOT LIKE 'failed'
+    ) > 0 AS successfully_sent,
+
+    -- All sent numbers failed
+    COUNTIF(phone_number IS NOT NULL) > 0
+    AND COUNTIF(
+      phone_number IS NOT NULL
+      AND last_message_status NOT LIKE 'failed'
+    ) = 0 AS completely_failed,
+
+    -- Error codes
+    COUNTIF(error_code = '131050') > 0 AS code_050,
+    COUNTIF(error_code = '131049') > 0 AS code_049,
+    COUNTIF(error_code = '131026') > 0 AS code_026,
+    COUNTIF(error_code = '131000') > 0 AS code_000,
+    COUNTIF(error_code = '130472') > 0 AS code_472
+
+  FROM base
+  GROUP BY 1,2,3,4,5
+)
+, treatment_final as (
+SELECT
+  Cohort,
+  `group`,
+  parentid as parent_to_be_shared,
+  endline_activity_date,
+  phone_numbers_to_be_sent,
+    -- parentid as parentid_to_be_shared,
+  IF(actually_sent, parentid, NULL) AS parents_actually_sent,
+
+  -- SUCCESS HAS PRIORITY
+  IF(successfully_sent, parentid, NULL) AS parents_successfully_sent,
+
+  -- Only show failure if NO number succeeded
+  IF(completely_failed, parentid, NULL) AS meta_failure_parent,
+
+  -- No number was sent at all
+  IF(NOT actually_sent, parentid, NULL) AS turn_failure_parent,
+
+  -- Error categories only if parent did NOT succeed anywhere
+  IF(NOT successfully_sent AND code_050, parentid, NULL)
+    AS code_050_User_has_stopped_reciept_of_marketing_messages,
+
+  IF(NOT successfully_sent AND code_049, parentid, NULL)
+    AS code_049_Meta_chose_not_to_deliver,
+
+  IF(NOT successfully_sent AND code_026, parentid, NULL)
+    AS code_026_Message_Undeliverable,
+
+  IF(NOT successfully_sent AND code_000, parentid, NULL)
+    AS code_000_Something_went_wrong,
+
+  IF(NOT successfully_sent AND code_472, parentid, NULL)
+    AS code_472_User_number_is_part_of_an_experiment
+
+FROM parent_status
+where `group` = 'Treatment'
+)
+, control_final as (
+select
+iep.Cohort,
+iep.group,
+iep.phoneNo as phone_numbers_to_be_sent,
+iep.activity_date as endline_activity_date,
+iep.phoneNo as phone_numbers_to_be_sent,
+-- fs.sent_at as first_sent_at,
+
+
+if(fs.phone_number is not null,fs.phone_number,null) as phone_numbers_actually_sent,
+if(fs.phone_number is not null and fs.last_message_status not like 'failed',fs.phone_number,null) as phone_numbers_successfully_sent,
+if( fs.last_message_status  like 'failed',fs.phone_number,null) as meta_failure_numbers,
+if(fs.phone_number is null,iep.phoneno,null) as turn_failure_number,
+if(fs.error_code='131050',fs.phone_number,null) as code_050_User_has_stopped_reciept_of_marketing_messages,
+if(fs.error_code='131049',fs.phone_number,null) as code_049_Meta_chose_not_to_deliver,
+if(fs.error_code='131026',fs.phone_number,null) as code_026_Message_Undeliverable,
+if(fs.error_code='131000',fs.phone_number,null) as code_000_Something_went_wrong,
+if(fs.error_code='130472',fs.phone_number,null) as code_472_User_number_is_part_of_an_experiment
+-- if(fs.error_code='131050',fs.phone_number,null) as
+
+
+from ie_pilot_table iep
+left join first_status fs
+on fs.phone_number=iep.phoneno
+and date(fs.sent_at)=date(iep.activity_date)
+where date(iep.activity_date)<current_date("Asia/Kolkata")+1
+and `group`='Control'
+)
+select *
+from treatment_final
+union all
+select *
+from control_final
+
