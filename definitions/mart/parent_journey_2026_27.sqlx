@@ -127,7 +127,13 @@ using (assesseeActorid)
   union distinct
   select distinct phone_number,date(min(timestamp))firstopted_in_onPI,
   from ${ref("process_improvement","opt_in_users")}
-  group by 1)
+  group by 1
+  union distinct
+  select distinct phone_number,date(min(timestamp))firstopted_in_onPI,
+  from ${ref("opt_in_records","bihar_optin_users")}
+  group by 1
+  
+  )
   group by 1
   )
 

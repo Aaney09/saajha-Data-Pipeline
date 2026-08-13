@@ -69,10 +69,10 @@ from ${ref("IE_parent_journey")}
     select 
     s.childid,
     -- s.*,c.clicked_time,co.submitted_time,attempt.hindi_attempt_datetime,attempt.hindi_formid
-    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.uuid,null))hindi_worksheet_sent_in_last_30_Day
-    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,clicked_time,null))hindi_worksheet_clicked_in_last_30_Day
-    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,hindi_attempt_datetime,null   )) as hindi_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(co.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,submitted_time,null))hindi_worksheet_submitted_in_last_30_Day
+    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,c.worksheet_id,null))hindi_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_formid,null   )) as hindi_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,co.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
 
 
  from  (
@@ -162,12 +162,34 @@ select
 ms.childid,
 max(if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0)) as hindi_worksheet_sent_count,
 
-count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.clicked_time,null)) as   hindi_worksheet_click_count,
-count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_attempt_datetime,null   )) as hindi_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(mw_completed.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mw_completed.submitted_time,null)) as hindi_worksheet_submitted_in_last_30_Day
+count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.worksheet_id,null)) as   hindi_worksheet_click_count,
+count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_formid,null   )) as hindi_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(mw_completed.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mw_completed.worksheet_id,null)) as hindi_worksheet_submitted_in_last_30_Day
 
-from `whatsapp.int_delhi_hindi_worksheet_sent` ms
-inner join `calls.all_phone_numbers_with_parentid` p
+from (
+select 
+phone_number,
+childid,
+sent_at,
+worksheet_id,
+math_assessment_date,
+hindi_assessment_date,
+last_message_status
+from ${ref("int_delhi_hindi_worksheet_sent")}
+
+union all
+select 
+phone_number,
+childid,
+sent_at,
+worksheet_id,
+math_assessment_date,
+hindi_assessment_date,
+last_message_status
+from ${ref("int_bihar_hindi_worksheet_sent")}
+
+) ms
+inner join ${ref("all_phone_numbers_with_parentid")} p
 on p.number=ms.phone_number
 
 left join link_clicked_hindi lcm
@@ -177,7 +199,7 @@ and date(lcm.maths_assessment_date) = date(ms.math_assessment_date)
 and date(lcm.hindi_assessment_date) = date(ms.hindi_assessment_date)
 
 
-left join `whatsapp.int_hindi_worksheet_clicked` mwc
+left join ${ref("int_hindi_worksheet_clicked")} mwc
 on safe_Cast(lcm.phone_number as int64)= mwc.phone_number 
 and lcm.link_clicked_date=date(mwc.clicked_time)
 and date(lcm.maths_assessment_date) = date(mwc.maths_assessment_Date) 
@@ -185,7 +207,7 @@ and date(lcm.hindi_assessment_date) =date(mwc.hindi_assessment_date)
 and upper(link_clicked) like '%GPWEBSITE%'
 
 
-left join `whatsapp.int_hindi_worksheet_completed` mw_completed
+left join ${ref("int_hindi_worksheet_completed")} mw_completed
 on mwc.phone_number=mw_completed.phone_number
 and mwc.worksheet_id=mw_completed.worksheet_id
 and date(mwc.maths_assessment_Date)=date(mw_completed.maths_assessment_date) 
@@ -224,10 +246,10 @@ group by 1
     select 
     s.childid,
     -- s.*,c.clicked_time,co.submitted_time,attempt.hindi_attempt_datetime,attempt.hindi_formid
-    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.uuid,null))hindi_worksheet_sent_in_last_30_Day
-    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,clicked_time,null))hindi_worksheet_clicked_in_last_30_Day
-    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,hindi_attempt_datetime,null   )) as hindi_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(co.worksheet_completed_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,worksheet_completed_time,null))hindi_worksheet_submitted_in_last_30_Day
+    count(distinct if(date(s.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))hindi_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,c.worksheet_id,null))hindi_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,hindi_formid,null   )) as hindi_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.worksheet_completed_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,co.worksheet_id,null))hindi_worksheet_submitted_in_last_30_Day
 
 
  from  
@@ -296,10 +318,10 @@ union all
 select 
 --s.*,c.clicked_time,co.submitted_time,attempt.math_attempt_datetime,attempt.math_formid
 s.childid
- ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.uuid,null))math_worksheet_sent_in_last_30_Day
-    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,clicked_time,null))math_worksheet_clicked_in_last_30_Day
-    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,math_attempt_datetime,null   )) as math_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(co.submitted_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,submitted_time,null))math_worksheet_submitted_in_last_30_Day
+ ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,c.worksheet_id,null))math_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,math_formid,null   )) as math_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.submitted_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,co.worksheet_id,null))math_worksheet_submitted_in_last_30_Day
 
 
  from 
@@ -390,12 +412,36 @@ select
 ms.childid,
 max(if(date(ms.sent_at) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,15,0)) as math_worksheet_sent_count,
 
-count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.clicked_time,null)) as   math_worksheet_click_count,
-count(distinct if(date(attempt.hindi_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.hindi_attempt_datetime,null   )) as math_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(mw_completed.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mw_completed.submitted_time,null)) as math_worksheet_submitted_in_last_30_Day
+count(distinct if(date(mwc.clicked_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mwc.worksheet_id,null)) as   math_worksheet_click_count,
+count(distinct if(date(attempt.math_attempt_datetime) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,attempt.math_formid,null   )) as math_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(mw_completed.submitted_time) between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,mw_completed.worksheet_id,null)) as math_worksheet_submitted_in_last_30_Day
 
-from `whatsapp.int_delhi_math_worksheet_sent` ms
-inner join `calls.all_phone_numbers_with_parentid` p
+from (
+  select 
+phone_number,
+childid,
+sent_at,
+worksheet_id,
+math_assessment_date,
+hindi_assessment_date,
+last_message_status
+  from ${ref("int_delhi_math_worksheet_sent")}
+union all 
+
+ select 
+phone_number,
+childid,
+sent_at,
+worksheet_id,
+math_assessment_date,
+hindi_assessment_date,
+last_message_status
+  from ${ref("int_bihar_math_worksheet_sent")}
+ 
+  
+  
+  ) ms
+inner join ${ref("all_phone_numbers_with_parentid")} p
 on p.number=ms.phone_number
 
 left join link_clicked_math lcm
@@ -405,7 +451,7 @@ and date(lcm.maths_assessment_date) = date(ms.math_assessment_date)
 and date(lcm.hindi_assessment_date) = date(ms.hindi_assessment_date)
 
 
-left join `whatsapp.int_math_worksheet_clicked` mwc
+left join ${ref("int_math_worksheet_clicked")} mwc
 on safe_Cast(lcm.phone_number as int64)= mwc.phone_number 
 and lcm.link_clicked_date=date(mwc.clicked_time)
 and date(lcm.maths_assessment_date) = date(mwc.maths_assessment_Date) 
@@ -413,7 +459,7 @@ and date(lcm.hindi_assessment_date) =date(mwc.hindi_assessment_date)
 and upper(link_clicked) like '%GPWEBSITE%'
 
 
-left join `whatsapp.int_math_worksheet_completed` mw_completed
+left join ${ref("int_math_worksheet_completed")} mw_completed
 on mwc.phone_number=mw_completed.phone_number
 and mwc.worksheet_id=mw_completed.worksheet_id
 and date(mwc.maths_assessment_Date)=date(mw_completed.maths_assessment_date) 
@@ -425,8 +471,8 @@ left join (
   select 
   parentid,
   safe_cast(childid as int64) as child_id,
-  formId as hindi_formid,
-  insertedAt as hindi_attempt_datetime,
+  formId as math_formid,
+  insertedAt as math_attempt_datetime,
   hindi_assessment_date,
   maths_assessment_date
   from `whatsapp_tools.attemptrate` where lower(formId) like '%math%'
@@ -435,7 +481,7 @@ left join (
 on mwc.childid=attempt.child_id
 and date(mwc.hindi_assessment_date)=date(attempt.hindi_assessment_date)
 and date(mwc.maths_assessment_date)=date(attempt.maths_assessment_date)
-and mwc.worksheet_id=attempt.hindi_formid
+and mwc.worksheet_id=attempt.math_formid
 
 
 
@@ -450,10 +496,10 @@ group by 1
 select 
 --s.*,c.clicked_time,co.submitted_time,attempt.math_attempt_datetime,attempt.math_formid
 s.childid
- ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.uuid,null))math_worksheet_sent_in_last_30_Day
-    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,clicked_time,null))math_worksheet_clicked_in_last_30_Day
-    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,math_attempt_datetime,null   )) as math_worksheet_attempted_in_last_30_day
-    ,count(distinct if(date(co.worksheet_completed_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,worksheet_completed_time,null))math_worksheet_submitted_in_last_30_Day
+ ,count(distinct if(date(s.sent_at)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,s.worksheet_id,null))math_worksheet_sent_in_last_30_Day
+    ,count(distinct if(date(c.clicked_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,c.worksheet_id,null))math_worksheet_clicked_in_last_30_Day
+    ,count(distinct if(date(attempt.math_attempt_datetime)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,math_formid,null   )) as math_worksheet_attempted_in_last_30_day
+    ,count(distinct if(date(co.worksheet_completed_time)between current_Date("Asia/Kolkata")-31 and current_date("Asia/Kolkata")-1,co.worksheet_id,null))math_worksheet_submitted_in_last_30_Day
 
 
  from ${ref("IE_math_worksheet_sent")} s
