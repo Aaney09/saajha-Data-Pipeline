@@ -3,7 +3,21 @@ config {
     type: "table",
     schema: "assessment", 
     tags: "wa_daily",
-     description: "This table is use to provide data to tech team for the checkin command used by agents"
+     description: "This table is use to provide data to tech team for the checkin command used by agents",
+     columns: {
+        assesseeActorid: "Id of the assesse i.e the child id",
+        parentid: "ID assigned to parent",
+        last_hindi_level: "Last hindi level of child",
+        date_of_last_hindi_assessment: "Last date of Hindi Assessment",
+        last_math_level: "Last math level of Child",
+        date_of_last_math_assessment: "Last date of Math asseeement",
+        hindi_worksheet_sent_in_last_30_Days: "Count of Hindi worksheets sent in last 30 days",
+        hindi_worksheet_clicked_in_last_30_Days: "Count of Hindi worksheets clicked in last 30 days",
+        hindi_worksheet_submitted_in_last_30_Days: "Count of Hindi worksheets submitted by particular user in last 30 days",
+        math_worksheet_sent_in_last_30_Days: "Count of maths worksheet sent in last 30 days to particular user",
+        math_worksheet_clicked_in_last_30_Days: "Count of math worksheet clicked by particular user in last 30 days",
+        math_worksheet_submitted_in_last_30_Days: "Count of math worksheets submitted by particular user in last 30 days"
+     }
 }
 
 with children_assessed as (select distinct assesseeActorid ,parentid

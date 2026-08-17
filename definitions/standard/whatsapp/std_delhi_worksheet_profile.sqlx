@@ -2,7 +2,23 @@ config {
     type : "table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description: "Whatsapp profile data for Delhi BAU parent, from 1st april 2025."
+    description: "Whatsapp profile data for Delhi BAU parent, from 1st april 2025.",
+    columns: {
+      p_num: "Phone number of Parent",
+      parentId: "Id assigned to parent",
+      opted_in_status: "Opt-In Staus of user (TRUE or FALSE)",
+      hindiContentProfile: "Status of Hindi Content  (ongoing, completed, achieved)",
+      hindilevel: "Current level of Child in Hindi",
+      lastsubject: "last worksheet sent of which Subject ",
+      lastsent: "Number of Wk last sent",
+      updated_at_ist: "Date and time of last profile update (IST)",
+      profile_updated_date: "Date of profile update",
+      lasthindiWorksheetSentOn: "Date and time when last Hindi Wk was swnt",
+      mathContentProfile: "Status of math content to user",
+      math_level: "Current level of child in Math",
+      childclass: "Class of child",
+      lastMathWorksheetSentOn: "Date and time when last math worksheet was sent"
+    }
     }
 with whatsapp_data as (
   SELECT distinct 

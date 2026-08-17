@@ -2,7 +2,23 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
-    description:"Contains data of all hindi workhsheet clicked form 1st april 2025"
+    description:"Contains data of all hindi workhsheet clicked form 1st april 2025",
+    columns: {
+      phone_number: "Phone number of parent",
+      link_clicked: "Link of worksheet clicked",
+      clicked_time: "Date and Time at which worksheet was clicked (IST)",
+      worksheet_id: "ID of Hindi worksheet",
+      LevelNumber: "Levelof child",
+      worksheetNumber: "Number of Worksheet",
+      monthNumber: "NUmber of Month",
+      maths_assessment: "Name of maths Assessement taken",
+      hindi_assessment: "Name of Hindi Assessment taken",
+      maths_assessment_date: "Date and Time when maths asssessment was taken",
+      hindi_assessment_date: "Date and Time when Hindi assessment was taken",
+      childid: "ID of Child",
+      parentid: "ID of Parent",
+      region: "User belongs to which region (Delhi/Noida) " 
+    }
 }
 
 

@@ -3,7 +3,22 @@
 config {
     type: "table",
     schema:"whatsapp",
-    tags: "wa_daily"
+    tags: "wa_daily",
+    description: "This table contains data regarding Noida user profiles",
+    columns: {
+        phone_number: "Phone number of Parent",
+        parent_id: "unique Id assigned to parent",
+        parent_name: "Name of parent",
+        opted_in_at: "Date and Time when user opted in (IST)",
+        child_class: "Class in which child currently is",
+        child_name: "Name of child",
+        schoolid: "School ID of child",
+        opt_in_status: "Opt-in status of user (TRUE or FALSE)",
+        child_id: "ID assigned to child",
+        wa_profile_created_on: "Date and Time user's profile was created (IST)",
+        last_profile_update_on: "Date and time when was user profile last updated on(IST)",
+        last_profile_meta_data: "Last Meta Data of user profile"
+    }
 }
 
 

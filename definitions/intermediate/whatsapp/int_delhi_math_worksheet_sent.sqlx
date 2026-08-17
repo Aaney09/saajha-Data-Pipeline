@@ -2,7 +2,31 @@ config {
     type: "table",
     schema:"whatsapp",
     description:"Contains all Worksheet related data of DELHI from 1st april 2025",
-    tags: "wa_daily"
+    tags: "wa_daily",
+    columns: {
+        phone_number: "Phone number of User",
+        id: "Unique message ID ",
+        chat_id: "Id of the chat (generated in the period of 24 hrs)",
+        template_name: "Name of last template sent",
+      sent_at: "Date and time when Gamified worksheet sent",
+      last_message_status: "Status of last message sent (Read/delivered)",
+      error_code: "Code of error if occurred",
+      error_reason: "Raeson of error",
+      lengthOfSplitedArray: "Number of elemnts in the array",
+      worksheet_id: "Id of Worksheet",
+      worksheetNumber: "Number of Worksheet",
+      LevelNumber: "level of Child",
+      monthNumber: "Number of Month",
+      math_assessment_name: "Name of Assessment taken (math)",
+      hindi_assessment_name: "Hindi Assessment Name",
+      math_assessment_date: "Date and Time when Math assessment was taken (IST)",
+      hindi_assessment_date: "Date and Time when Hindi Assessment was taken (IST)",
+      parentid: "Parent ID",
+      childid: "Id assigned to child",
+      worksheet_link: "Link of Worksheet",
+      saajha_whatsapp_number: "Whatsapp Number of saajha used HERE: 912250555658 (Delhi FLN number)",
+      uuid: "special standardized identifier for each conversation to be unique across systems and time"
+    }
 
     }
 WITH base AS (

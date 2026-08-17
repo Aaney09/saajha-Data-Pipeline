@@ -2,7 +2,31 @@ config {
     type: "table",
     schema:"whatsapp",
     description:"Contains all Worksheet related data of DELHI from 1st april 2025",
-    tags: "wa_daily"
+    tags: "wa_daily",
+    columns: {
+      phone_number: "Phone number of Parent",
+      id: "Unique message ID",
+      chat_id: "Id of the chat (generated in the period of 24 hrs)",
+      template_name: "Name of Template last shared",
+      sent_at: "Date and Time Worksheet sent (IST)",
+      last_message_status: "Status of last message (delivered/read)",
+      error_code: "Code of error(if error occurred)",
+      error_reason: "Reason of Error",
+      lengthOfSplitedArray: "variable count captured for worksheets -- to check if there is missing data",
+      worksheet_id: "Id of worksheet last shared",
+      worksheetNumber: "Number of Worksheet",
+      LevelNumber: "Level of Child",
+      monthNumber: "Numbe rof Month",
+      math_assessment_name: "Name of Math assessment taken",
+      hindi_assessment_name: "Name of Hindi Assessment taken",
+      math_assessment_date: "Date and Time of Math Assessment (IST)",
+      hindi_assessment_date: "Date and Time of Hindi Assessment (IST)",
+      parentid: "ID of Parent",
+      childid: "ID of Child",
+      worksheet_link: "Link of Worksheet",
+      saajha_whatsapp_number: "Saajha Whatsapp number used; HERE: 912250555658",
+      uuid: "special standardized identifier for each conversation to be unique across systems and time"
+    }
 }
 
 WITH base AS (

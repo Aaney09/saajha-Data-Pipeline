@@ -2,7 +2,20 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"All hindi worskheet related data for the current academic year 2026-27, in noida"
+    description:"All hindi worskheet related data for the current academic year 2026-27, in noida",
+    columns: {
+      profile_updated_date: "Date when user profile was updated",
+      whomHindiWorksheetHasToProcessFromTurn: "Number of users whom Hindi worksheets has ot be processed from Turn",
+      whom_hindi_worksheet_has_not_processed_from_turn: "Number of users whom hindi worksheets has not been processed from Turn",
+      hindi_turn_failure_rate: "Hindi Turn failure rate",
+      hindi_worksheet_meta_failed: "Hindi worksheets That were meta failed",
+      hindi_meta_failure_rate: "Hindi Meta failure rate",
+      hindiWorksheetError_131050_User_has_stopped_reciept_of_marketing_messages: "Number of users for whom Hindi worksheets failed due to error code: 131050",
+      hindiWorksheetError_131049_Meta_chose_not_to_deliver: "Number of users for whom Hindi worksheets failed due to error code: 131049",
+      hindiWorksheetError_131026_Message_Undeliverable: "Number of users for whom Hindi worksheets failed due to error code: 131026",
+      hindiWorksheetError_131000_Something_went_wrong: "Number of users for whom Hindi worksheets failed due to error code: 131000",
+      hindiWorksheetError_130472_User_number_is_part_of_an_experiment: "Number of users for whom Hindi worksheets failed due to error code: 1310472"
+    }
 }
 
 

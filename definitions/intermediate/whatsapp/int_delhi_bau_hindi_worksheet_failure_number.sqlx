@@ -2,7 +2,15 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
-    description:"Bau Hindi worksheet faliure numbers for academic year 2026-27"
+    description:"Bau Hindi worksheet faliure numbers for academic year 2026-27",
+    columns: {
+      hindi_failed_Date: "Date when Hindi worksheet failed",
+      whomHindiWorksheetHasToProcessFromTurn: "Number of user to whom Hindi worksheet delivery failed",
+      whom_hindi_worksheet_has_not_processed_from_turn: "Number to whom Hindi worksheet has not been processed",
+      hindi_worksheet_meta_failed: "Number of user whom Hindi worksheet failed from Meta's end",
+      subject: "Subject: Hindi",
+      city: "City of User; HERE: Delhi"
+    }
 }
 
 

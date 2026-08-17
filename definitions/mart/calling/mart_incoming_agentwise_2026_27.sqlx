@@ -3,7 +3,17 @@ config {
     type: "table",
     tags: "call_daily",
     schema:"calls",
-    description: "Daily incoming Agentwise for academic year 2026-27, BAU "
+    description: "Daily incoming Agentwise for academic year 2026-27, BAU ",
+    columns: {
+        lastCallReceivedDate: "Date of Last received call",
+        AgentMobile: "Phone number of Agent",
+        project_name: "Name of project",
+        uniqueIncomingCalls: "Number of Unique Incoming calls",
+        totalDials: "Total number of calls dialed",
+        uniqueDial: "number of unique calls differencealed",
+        totalResolvedCalls: "Number of total resolved calls",
+        agent_name: "Name of agent"
+    }
 }
 
 with incom as (  SELECT

@@ -2,7 +2,18 @@ config {
     type: "table",
     tags: ["call_daily"],
     schema: "assessment",
-    description: "Math assessment first and last level of a child from april 2026 till march 31st 2027. (created on 04/04/2026)"
+    description: "Math assessment first and last level of a child from april 2026 till march 31st 2027. (created on 04/04/2026)",
+    columns: {
+        assesseeActorId: "ID of Assess i.e., Child ID",
+        first_math_assessment_date: "Date when First Math Assessment was taken",
+        firstmathLevel: "First Level of Child in Math",
+        last_math_assessment_date: "Date when Last Math Assessment taken",
+        lastmathLevel: "Last Math Level",
+        highestMathRound: "Highest Round of Child in Math",
+        shift_in_math_level: "Shift in level of Math (Last Level - First Level)",
+        math_improvement_level: "Math level Imrpvement (Improved by/Decreased by/Round 3 Not assessed)",
+        math_shift_category: "Category in Math level Shift(Improved/Decreased/Round 3 not assessed)"
+    }
     }
 
 

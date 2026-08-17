@@ -1,7 +1,21 @@
 config {
     type:"table",
     tags: "wa_daily",
-    schema:"whatsapp"
+    schema:"whatsapp",
+    description: "This table contains data for tracking Star parent Activity for AY 2026-27",
+    columns: {
+      concent_given_numbers: "Phone Number of parent who have given consent",
+      optin_date: "Date of OptIn",
+      activity_number: "Number of Star Parent Activity",
+      tobe_sent_date: "number of user, activity is to be sent",
+      template_sent_date: "Date when Template was sent",
+      turn_failure_number: "Phone Number of parent if there is a Turn Failure ",
+      meta_failure_numbers: "Phone Number of parent if there is a Meta Failure",
+      success_template_shared_numbers: "Phone Number of Parent to whim template has successfully been shared",
+      error_code: "Error Code if Error occurred",
+      templatename: "Name of template last shared",
+      number_responded: "Phone number of parent who responded"
+    }
     
 }
 

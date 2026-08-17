@@ -1,7 +1,17 @@
 config {
     type: "table",
     tags: "call_daily",
-    description: "current academic year"
+    description: "FLN Achieved data for current academic year",
+    columns: {
+        childId: "ID of child",
+        projectid: "Project ID to which child is associated",
+        childName: "Name of Child",
+        childClass: "Child class",
+        ParentId: "ID of parent",
+        FLNAchievedDate: "Date and Time when child achieved FLN (UTC)",
+        FLNStatus: "FLN Status of Child (BENEFICIARY_PROGRESS_STATUS.FLN_ACHIEVED)"
+    }
+
 }
 
 select IEID as childId, projectid,displayName as childName, education as childClass,onboardeduserId as ParentId,FLNAchievedDate,FLNStatus

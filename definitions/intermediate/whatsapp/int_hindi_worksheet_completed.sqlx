@@ -2,7 +2,23 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
-    description:"Contains data of all hindi workhsheet completed form 1st april 2025"
+    description:"Contains data of all hindi workhsheet completed form 1st april 2025",
+    columns: {
+        phone_number: "Phone number of user",
+        submitted_time: "Date and time when worksheet submitted (IST)",
+        worksheet_id: "ID of Worksheet",
+        LevelNumber: "Current Level of Child",
+        worksheetNumber: "Number of Worksheet",
+        monthNumber: "Number of month",
+        maths_assessment: "Name of Math assessment",
+        hindi_assessment: "Name of Hindi assessment",
+        maths_assessment_date: "Date and Time (IST) for Maths Assessment",
+        hindi_assessment_date: "Date and Time (IST) fro Hidi Assessment",
+        childid: "ID of child",
+        parentid: "ID of Parent",
+        platform: "platform where the assessment/workshett was sent or clicked",
+        region: "Region to which user belongs: Delhi/Noida"
+    }
 }
 
 
