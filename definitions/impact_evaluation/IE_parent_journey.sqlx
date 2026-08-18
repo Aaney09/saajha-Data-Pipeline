@@ -84,6 +84,17 @@ greatest(mathassessdate,hindiAssessDate) Round_8_Assessment,hindiLevel as r8_hin
 from hindiMath
 where hindiRounds = 8)r8
 using(assesseeActorid)
+
+
+
+left join(select assesseeActorid,
+mathAssessDate m9,hindiAssessdate h9,
+greatest(mathassessdate,hindiAssessDate) Round_9_Assessment,hindiLevel as r9_hindiLevel,mathLevel as r9_mathlevel
+from hindiMath
+where hindiRounds = 9)r9
+using(assesseeActorid)
+
+
 )
 -- left join(select assesseeActorid,
 -- mathAssessDate m9,hindiAssessdate h9,

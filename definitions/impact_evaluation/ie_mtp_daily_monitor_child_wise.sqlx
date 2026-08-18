@@ -5,70 +5,68 @@ config {
 }
 
 -- create or replace table `impact_evaluation.mtp_daily_monitor_child_wise` as
-with hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
-from ${ref("assessment")}
-where QuestionText like "%Ask%" and AssessmentId<>6
-qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
-)
-, math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
-from ${ref("assessment")}
-where QuestionText not like  "%Ask%" and AssessmentId <> 6
-qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
-)
+-- with hindi_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment,if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as hindiLevel
+-- from ${ref("assessment")}
+-- where QuestionText like "%Ask%" and AssessmentId<>6
+-- qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+-- )
+-- , math_assessment as (select distinct AssesseeActorId,Date(AssessmentTakenOn)dateOfAssessment, if(Level= "BEGINNER",0,safe_cast(regexp_extract(Level,r'\d') as int64)) as mathlevel
+-- from ${ref("assessment")}
+-- where QuestionText not like  "%Ask%" and AssessmentId <> 6
+-- qualify row_number() over(partition by AssesseeActorId,date(AssessmentTakenOn) order by AssessmentTakenOn desc)=1
+-- )
 
-, childDetails as (select 
-distinct 
-IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
-safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
-from ${ref("IE")}
-where  projectid=1103935
-)
+-- , childDetails as (select 
+-- distinct 
+-- IEId as childid, OnBoardedUserId as parentid,ProjectId as ProjectId,
+-- safe_cast(regexp_extract(Education,r'\d+') as int64)as childClass,Education
+-- from ${ref("IE")}
+-- where  projectid=1103935
+-- )
 
-, assessments as (
-  select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
-  case  
-when c.childClass = 1 and mathLevel>=2 then TRUE
-when c.childClass = 2 and mathLevel>=3 then TRUE
-when c.childClass >=3 and mathLevel>=4 then TRUE
-Else false
-end mathFLnAchievedClassWise,
-case  
-when c.childClass = 1 and hindiLevel>=3 then TRUE
-when c.childClass >=2 and hindiLevel>=4 then TRUE
-Else false
-end hindiFLnAchievedClassWise
-from hindi_assessment h
-inner join math_assessment m
-using(assesseeActorID,dateOfAssessment)
-inner join childDetails c
-on assesseeActorID=childid)
+-- , assessments as (
+--   select *, dateOfAssessment+1 as hindi_content_to_send_on,dateOfAssessment+2 as math_content_to_send_on,
+--   case  
+-- when c.childClass = 1 and mathLevel>=2 then TRUE
+-- when c.childClass = 2 and mathLevel>=3 then TRUE
+-- when c.childClass >=3 and mathLevel>=4 then TRUE
+-- Else false
+-- end mathFLnAchievedClassWise,
+-- case  
+-- when c.childClass = 1 and hindiLevel>=3 then TRUE
+-- when c.childClass >=2 and hindiLevel>=4 then TRUE
+-- Else false
+-- end hindiFLnAchievedClassWise
+-- from hindi_assessment h
+-- inner join math_assessment m
+-- using(assesseeActorID,dateOfAssessment)
+-- inner join childDetails c
+-- on assesseeActorID=childid)
 
-, lag_dates_mtp as (
-  select 
-  parentid,
-  childid,
-  dateOfAssessment,
-  lag(dateOfAssessment) over(partition by childid order by dateOfAssessment) as assessmentlagdate
-  from assessments
-  order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
-)
+-- , lag_dates_mtp as (
+--   select 
+--   parentid,
+--   childid,
+--   dateOfAssessment,
+--   lag(dateOfAssessment) over(partition by childid order by dateOfAssessment) as assessmentlagdate
+--   from assessments
+--   order by parentid asc, dateOfAssessment asc,assessmentlagdate asc
+-- )
 
-,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
-from lag_dates_mtp
-where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
+-- ,resultData_mtp as ((select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))=0)
 
-UNION ALL
-(select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
-from lag_dates_mtp
-where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
-order by parentid  desc)
-
-
- ,result_mtp as (select *, row_number() over(partition by childid order by dateOfAssessment asc)rn
-from resultData_mtp
-order by parentid asc,rn asc)
+-- UNION ALL
+-- (select *,if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day)) assessmentdateDifference,
+-- from lag_dates_mtp
+-- where if(assessmentlagdate is null, 0,date_diff(dateOfAssessment,assessmentlagdate,day))>=25)
+-- order by parentid  desc)
 
 
+--  ,result_mtp as (select *, row_number() over(partition by childid order by dateOfAssessment asc)rn
+-- from resultData_mtp
+-- order by parentid asc,rn asc)
 
 
 
@@ -77,20 +75,24 @@ order by parentid asc,rn asc)
 
 
 
-,mtp_assessement_wise as (
+
+
+with mtp_assessement_wise as (
 select 
 parentid,
-childid,
-MAX(IF(rn = 1, dateOfAssessment, NULL)) AS assessment_1,
-  MAX(IF(rn = 2, dateOfAssessment, NULL)) AS assessment_2,
-  MAX(IF(rn = 3, dateOfAssessment, NULL)) AS assessment_3,
-  MAX(IF(rn = 4, dateOfAssessment, NULL)) AS assessment_4,
-  MAX(IF(rn = 5, dateOfAssessment, NULL)) AS assessment_5,
-  MAX(IF(rn = 6, dateOfAssessment, NULL)) AS assessment_6,
-  MAX(IF(rn = 7, dateOfAssessment, NULL)) AS assessment_7
+assesseeActorID as childid,
+date(Round_1_assessment) AS  assessment_1,
+date(Round_2_assessment)  AS assessment_2,
+date(Round_3_assessment) AS assessment_3,
+date(Round_4_assessment)  AS assessment_4,
+date(Round_5_assessment)  AS assessment_5,
+date(Round_6_assessment) AS assessment_6,
+date(Round_7_assessment) AS assessment_7,
+date(Round_8_assessment) AS assessment_8,
+date(Round_9_assessment) AS assessment_9
 
-from result_mtp
-group by 1,2
+from ${ref("IE_parent_journey")}
+-- group by 1,2
 )
 -- select *
 -- from mtp_assessement_wise
@@ -162,7 +164,7 @@ select
 maw.parentid,
 maw.childid,
 -- date(mtp.inserted_at) as attempted_date,
-mtp.assignedto as volunteer_number,
+-- mtp.assignedto as volunteer_number,
 cohort,
 count(distinct
 if(assessment_1 is not null,
@@ -195,6 +197,22 @@ count(distinct
 if(date(mtp.inserted_at)>assessment_6 and date(mtp.inserted_at)<ifnull(assessment_7,'2026-12-01'),mtp.inserted_at,null)
 ,null )) as attempted_calls_R6,
 
+
+
+count(distinct
+  if(assessment_7 is not null,
+if(date(mtp.inserted_at)>assessment_7 and date(mtp.inserted_at)<ifnull(assessment_8,'2026-12-01'),mtp.inserted_at,null)
+,null )) as attempted_calls_R7,
+
+
+count(distinct
+  if(assessment_8 is not null,
+if(date(mtp.inserted_at)>assessment_8 and date(mtp.inserted_at)<ifnull(assessment_9,'2026-12-01'),mtp.inserted_at,null)
+,null )) as attempted_calls_R8,
+
+
+
+
 from mtp_assessement_wise maw
 left join  `saajhadata.impact_evaluation.mtp_calls`  mtp
 on maw.parentid=safe_cast(mtp.parentid as int64)
@@ -215,7 +233,7 @@ select
 maw.parentid,
 maw.childid,
 -- date(mtp_resolve.inserted_at) as attempted_date,
-mtp_resolve.assignedto as volunteer_number,
+-- mtp_resolve.assignedto as volunteer_number,
 cohort,
 count( distinct
 if(assessment_1 is not null,
@@ -249,6 +267,19 @@ if(date(mtp_resolve.inserted_at)>assessment_6 and date(mtp_resolve.inserted_at)<
 ,null )) as resolved_calls_R6,
 
 
+count(distinct
+  if(assessment_7 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_7 and date(mtp_resolve.inserted_at)<ifnull(assessment_8,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R7,
+
+
+
+count(distinct
+  if(assessment_8 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_8 and date(mtp_resolve.inserted_at)<ifnull(assessment_9,'2026-12-01'),mtp_resolve.parentid,null)
+,null )) as resolved_calls_R8,
+
+
 ------------------------------------------------------------------------------------------------
 -- GETTING RESOLVED DATES
 ------------------------------------------------------------------------------------------------
@@ -276,7 +307,17 @@ if(date(mtp_resolve.inserted_at)>assessment_5 and date(mtp_resolve.inserted_at)<
 
 max(if(assessment_6 is not null,
 if(date(mtp_resolve.inserted_at)>assessment_6 and date(mtp_resolve.inserted_at)<ifnull(assessment_7,'2026-12-01'),date(mtp_resolve.INSERTED_AT),null)
-,null )) as resolved_date_R6
+,null )) as resolved_date_R6,
+
+
+max(if(assessment_7 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_7 and date(mtp_resolve.inserted_at)<ifnull(assessment_8,'2026-12-01'),date(mtp_resolve.INSERTED_AT),null)
+,null )) as resolved_date_R7,
+
+
+max(if(assessment_8 is not null,
+if(date(mtp_resolve.inserted_at)>assessment_8 and date(mtp_resolve.inserted_at)<ifnull(assessment_9,'2026-12-01'),date(mtp_resolve.INSERTED_AT),null)
+,null )) as resolved_date_R8
 --------------------------------------------------------------------------------------------------------
 
 from mtp_assessement_wise maw
@@ -300,6 +341,8 @@ resolved_date_R3,
 resolved_date_R4,
 resolved_date_R5,
 resolved_date_R6,
+resolved_date_R7,
+resolved_date_R8,
 
 -- attempted_date,
  attempted_calls_R1  as round_1_attempted,
@@ -308,6 +351,8 @@ resolved_date_R6,
  attempted_calls_R4  as round_4_attempted,
  attempted_calls_R5  as round_5_attempted,
  attempted_calls_R6  as round_6_attempted,
+  attempted_calls_R7  as round_7_attempted,
+    attempted_calls_R8  as round_8_attempted,
 
 -------------------------------------------------------------------------
 
@@ -317,7 +362,8 @@ resolved_date_R6,
  resolved_calls_R4  as round_4_resolved,
  resolved_calls_R5  as round_5_resolved,
  resolved_calls_R6  as round_6_resolved,
-
+  resolved_calls_R7  as round_7_resolved,
+ resolved_calls_R8  as round_8_resolved,
 from all_attempts
 left join resolved_calls 
 using(parentid,childid,cohort)
