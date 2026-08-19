@@ -77,9 +77,9 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE "2026-08-12"
     ]
 
---     WHEN cohort = 3 THEN [
---         DATE_ADD(DATE '2025-12-21', INTERVAL 240 DAY)
---     ]
+    WHEN cohort = 3 THEN [
+        DATE "2026-08-19"
+    ]
 
 --     WHEN cohort = 4 THEN [
 --         DATE_ADD(DATE '2025-12-28', INTERVAL 240 DAY)
@@ -132,7 +132,7 @@ from ie_pilot_table2
 , first_status as (
   select ts.*
   from template_sent ts
-  where template_name in ('user_reg_code')
+  where template_name in ('user_reg_code','ie_endline_info_v3')
 
   qualify row_number() over(partition by phone_number,date(sent_at) order by sent_At asc)=1
 )

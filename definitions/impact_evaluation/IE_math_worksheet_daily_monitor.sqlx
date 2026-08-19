@@ -163,5 +163,16 @@ group by 1,2
 
 select distinct *
 from overall_worksheet_status 
+where (cohort="1" and profile_updated_date<"2026-08-06")
+or (cohort="2" and profile_updated_date<"2026-08-11")
+or (cohort="3" and profile_updated_date<"2026-08-18")
+or (cohort="4" and profile_updated_date<"2026-08-25")
+or (cohort="5" and profile_updated_date<"2026-09-01")
+or (cohort="6" and profile_updated_date<"2026-09-08")
+or (cohort="7" and profile_updated_date<"2026-09-15")
+or (cohort="8" and profile_updated_date<"2026-09-22")
+or (cohort="9" and profile_updated_date<"2026-09-29")
+or (cohort="10" and profile_updated_date<"2026-10-06")
+
 -- order by p_num,updated_at_ist
 order by 1 desc
