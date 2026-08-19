@@ -63,7 +63,7 @@ group by all
   
 ,noida_number as ( SELECT distinct 
 EXTRACT(Month FROM DATE(TIMESTAMP_ADD(inserted_at, INTERVAL 330 MINUTE))) AS Month,
-COUNT(DISTINCT uuid) AS MessageCount_58,
+COUNT(DISTINCT uuid) AS MessageCount_7073,
 FROM
 ${ref("911171817073","messages")}
 
@@ -73,9 +73,11 @@ AND last_status NOT LIKE '%failed%'
 and direction="outbound"
 GROUP BY 
 Month)
-,MsgSentCountsWithoutfail as (select distinct month,ifNull(MessageCount_87,0)+ifnull(MessageCount_58,0)MessageSentCountForNonefailed,
+,MsgSentCountsWithoutfail as (select distinct month,ifNull(MessageCount_87,0)+ifnull(MessageCount_58,0)+ifnull(MessageCount_7073,0)    MessageSentCountForNonefailed,
 from onboarding_number_msg
 inner join fln_number
+using(month)
+inner join noida_number
 using(month)
 )
 
