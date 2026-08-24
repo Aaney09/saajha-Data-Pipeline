@@ -68,8 +68,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2025-12-09', INTERVAL 120 DAY),
         DATE_ADD(DATE '2025-12-09', INTERVAL 150 DAY),
         DATE_ADD(DATE '2025-12-09', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2025-12-09', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2025-12-09', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2025-12-09', INTERVAL 210 DAY)
+       
     ]
 
     WHEN cohort = 2 THEN [
@@ -80,8 +80,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2025-12-14', INTERVAL 120 DAY),
         DATE_ADD(DATE '2025-12-14', INTERVAL 150 DAY),
         DATE_ADD(DATE '2025-12-14', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2025-12-14', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2025-12-14', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2025-12-14', INTERVAL 210 DAY)
+        
     ]
 
     WHEN cohort = 3 THEN [
@@ -92,8 +92,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2025-12-21', INTERVAL 120 DAY),
         DATE_ADD(DATE '2025-12-21', INTERVAL 150 DAY),
         DATE_ADD(DATE '2025-12-21', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2025-12-21', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2025-12-21', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2025-12-21', INTERVAL 210 DAY)
+        
     ]
 
     WHEN cohort = 4 THEN [
@@ -104,8 +104,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2025-12-28', INTERVAL 120 DAY),
         DATE_ADD(DATE '2025-12-28', INTERVAL 150 DAY),
         DATE_ADD(DATE '2025-12-28', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2025-12-28', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2025-12-28', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2025-12-28', INTERVAL 210 DAY)
+        
     ]
 
     WHEN cohort = 5 THEN [
@@ -116,8 +116,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-01-04', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-01-04', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-01-04', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-01-04', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-01-04', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-01-04', INTERVAL 210 DAY)
+        
     ]
 
     WHEN cohort = 6 THEN [
@@ -128,8 +128,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-01-11', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-01-11', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-01-11', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-01-11', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-01-11', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-01-11', INTERVAL 210 DAY)
+        
     ]
 
     WHEN cohort = 7 THEN [
@@ -140,8 +140,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-01-18', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-01-18', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-01-18', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-01-18', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-01-18', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-01-18', INTERVAL 210 DAY)
+        
     ]
     
     WHEN cohort = 8 THEN [
@@ -152,8 +152,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-01-25', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-01-25', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-01-25', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-01-25', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-01-25', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-01-25', INTERVAL 210 DAY)
+        
     ]
 
      WHEN cohort = 9 THEN [
@@ -164,8 +164,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-02-01', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-02-01', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-02-01', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-02-01', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-02-01', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-02-01', INTERVAL 210 DAY)
+        
     ]
 
      WHEN cohort = 10 THEN [
@@ -176,8 +176,8 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
         DATE_ADD(DATE '2026-02-08', INTERVAL 120 DAY),
         DATE_ADD(DATE '2026-02-08', INTERVAL 150 DAY),
         DATE_ADD(DATE '2026-02-08', INTERVAL 180 DAY),
-        DATE_ADD(DATE '2026-02-08', INTERVAL 210 DAY),
-        DATE_ADD(DATE '2026-02-08', INTERVAL 240 DAY)
+        DATE_ADD(DATE '2026-02-08', INTERVAL 210 DAY)
+        
     ]
 
 END
@@ -205,7 +205,7 @@ when cohort=9 and activity_date='2026-07-01' and  phoneno in (select number from
 when cohort =7 and activity_date='2026-07-17' and phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then DATE "2026-07-18"
 when cohort =7 and activity_date='2026-07-17' and phoneno in (select nums from `adhoc.ie_cohort_9_7_general_activity_error`) then DATE "2026-07-30"
 when cohort =9 and activity_date='2026-07-31' and phoneno in (select nums from `adhoc.ie_cohort_9_7_general_activity_error`) then DATE "2026-08-02"
-
+when cohort =7 and activity_date='2026-08-16' and phoneno in (select numbers from `adhoc.IE_general_acitivity_cohort3_round3_metanumbers`) then DATE "2026-08-17"
 else activity_date   end  as activity_date
 from ie_pilot_table2
 )
