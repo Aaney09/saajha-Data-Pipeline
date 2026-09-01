@@ -70,10 +70,10 @@ where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
 , assessments as  (
 select a.*
 from assessments_v1 a
-left join  `adhoc.gamified_worksheet_sample`g 
-on g.parentid=a.parentid
-and a.dateOfAssessment > '2026-04-30'---  WHEN GAMIFIED WORKSHEET STARTED
-where g.parentid is null
+-- left join  `adhoc.gamified_worksheet_sample`g 
+-- on g.parentid=a.parentid
+-- and a.dateOfAssessment > '2026-04-30'---  WHEN GAMIFIED WORKSHEET STARTED
+-- where g.parentid is null
 
 )
 ,whom_math_worksheet_should_not_go as (

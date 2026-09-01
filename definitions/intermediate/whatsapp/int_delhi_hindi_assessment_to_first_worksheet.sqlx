@@ -74,10 +74,10 @@ where m.dateOfAssessment between "2026-04-01" and current_date("Asia/Kolkata")-3
 , assessments as  (
 select a.*
 from assessments_v1 a
-left join  `adhoc.gamified_worksheet_sample`g 
-on g.parentid=a.parentid
-and a.dateOfAssessment > '2026-04-30'---  WHEN GAMIFIED WORKSHEET STARTED
-where g.parentid is null
+-- left join  `adhoc.gamified_worksheet_sample`g 
+-- on g.parentid=a.parentid
+-- and a.dateOfAssessment > '2026-04-30'---  WHEN GAMIFIED WORKSHEET STARTED
+-- where g.parentid is null
 
 )
 ,whom_hindi_worksheet_should_not_go as (
@@ -126,7 +126,7 @@ where g.parentid is null
   phone_number as hindi_1st_worksheet_sent_to,
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
   from ${ref("int_delhi_hindi_worksheet_sent")}
-  where worksheetNumber =1 
+  -- where worksheetNumber =1 
   
 union all
 
@@ -134,7 +134,7 @@ select distinct parentid,childid,
   phone_number as hindi_1st_worksheet_sent_to,
   date(sent_at) as hindi_worksheet1_sent_on,last_message_status as hindi_1st_worksheet_msg_status,error_code as hindi_1st_worksheet_error_code ,error_reason as hindi_1st_worksheet_error_reason
   from ${ref("IE_hindi_worksheet_sent")}
-  where worksheetNumber =1
+  -- where worksheetNumber =1
 )
 ,hindi_first_worksheet_success as (
   select distinct parentid,childid,hindi_worksheet1_sent_on
