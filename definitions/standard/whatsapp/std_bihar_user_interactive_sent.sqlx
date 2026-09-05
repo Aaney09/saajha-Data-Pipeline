@@ -2,7 +2,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Details regarding the interactive messsages sent from Noida Onboarding and FLN Nnumber, after 1st April 2025 ", 
+    description: "Details regarding the interactive messsages sent from Bihar Onboarding and FLN Nnumber, after 1st April 2025 ", 
     columns: {
         phone_number: "Phone number of Parent",
         id: "Unique message ID",
@@ -14,7 +14,7 @@ config {
         sent_at: "Date and Time When was the template sent (IST)",
         last_updated_status_at: "Dateand Time When was the status updated (IST)",
         saajha_whatsapp_number: "Saajha whatsapp BOT number used for sending the message. HERE: 911171817073",
-        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding. HERE: Noida",
+        wa_number_purpose: "Purpose for which that whatsapp number is used. 4 distinct values: Bihar,agent,only fln,onboarding. HERE: Bihar",
         external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
 
     }
@@ -35,13 +35,13 @@ with _911171817073 as (SELECT distinct
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
     911171817073 saajha_whatsapp_number,
-    "Noida" wa_number_purpose,
+    "Bihar" wa_number_purpose,
     external_id,
 from ${ref("911171817073","messages")}
-left join ${ref("std_bihar_profile")} b
+inner join ${ref("std_bihar_profile")} b
 on phone_number=safe_cast(trim(addressees,'""[]+') as int64)
 where message_type = "interactive" and direction="outbound" and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
-and b.phone_number is null
+-- and b.phone_number is null
 qualify row_number()over(partition by uuid order by updated_at desc)=1
 )
 

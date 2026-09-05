@@ -3,7 +3,7 @@ config {
     tags: "wa_daily",
     schema: "whatsapp",
     uniqueKey: ["id", "uuid"],
-    description: "Outgoing messages info from Noida Onboarding and FLN Nnumber",
+    description: "Outgoing messages info from Bihar Onboarding and FLN Nnumber",
     columns: {
         phone_number:"phone number of user",
         id: "unique message id ",
@@ -18,7 +18,7 @@ config {
         sent_at: "Date and time of messagee sent (IST)",
         last_updated_status_at: "Date and time When was the status updated (IST)",
         saajha_whatsapp_number: "The bot number through which conversation took place HERE: 911171817073",
-        wa_number_purpose: "Purpose of number  4 distinct values: noida,agent,only fln,onboarding HERE: Noida",
+        wa_number_purpose: "Purpose of number  4 distinct values: bihar,agent,only fln,onboarding HERE: Bihar",
         external_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
     }
 }
@@ -38,12 +38,13 @@ SELECT distinct
     datetime_add(inserted_at, Interval 330 minute)sent_at,
     datetime_add(updated_at, Interval 330 minute)last_updated_status_at,
     911171817073 saajha_whatsapp_number,
-    "Noida" wa_number_purpose,
+    "Bihar" wa_number_purpose,
     external_id
 from ${ref("911171817073","messages")}
-left join ${ref("std_bihar_profile")} b
+inner join ${ref("std_bihar_profile")} b
 on phone_number=safe_cast(trim(addressees,'""[]+') as int64)
-where b.phone_number is null and
+where 
+-- b.phone_number is null and
 message_type not in ("interactive","template") and direction="outbound"
 and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 qualify row_number()over(partition by uuid order by updated_at desc)=1

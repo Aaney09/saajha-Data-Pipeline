@@ -2,7 +2,7 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
-    description: "Details regarding the interactive messsages response to Noida Onboarding and FLN Number,after 1st April 2025",
+    description: "Details regarding the interactive messsages response to Bihar Onboarding and FLN Number,after 1st April 2025",
     columns: {
         phone_number: "Phone Number of Parent",
         id: "Unique Message ID",
@@ -17,7 +17,7 @@ config {
         button_reply_id: "id of the button replied to. Exist only for button type",
         button_reply_title: "title of the button selected. Exist only for button type",
         saajha_whatsapp_number: "responded to which saajha whatsapp number. Does not contain the Impact evaluation bot number. HERE: 911171817073 ",
-        wa_number_purpose: "Purpose for which that particular whatsapp number is used. 4 distinct values: noida,agent,only fln,onboarding. HERE: Noida",
+        wa_number_purpose: "Purpose for which that particular whatsapp number is used. 4 distinct values: bihar,agent,only fln,onboarding. HERE: Bihar",
         context_id: "Its a reference (when we quote or reply to a message). Help us to connect to any message"
  
     }
@@ -34,13 +34,13 @@ with _911171817073 as (SELECT distinct
     list_reply_description,list_reply_id,list_reply_title,
     button_reply_id,button_reply_title,
     911171817073 saajha_whatsapp_number,
-    "Noida" wa_number_purpose,
+    "Bihar" wa_number_purpose,
     context_id,
 from ${ref("911171817073","messages")}
-left join ${ref("std_bihar_profile")} b
+inner join ${ref("std_bihar_profile")} b
 on phone_number=safe_cast(trim(from_addr,'""[]+') as int64)
 where message_type = "interactive" and direction="inbound"
-and b.phone_number is null
+-- and b.phone_number is null
 and date(datetime_add(updated_at, Interval 330 minute))< current_date("Asia/Kolkata")
 )
 
