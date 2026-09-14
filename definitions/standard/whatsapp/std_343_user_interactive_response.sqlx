@@ -2,6 +2,11 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
+    uniqueKey: ["uuid","phone_number"],
+    bigquery: {
+        partitionBy: "DATE(responded_at)",
+        clusterBy: ["phone_number","context_id"] 
+    },
     description: "Details regarding the interactive messsages response to Internal Number 912250323343, after 1st April 2025",
     columns: {
         phone_number: "Phone number of Parent",
