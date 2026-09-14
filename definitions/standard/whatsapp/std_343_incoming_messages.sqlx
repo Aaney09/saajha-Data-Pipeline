@@ -3,6 +3,10 @@ config {
     tags: "wa_daily",
     schema: "whatsapp",
     uniqueKey: ["uuid"],
+     bigquery: {
+    partitionBy: "DATE(sent_at)",
+    clusterBy: ["phone_number", "message_type"] 
+  },
     description: "This table contains incoming message details of 912250323343 whatsapp bot number. Usecase : Tracking incoming WhatsApp user interactions",
     columns: {
     phone_number: "Phone number of user(parent)",
