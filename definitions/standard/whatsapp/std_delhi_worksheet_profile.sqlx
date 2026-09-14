@@ -2,6 +2,10 @@ config {
     type : "table",
     tags: "wa_daily",
     schema:"whatsapp",
+    bigquery: {
+        partitionBy: "profile_updated_date",
+        clusterBy: ["p_num","lastsubject","parentId"] 
+    },
     description: "Whatsapp profile data for Delhi BAU parent, from 1st april 2025.",
     columns: {
       p_num: "Phone number of Parent",
