@@ -3,6 +3,10 @@ config {
     tags: "wa_daily",
     schema: "whatsapp",
     uniqueKey: ["id", "uuid"],
+    bigquery: {
+        partitionBy: "DATE(responded_at)",
+        clusterBy: ["template_button_template_name","phone_number"] 
+    },
     description: "This table contains data for Inetrnal number users who reponded to the template shared",
     columns: {
         phone_number: "Phone number from which response  the message was recieved (user)",
