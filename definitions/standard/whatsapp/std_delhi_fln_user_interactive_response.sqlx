@@ -2,6 +2,10 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
+    bigquery: {
+        partitionBy: "DATE(responded_at)",
+        clusterBy: ["phone_number","context_id"] 
+    },
     description: "Details regarding the interactive messsages response to Delhi FLN Number,after 1st April 2025",
     columns: {
         phone_number: "Phone Number of Parent",

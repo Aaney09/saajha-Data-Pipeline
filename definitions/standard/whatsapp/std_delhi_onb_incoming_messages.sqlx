@@ -2,6 +2,10 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
+    bigquery: {
+        partitionBy: "DATE(sent_at)",
+        clusterBy: ["phone_number","context_id"]  
+    },
     description: "Incoming message details of users on Delhi Onboarding Number",
     columns: {
         phone_number: "Phone number of user(parent)",

@@ -4,6 +4,10 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
+    bigquery: {
+        partitionBy: "DATE(last_profile_update_on)",
+        clusterBy: ["phone_number","opted_in_at"] 
+    },
     description: "This table contains data regarding Noida user profiles",
     columns: {
         phone_number: "Phone number of Parent",

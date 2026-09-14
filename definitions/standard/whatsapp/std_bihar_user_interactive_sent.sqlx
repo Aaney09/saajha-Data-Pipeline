@@ -2,6 +2,10 @@ config {
     type:"table",
     tags: "wa_daily",
     schema: "whatsapp",
+    bigquery: {
+        partitionBy: "DATE(responded_at)",
+        clusterBy: ["phone_number","flow_id","external_id"] 
+    },
     description: "Details regarding the interactive messsages sent from Bihar Onboarding and FLN Nnumber, after 1st April 2025 ", 
     columns: {
         phone_number: "Phone number of Parent",

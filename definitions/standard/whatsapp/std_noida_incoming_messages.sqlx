@@ -3,6 +3,10 @@ config {
     tags: "wa_daily",
     schema: "whatsapp",
     uniqueKey: ["id" ,"uuid"],
+        bigquery: {
+        partitionBy: "DATE(sent_at)",
+        clusterBy: ["phone_number","context_id"] 
+    },
     description: "Incoming message details of users on Noida Onboarding and FLN Number",
     columns: {
         phone_number: "Phone number of user(parent)",

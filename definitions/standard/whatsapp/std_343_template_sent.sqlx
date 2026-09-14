@@ -4,9 +4,9 @@ config {
     schema: "whatsapp",
     uniqueKey: ["uuid","phone_number"],
     bigquery: {
-    partitionBy: "DATE(sent_at)",
-    clusterBy: ["template_name","flow_id","phone_number"] 
-  },
+      partitionBy: "DATE(sent_at)",
+      clusterBy: ["phone_number","template_name","flow_name","external_id"] 
+    },
     description: "This table contains templates sent data by through 912250323343 whatsapp bot number. Usecase :Triggering Impact evaluation onboarding flow",
     columns: {
         phone_number: "phone number to which template was sent (user phone number)",

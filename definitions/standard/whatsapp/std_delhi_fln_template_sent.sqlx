@@ -3,6 +3,10 @@ config {
     tags: "wa_daily",
     schema: "whatsapp",
     uniqueKey: ["id", "uuid"],
+    bigquery: {
+        partitionBy: "DATE(sent_at)",
+        clusterBy: ["template_name","flow_id","phone_number"] 
+    },
     description: "This table contains data for template sent to Delhi FLN users",
     columns: {
         phone_number: "phone number to which template was sent (user phone number)",
