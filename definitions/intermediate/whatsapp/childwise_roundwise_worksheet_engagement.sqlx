@@ -982,7 +982,7 @@ and all_id.round_number=rtg.round_number
 -- and all_id.round_number is not null
 order by round_number,subject
 )
-select
+select 
 *,
 
 round((worksheet_completed/worksheet_sent)*100,2) as engagement_percentage,  --engagement percentage

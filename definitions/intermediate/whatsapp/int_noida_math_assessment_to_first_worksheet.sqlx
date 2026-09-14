@@ -3,6 +3,10 @@ config {
     type:"table",
     tags: "wa_daily",
     schema:"whatsapp",
+     bigquery: {
+        partitionBy: "DATE(dateOfAssessment)",
+        clusterBy: ["phone_number","math_content_to_send_on","city"] 
+    },   
     description:"Day-wise math worksheet and assessment details for the academic year 2026-27, in Noida",
     columns: {
       dateOfAssessment: "Date when Last Assessment was taken",
