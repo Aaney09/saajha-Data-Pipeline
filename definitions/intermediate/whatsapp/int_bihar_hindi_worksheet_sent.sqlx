@@ -123,6 +123,6 @@ final AS (
 )
 
 SELECT DISTINCT *
-FROM final
+FROM final 
 
 

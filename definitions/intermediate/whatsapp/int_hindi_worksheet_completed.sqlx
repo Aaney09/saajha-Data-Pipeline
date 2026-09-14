@@ -2,6 +2,10 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
+    bigquery: {
+        partitionBy: "DATE(submitted_time)",
+        clusterBy: ["phone_number","worksheet_id","region","platform"] 
+    },
     description:"Contains data of all hindi workhsheet completed form 1st april 2025",
     columns: {
         phone_number: "Phone number of user",

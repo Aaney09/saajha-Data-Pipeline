@@ -2,6 +2,10 @@ config {
     type: "table",
     tags: "wa_daily",
     schema:"whatsapp",
+    bigquery: {
+        partitionBy: "dateOfAssessment",
+        clusterBy: ["city"] 
+    },
     description: "result utility template for the academic year 2026-27, in Noida",
     columns: {
       dateOfAssessment: "Date when assessment was taken",

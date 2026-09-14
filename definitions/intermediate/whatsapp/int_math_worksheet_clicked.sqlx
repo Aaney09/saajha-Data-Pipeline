@@ -2,6 +2,10 @@ config {
     type: "table",
     schema:"whatsapp",
     tags: "wa_daily",
+    bigquery: {
+        partitionBy: "DATE(clicked_time)",
+        clusterBy: ["phone_number","worksheet_id","region","platform"] 
+    },
     description:"Contains data of all math workhsheet clicked since last financial year",
     columns: {
       phone_number: "Phone number of parent",
@@ -20,7 +24,7 @@ config {
       region: "User belongs to which region (Delhi/Noida) " 
     }
 }
-
+  
  SELECT
     DISTINCT SAFE_CAST(RIGHT(phone_number,12) AS int64)phone_number,
     link_clicked,
@@ -48,4 +52,4 @@ config {
     AND SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
     -- and date(datetime(time))>='2025-04-01'
   ORDER BY
-    worksheetNumber ASC 
+    worksheetNumber ASC  
