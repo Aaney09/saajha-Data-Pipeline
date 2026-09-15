@@ -4,7 +4,7 @@ config {
     tags: "wa_daily",
     bigquery: {
         partitionBy: "DATE(clicked_time)",
-        clusterBy: ["phone_number","worksheet_id","region","platform"] 
+        clusterBy: ["phone_number","worksheet_id","region"] 
     },
     description:"Contains data of all hindi workhsheet clicked form 1st april 2025",
     columns: {
@@ -53,5 +53,5 @@ config {
     AND lower(content_id) LIKE "%hindi%" 
     AND lower(content_id) LIKE "%worksheet%"
     and SAFE_CAST(RIGHT(phone_number,12) AS int64) not in (918527647594,919915539829)
-  ORDER BY
-    worksheetNumber ASC
+  -- ORDER BY
+    -- worksheetNumber ASC
