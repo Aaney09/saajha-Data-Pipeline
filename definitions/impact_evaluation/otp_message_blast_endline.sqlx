@@ -78,16 +78,18 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     ]
 
     WHEN cohort = 3 THEN [
-        DATE "2026-08-19"
+        
     ]
 
---     WHEN cohort = 4 THEN [
---         DATE_ADD(DATE '2025-12-28', INTERVAL 240 DAY)
---     ]
+    WHEN cohort = 4 THEN [
+      DATE "2026-08-26"
+        -- DATE_ADD(DATE '2025-12-28', INTERVAL 240 DAY)
+    ]
 
---     WHEN cohort = 5 THEN [
---         DATE_ADD(DATE '2026-01-04', INTERVAL 240 DAY)
---     ]
+    WHEN cohort = 5 THEN [
+      DATE "2026-09-11"
+        -- DATE_ADD(DATE '2026-01-04', INTERVAL 240 DAY)
+    ]
 
 --     WHEN cohort = 6 THEN [
 --         DATE_ADD(DATE '2026-01-11', INTERVAL 240 DAY)

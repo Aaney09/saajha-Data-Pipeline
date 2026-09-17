@@ -177,7 +177,7 @@ on m.parentid=rs.parentid
 and  DATE(rs.combined_Result_sent_on)  BETWEEN m.dateOfAssessment AND DATE_ADD(m.dateOfAssessment, INTERVAL 7 DAY)
 where city='Noida'
 group by all
-order by dateOfAssessment desc
+-- order by dateOfAssessment desc
 
 -- -- left join whom_math_worksheet_should_not_go g
 -- -- using(parentid,childid,dateOfAssessment,hindi_content_to_send_on,math_content_to_send_on,mathlevel,hindilevel)

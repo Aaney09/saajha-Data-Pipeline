@@ -4,7 +4,6 @@
 config {
   type: "incremental",
   schema:"donor",
-  tags:"Donor",
   description: "Table contains donor allocation details",
   columns: {
     allocated_on: "Date and Time when user was allocated to Donor (IST)",

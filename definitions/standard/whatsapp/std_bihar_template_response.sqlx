@@ -5,7 +5,7 @@ config {
     uniqueKey: ["id", "uuid"],
     bigquery: {
         partitionBy: "DATE(responded_at)",
-        clusterBy: ["phone_number","template_button_template_name","flow_id","context_id"] 
+        clusterBy: ["phone_number","template_button_template_name","context_id"] 
     },
     description: "This table displays users data that responded to templates of Noida Onboarding and FLN number",
     columns: {
