@@ -4,8 +4,8 @@ config {
     tags: "wa_daily",
     schema:"whatsapp",
      bigquery: {
-        partitionBy: "DATE(dateOfAssessment)",
-        clusterBy: ["phone_number","math_content_to_send_on","city"] 
+        partitionBy: "dateOfAssessment",
+        clusterBy: ["math_content_to_send_on","city"] 
     },   
     description:"Day-wise math worksheet and assessment details for the academic year 2026-27, in Noida",
     columns: {
@@ -185,5 +185,5 @@ on m.parentid=ws.parentid and m.childid= ws.childid
 and  date(ws.math_worksheet1_sent_on) between m.math_content_to_send_on and date_add(m.math_content_to_send_on,interval 7 day)
 where m.city ='Noida'
 group by all
-order by 1 desc
+-- order by 1 desc
 
