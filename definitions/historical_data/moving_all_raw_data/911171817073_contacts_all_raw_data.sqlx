@@ -6,22 +6,69 @@ config {
   description: "moving 911171817073's contact's raw data till previous day"
 }
 
+
+-- 1. DYNAMICALLY DETECT AND ADD MISSING COLUMNS TO THE MAIN TABLE
+EXECUTE IMMEDIATE (
+  WITH source_columns AS (
+    SELECT column_name, data_type 
+    FROM`saajhadata.911171817073.INFORMATION_SCHEMA.COLUMNS`
+    WHERE table_name = 'contacts'
+  ),
+  target_columns AS (
+    SELECT column_name 
+    FROM `saajhadata.dataform.INFORMATION_SCHEMA.COLUMNS`
+    WHERE table_name = '911171817073_contacts_all_raw_data')
+,
+  missing_columns AS (
+    SELECT STRING_AGG(CONCAT('ADD COLUMN IF NOT EXISTS ', column_name, ' ', data_type), ', ') AS alter_statement
+    FROM source_columns
+    WHERE column_name NOT IN (SELECT column_name FROM target_columns)
+  )
+  SELECT 
+    CASE 
+      WHEN alter_statement IS NOT NULL THEN CONCAT('ALTER TABLE `saajhadata.dataform.911171817073_contacts_all_raw_data` ', alter_statement)
+      ELSE 'SELECT "No schema changes needed"'
+    END
+  FROM missing_columns
+);
+
+
+-- 2. DYNAMICALLY GENERATE THE MATCHING INSERT STATEMENT
 BEGIN TRANSACTION;
+EXECUTE IMMEDIATE (
+  SELECT CONCAT(
+    'INSERT INTO `saajhadata.dataform.911171817073_contacts_all_raw_data` (', 
+    STRING_AGG(column_name, ', '), 
+    ') SELECT ', 
+    STRING_AGG(column_name, ', '), 
+    ' FROM `saajhadata.911171817073.contacts`','WHERE DATE(DATETIME_ADD(updated_at, INTERVAL 330 MINUTE)) < CURRENT_DATE("Asia/Kolkata")'
+  )
+  FROM `saajhadata.911171817073.INFORMATION_SCHEMA.COLUMNS`
+  WHERE table_name = 'contacts'
+);
 
--- Step 1: Insert into secondary table
-INSERT INTO `saajhadata.dataform.911171817073_contacts_all_raw_data` 
+-- 3. Purge THE DUMP TABLE
+DELETE FROM `saajhadata.911171817073.contacts`
+WHERE date(datetime_add(updated_at, INTERVAL 330 minute)) <= current_date('Asia/Kolkata');
+ 
+COMMIT TRANSACTION;
+
+-- BEGIN TRANSACTION;
+
+-- -- Step 1: Insert into secondary table
+-- INSERT INTO `saajhadata.dataform.911171817073_contacts_all_raw_data` 
 
 
--- `saajhadata.Archive.911171817073_contacts`
-SELECT 
-*
+-- -- `saajhadata.Archive.911171817073_contacts`
+-- SELECT 
+-- *
 
-FROM ${ref("911171817073","contacts")}
-where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+-- FROM ${ref("911171817073","contacts")}
+-- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
--- Step 2: Delete from main/metadata table
-DELETE FROM ${ref("911171817073","contacts")}
-where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
+-- -- Step 2: Delete from main/metadata table
+-- DELETE FROM ${ref("911171817073","contacts")}
+-- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 
-COMMIT TRANSACTION; 
+-- COMMIT TRANSACTION; 
 

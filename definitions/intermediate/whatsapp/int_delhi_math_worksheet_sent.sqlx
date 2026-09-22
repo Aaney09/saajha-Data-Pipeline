@@ -64,27 +64,110 @@ parts AS (
   FROM base b
 ),
 
--- Convert array into key/value map (so we avoid multiple SPLITs later)
+
 kv AS (
   SELECT
     p.*,
     ARRAY_LENGTH(arr) AS lengthOfSplitedArray,
-    (SELECT AS STRUCT
-    SPLIT(arr[SAFE_OFFSET(1)],"=")[SAFE_OFFSET(1)] AS worksheet_id,
-    SPLIT(arr[SAFE_OFFSET(2)],"=")[SAFE_OFFSET(1)] AS math_assessment_name,
-    SPLIT(arr[SAFE_OFFSET(3)],"=")[SAFE_OFFSET(1)] AS hindi_assessment_name,
-    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(4)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_math_date,
-    REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(5)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_hindi_date,
-    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)] END AS parentid,
-    CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(7)],"=")[SAFE_OFFSET(1)] END AS childid,
-    CASE 
-      WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(8)],"=")[SAFE_OFFSET(1)]
-      WHEN ARRAY_LENGTH(arr) = 7 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)]
-    END AS worksheet_link
-) AS kv_struct
+
+    (
+      SELECT AS STRUCT
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "content_id=")
+          LIMIT 1
+        ) AS worksheet_id,
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "maths_assessment=")
+          LIMIT 1
+        ) AS math_assessment_name,
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "hindi_assessment=")
+          LIMIT 1
+        ) AS hindi_assessment_name,
+
+        (
+          SELECT REPLACE(
+            REPLACE(
+              SUBSTR(x, STRPOS(x, "=") + 1),
+              "%20", " "
+            ),
+            ",", " "
+          )
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "maths_assessment_date=")
+          LIMIT 1
+        ) AS raw_math_date,
+
+        (
+          SELECT REPLACE(
+            REPLACE(
+              SUBSTR(x, STRPOS(x, "=") + 1),
+              "%20", " "
+            ),
+            ",", " "
+          )
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "hindi_assessment_date=")
+          LIMIT 1
+        ) AS raw_hindi_date,
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "parentId=")
+          LIMIT 1
+        ) AS parentid,
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "childId=")
+          LIMIT 1
+        ) AS childid,
+
+        (
+          SELECT SUBSTR(x, STRPOS(x, "=") + 1)
+          FROM UNNEST(arr) x
+          WHERE STARTS_WITH(x, "r=")
+          LIMIT 1
+        ) AS worksheet_link
+
+    ) AS kv_struct
 
   FROM parts p
 ),
+
+
+-- -- Convert array into key/value map (so we avoid multiple SPLITs later)
+-- kv AS (
+--   SELECT
+--     p.*,
+--     ARRAY_LENGTH(arr) AS lengthOfSplitedArray,
+--     (SELECT AS STRUCT
+--     SPLIT(arr[SAFE_OFFSET(1)],"=")[SAFE_OFFSET(1)] AS worksheet_id,
+--     SPLIT(arr[SAFE_OFFSET(2)],"=")[SAFE_OFFSET(1)] AS math_assessment_name,
+--     SPLIT(arr[SAFE_OFFSET(3)],"=")[SAFE_OFFSET(1)] AS hindi_assessment_name,
+--     REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(4)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_math_date,
+--     REPLACE(REPLACE(SPLIT(arr[SAFE_OFFSET(5)],"=")[SAFE_OFFSET(1)],"%20"," "),","," ") AS raw_hindi_date,
+--     CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)] END AS parentid,
+--     CASE WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(7)],"=")[SAFE_OFFSET(1)] END AS childid,
+--     CASE 
+--       WHEN ARRAY_LENGTH(arr) >= 9 THEN SPLIT(arr[SAFE_OFFSET(8)],"=")[SAFE_OFFSET(1)]
+--       WHEN ARRAY_LENGTH(arr) = 7 THEN SPLIT(arr[SAFE_OFFSET(6)],"=")[SAFE_OFFSET(1)]
+--     END AS worksheet_link
+-- ) AS kv_struct
+
+--   FROM parts p
+-- ),
 
 final AS (
   SELECT

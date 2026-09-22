@@ -95,7 +95,7 @@ qualify row_number()over(partition by uuid order by updated_at desc)=1
     ]
 
     WHEN cohort = 7 THEN [
-        DATE_ADD(DATE '2026-01-18', INTERVAL 240 DAY)
+        DATE "2026-09-22"
     ]
     
     WHEN cohort = 8 THEN [
