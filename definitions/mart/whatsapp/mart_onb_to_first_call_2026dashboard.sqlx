@@ -2,7 +2,7 @@ config {
 
 
     type:"operations",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
         schema:"whatsapp",
     description:"This table have onboarding to first call daily activtiy details. Created on 7th May"
 }
