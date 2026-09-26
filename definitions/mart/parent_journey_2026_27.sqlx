@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["call_daily"],
+    tags: ["call_daily",'once_daily'],
     description: "Complete journey of the child from 1st april 2026 till march 31st 2027"
 }
 

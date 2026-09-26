@@ -1,7 +1,7 @@
 /* THIS QUERY IS USED TO TRACK THE WORKSHEET PERFORMACNE IN LAST 10 DAYS*/
 config {
     type:"table",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     schema:"whatsapp",
     description: "Last 10 days worksheet performance of children",
     columns: {

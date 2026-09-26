@@ -1,7 +1,7 @@
 
 config {
     type:"table",
-    tags: "wa_daily",
+    tags:["wa_daily",'once_daily'],
     schema:"whatsapp",
     description:" Day-wise assessment to first worksheet details for the academic year 2026-27, in Noida",
     columns: {

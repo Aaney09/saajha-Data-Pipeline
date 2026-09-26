@@ -9,7 +9,7 @@
 
 config {
     type:"table",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     schema:"whatsapp",
     description: "Table contains data of star parent optins step by step",
     columns: {

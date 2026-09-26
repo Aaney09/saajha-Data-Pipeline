@@ -2,7 +2,7 @@ config {
     type: "table",
     schema: "shareable_to_external", 
     name:"monthwise_assessment_data",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     description: "Table has data of all children schedule in AY 2026 onwards and there shift in level",
     columns: {
       tenant_id: "Saajha unique ID",

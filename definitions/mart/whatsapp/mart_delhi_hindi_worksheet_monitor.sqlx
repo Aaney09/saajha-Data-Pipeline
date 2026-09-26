@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     schema:"whatsapp",
     description:"All hindi worksheet related data for academic year 2026-27, in delhi. ",
     columns: {
