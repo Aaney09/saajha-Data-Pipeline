@@ -3,7 +3,7 @@
 config {
     type: "table",
     schema:"whatsapp",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     bigquery: {
         partitionBy: "DATE(last_profile_update_on)",
         clusterBy: ["phone_number","opted_in_at"] 

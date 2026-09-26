@@ -3,7 +3,7 @@
 config {
     type: "table",
     schema:"whatsapp",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     
 }
 
