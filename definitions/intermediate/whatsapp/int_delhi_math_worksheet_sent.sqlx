@@ -2,7 +2,7 @@ config {
     type: "table",
     schema:"whatsapp",
     description:"Contains all Worksheet related data of DELHI from 1st april 2025",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     columns: {
         phone_number: "Phone number of User",
         id: "Unique message ID ",

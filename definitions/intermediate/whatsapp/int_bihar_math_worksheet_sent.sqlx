@@ -3,7 +3,7 @@ config {
     type: "table",
     schema:"whatsapp",
     description:"Contains all Gamified Worksheet related data of Bihar from 1st april 2026",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     columns: {
         phone_number: "Phone number of User",
         id: "Unique message ID ",

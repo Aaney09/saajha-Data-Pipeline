@@ -1,7 +1,7 @@
 config {
         type: "table",
     schema:"whatsapp",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     bigquery: {
         partitionBy: "DATE(sent_at)",
         clusterBy: ["phone_number","worksheet_id","LevelNumber","parentId"] 
