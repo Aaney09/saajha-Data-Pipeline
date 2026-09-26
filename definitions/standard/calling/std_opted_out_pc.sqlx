@@ -3,7 +3,7 @@
 config {
     type: "table",
     schema:"calls",
-    tags : "call_daily",
+    tags : ["call_daily", "once_daily"],
     description: "The table contains data regarding Opted out users",
     columns: {
         parentid: "ID assigned to Parent",

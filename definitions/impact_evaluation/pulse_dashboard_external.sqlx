@@ -1,7 +1,7 @@
 -- create table `dataform.pulse_dashboard_external` as
 config {
     type: "table",
-    tags: ["IE"]
+    tags: ["IE", "once_daily"]
 }
 WITH base AS (
   SELECT

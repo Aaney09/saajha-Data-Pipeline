@@ -1,6 +1,6 @@
 config {
   type: "operations",
-  tags: ["moving_raw_data"],
+  tags: ["moving_raw_data", "once_daily"],
   description: "moving 911171279787's contact's raw data till previous day"
 }
 

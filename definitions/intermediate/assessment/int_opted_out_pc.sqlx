@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags : "call_daily",
+    tags : ["call_daily", "once_daily"],
     description: "The table contains Opt Out Data.",
     columns: {
         parentid: "ID of parent",

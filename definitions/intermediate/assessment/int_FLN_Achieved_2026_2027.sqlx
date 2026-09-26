@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "call_daily",
+    tags: ["call_daily", "once_daily"],
     description: "FLN Achieved data for current academic year",
     columns: {
         childId: "ID of child",

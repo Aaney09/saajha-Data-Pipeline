@@ -68,4 +68,3 @@ COMMIT TRANSACTION;
 -- DELETE FROM ${ref("912250555658","contacts")}
 -- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 -- COMMIT TRANSACTION; 
-

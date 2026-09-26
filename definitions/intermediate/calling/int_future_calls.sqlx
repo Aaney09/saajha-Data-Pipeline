@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "call_daily",
+    tags: ["call_daily", "once_daily"],
     schema: "calls",
     description: "Details regarding agent calling, from today onwards in future roster. (created on 11/04/2026)",
     columns: {

@@ -8,6 +8,28 @@ config {
 with hindiMath as (select *
 from  ${ref("int_Valid_Assessed_2026_2027")}
 )
+, scheduled_ids as (
+
+select
+ distinct
+  ParentId,
+  ChildId,
+  ProjectId
+  from ${ref("futureRoster")}
+  where ExtractionDate between '2026-03-31'and '2027-03-30'
+  and calldate between '2026-04-01' and '2027-03-31'
+  and projectid<>1103935
+  union distinct --------------------------- ADDED THIS BECASUE IF 2 CHILD FOR SAME PARENT ARE ASSESSED ON SAME DAY THEN WE DONT GET ID OF SECOND CHILD
+  select 
+  distinct
+  parentid,
+  childid,
+  projectid
+  from `platform_commons.prelim`
+  where date(assessmentDate)>='2026-04-01'
+
+
+)
 ,
 assessmentDetails as 
 (select *
@@ -204,7 +226,11 @@ where projectid<>1103935
 
 ,parent_journey_main_table as (
   
-select assessmentDetails.*,
+select 
+distinct 
+si.parentid,
+si.childid as assesseeActorId,
+assessmentDetails.*except(assesseeActorId),
 CASE
   WHEN Round_12_Assessment IS NOT NULL THEN 12
   WHEN Round_11_Assessment IS NOT NULL THEN 11
@@ -221,7 +247,7 @@ CASE
   ELSE 0
 END as total_assessment,
 schoolId.school_id,
-la.* except(childid),
+la.* except(parentid,childid),
 opt_in.opted_in_on,
 firstAttempt.firstCallAttemptedOn,
 opted_out.* except(parentid),
@@ -241,24 +267,27 @@ opted_out.opted_out_on<Round_11_assessment or
 opted_out.opted_out_on<Round_12_assessment
 ,"Yes","No") returnedParent
 
-from assessmentDetails 
-Inner join lastAssessed la
-on assesseeActorId = la.childid
+from scheduled_ids si
+
+left join assessmentDetails 
+on assesseeActorId=si.childid
+inner join lastAssessed la
+on si.childid = la.childid
 
 left join opt_in 
-on la.parentid = opt_in.rosterParentid
+on si.parentid = opt_in.rosterParentid
 
 left join firstAttempt
-on la.parentId = firstAttempt.parentId
+on si.parentId = firstAttempt.parentId
 
 left join opted_out
-on la.parentId = opted_out.parentId
+on si.parentId = opted_out.parentId
 
 left join fln
-on la.childid = fln.childid
+on si.childid = fln.childid
 
 left join schoolId
-on la.childId = schoolId.child_id
+on si.childId = schoolId.child_id
 
 ) 
 -----------------------------------------------------------------------------------------------------------------------------------------
@@ -496,7 +525,33 @@ group by 1
 select *
 from  `adhoc.BAU_cohorts_2026`
 )
-
+, derive_calling_round as (
+  select
+  distinct
+  parentid,
+  childid,
+  CallStartDateTime,
+  dense_rank()over(partition by childid order by round Asc) as rounds_since_april_2026 
+  from ${ref("roster")}
+  where CallStartDateTime between '2026-04-01' and '2027-03-31'
+)
+, calling_rounds as (
+  
+select
+distinct
+-- r.ParentId,
+r.childid,
+count(distinct if(rounds_since_april_2026=1 ,CallStartDateTime,null))Round_1_calls,
+count(distinct if(rounds_since_april_2026=2 ,CallStartDateTime,null))Round_2_calls,    
+count(distinct if(rounds_since_april_2026=3 ,CallStartDateTime,null))Round_3_calls,
+count(distinct if(rounds_since_april_2026=4 ,CallStartDateTime,null))Round_4_calls,
+count(distinct if(rounds_since_april_2026=5 ,CallStartDateTime,null))Round_5_calls,
+count(distinct if(rounds_since_april_2026=6 ,CallStartDateTime,null))Round_6_calls,
+count(distinct if(rounds_since_april_2026=7 ,CallStartDateTime,null))Round_7_calls,
+count(distinct if(rounds_since_april_2026=8 ,CallStartDateTime,null))Round_8_calls,
+from derive_calling_round r
+group by 1
+)
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 --   QUERY
 ---------------------------------------------------------------------------------------------------------------------------------------------------

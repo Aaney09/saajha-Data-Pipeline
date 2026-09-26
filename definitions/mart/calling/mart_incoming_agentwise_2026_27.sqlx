@@ -1,7 +1,7 @@
 
 config {
     type: "table",
-    tags: "call_daily",
+    tags: ["call_daily", "once_daily"],
     schema:"calls",
     description: "Daily incoming Agentwise for academic year 2026-27, BAU ",
     columns: {

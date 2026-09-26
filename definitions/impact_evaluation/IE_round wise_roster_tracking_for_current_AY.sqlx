@@ -157,7 +157,7 @@ from year_2025_26_dialed
 group by all
 )
 
-select distinct cohort,rounds_since_april_2025, 
+select distinct cohort,rounds_since_april_2025, rounds_since_april_2025 as round,
 unique_childid_scheduled,unique_parentid_scheduled,dialed_parent,resolved_parent,resolved_child,totalParentsAssessed,totalChildrenAssessed,
 childid_opted_out,parentid_opted_out,childid_support_terminated,parentid_support_terminated,childid_FLN_achieved,parentid_FLN_achieved
 from schedules 

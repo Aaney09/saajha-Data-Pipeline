@@ -2,7 +2,7 @@
 config {
     type: "table",
     schema: "assessment", 
-    tags: "wa_daily",
+    tags: ["wa_daily", "once_daily"],
      description: "This table is use to provide data to tech team for the checkin command used by agents",
      columns: {
         assesseeActorid: "Id of the assesse i.e the child id",

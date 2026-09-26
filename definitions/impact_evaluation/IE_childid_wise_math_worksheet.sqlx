@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: "IE"
+    tags: ["IE", "once_daily"]
 }
 
 with 
@@ -49,15 +49,15 @@ where s.childid is not null and last_message_status<>"failed"
     json_value(details, "$.contentflowmaths")mathContentProfile,
     json_value(details, "$.contentflowhindi")hindiContentProfile,
     json_value(details,"$.lastworksheetsubject")lastsubject,
-    json_value(details, "$.lastmathworksheetsent")lastsent,			
-    datetime_Add(updated_At, interval 330 minute)updated_at_ist,			
-    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date	,
+    json_value(details, "$.lastmathworksheetsent")lastsent,
+    datetime_Add(updated_At, interval 330 minute)updated_at_ist,
+    date(datetime_Add(updated_At, interval 330 minute)) profile_updated_date,
     json_value(details, "$.hindilevel")hindi_level,
     json_value(details, "$.mathslevel")math_level,
     if(json_value(details, "$.lastmathworksheetsenton")<>"",
       datetime_add(datetime(left(json_value(details, "$.lastmathworksheetsenton"),19)) ,interval 330 minute),null) as lastmathsWorksheetSentOn,
     if(json_value(details, "$.lasthindiworksheetsenton")<>"",
-      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn				
+      datetime_add(datetime(left(json_value(details, "$.lasthindiworksheetsenton"),19)) ,interval 330 minute),null) as lasthindiWorksheetSentOn
 FROM ${ref("911171817034_contacts")} c 
 
 qualify row_number() over(partition by urn,date(datetime_Add(updated_At, interval 330 minute))order by updated_at desc)=1
@@ -322,7 +322,6 @@ end as round_6_worksheet_to_Sent
 from ${ref("IE_parent_journey")} ie
 left join childid_wise_worksheet_count cww
 on assesseeActorId = childid
-
 
 
 

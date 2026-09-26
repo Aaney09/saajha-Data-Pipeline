@@ -1,7 +1,7 @@
 
 config {
      type: "table",
-    tags: "IE"
+    tags: ["IE", "once_daily"] 
 }
 
 -- create or replace table `impact_evaluation.mtp_daily_monitor_child_wise` as

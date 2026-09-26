@@ -1,5 +1,3 @@
-
-
 config {
   type: "operations",
   tags: ["move_data"],
@@ -11,42 +9,42 @@ config {
 
 
 -- Step 1: Insert into secondary table
-INSERT INTO ${ref("912250555658_contacts")}(partition_timestamp,	
+INSERT INTO ${ref("912250555658_contacts")}(partition_timestamp,
 id,
-uuid,	
-type,	
-urn,	
-details,	
-number_id,	
-organisation_id,	
-is_fallback_active,	
-failure_count,	
-inserted_at,	
-updated_at,	
-external_id,	
-import_datetime,	
-is_deleted,	
-last_update_origin,	
+uuid,
+type,
+urn,
+details,
+number_id,
+organisation_id,
+is_fallback_active,
+failure_count,
+inserted_at,
+updated_at,
+external_id,
+import_datetime,
+is_deleted,
+last_update_origin,
 profile_field_errors
 )
 -- `saajhadata.Archive.912250555658_contacts`
 SELECT 
-partition_timestamp,	
+partition_timestamp,
 id,
-uuid,	
-type,	
-urn,	
-details,	
-number_id,	
-organisation_id,	
-is_fallback_active,	
-failure_count,	
-inserted_at,	
-updated_at,	
-external_id,	
-import_datetime,	
-is_deleted,	
-last_update_origin,	
+uuid,
+type,
+urn,
+details,
+number_id,
+organisation_id,
+is_fallback_active,
+failure_count,
+inserted_at,
+updated_at,
+external_id,
+import_datetime,
+is_deleted,
+last_update_origin,
 profile_field_errors
 
 FROM ${ref("912250555658","contacts")}
@@ -59,4 +57,3 @@ AND updated_at > (
 -- DELETE FROM ${ref("912250555658","contacts")}
 -- where date(datetime_add(updated_at, INTERVAL 330 minute)) < current_date("Asia/Kolkata");
 -- COMMIT TRANSACTION; 
-
