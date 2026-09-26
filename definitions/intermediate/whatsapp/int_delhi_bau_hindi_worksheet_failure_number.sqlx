@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     schema:"whatsapp",
     description:"Bau Hindi worksheet faliure numbers for academic year 2026-27",
     columns: {

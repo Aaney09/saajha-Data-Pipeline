@@ -4,7 +4,7 @@
 -----------------------------------------------------------------------------------------
 config {
     type:"table",
-    tags: "wa_daily",
+    tags: ["wa_daily",'once_daily'],
     schema:"whatsapp",
     description:"This table contains worksheet engagement details of each child on each round for 26-27AY",
     columns:  {

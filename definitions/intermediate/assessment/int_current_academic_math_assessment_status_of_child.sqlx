@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["call_daily"],
+    tags: ["call_daily",'once_daily'],
     schema: "assessment",
     description: "Math assessment first and last level of a child from april 2026 till march 31st 2027. (created on 04/04/2026)",
     columns: {
