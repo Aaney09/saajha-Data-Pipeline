@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "IE"
+    tags: ["IE",'once_daily']
 }
 
 SELECT

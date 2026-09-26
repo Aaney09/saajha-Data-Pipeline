@@ -2,7 +2,7 @@
 
 config {
     type: "table",
-    tags: ["call_daily"],
+    tags: ["call_daily",'once_daily'],
     description: "unique parentids from april 2025 till december 31st 2026 whose one child has done at 3 assessment"
 }
 

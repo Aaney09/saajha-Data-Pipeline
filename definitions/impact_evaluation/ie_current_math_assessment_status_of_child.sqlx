@@ -1,7 +1,7 @@
 
 config {
     type: "table",
-    tags: ["IE"],
+    tags: ["IE",'once_daily'],
     description: "Math assessment first and last level of a child "
     }
 

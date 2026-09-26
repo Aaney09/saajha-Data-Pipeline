@@ -1,6 +1,6 @@
 config {
     type:"table",
-    tags: "IE"
+    tags: ["IE",'once_daily']
 }
 with  math_or_hindi_option_click as (
   select distinct

@@ -1,7 +1,7 @@
 
 config {
      type: "table",
-    tags: "IE",
+    tags: ["IE",'once_daily'],
     description:"Getting average number of calls attmepted by volunteer for MTP in last 7 days"
 }
  

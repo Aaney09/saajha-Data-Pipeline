@@ -2,7 +2,7 @@
 
 config {
     type: "view",
-    tags: ["IE"],
+    tags: ["IE",'once_daily'],
     description: "used for validating the assessments"
 }
 
