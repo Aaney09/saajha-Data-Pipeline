@@ -7,8 +7,35 @@ config {
 
 
 
-with hindiMath as (select *
-from ${ref("ie_valid_Assessed_2025_2026")}
+with hindiMath as (select valid.*
+from ${ref("ie_valid_Assessed_2025_2026")} valid
+left join ${ref("impact_evaluation_main_data")} ie
+on valid.assesseeActorId=ie.childid
+where 
+ DATE(mathassessdate) <= CASE
+    WHEN ie.cohort = 1  THEN DATE '2026-08-06'
+    WHEN ie.cohort = 2  THEN DATE '2026-08-11'
+    WHEN ie.cohort = 3  THEN DATE '2026-08-18'
+    WHEN ie.cohort = 4  THEN DATE '2026-08-25'
+    WHEN ie.cohort = 5  THEN DATE '2026-09-01'
+    WHEN ie.cohort = 6  THEN DATE '2026-09-08'
+    WHEN ie.cohort = 7  THEN DATE '2026-09-15'
+    WHEN ie.cohort = 8  THEN DATE '2026-09-22'
+    WHEN ie.cohort = 9  THEN DATE '2026-09-29'
+    WHEN ie.cohort = 10 THEN DATE '2026-10-06'
+END
+AND DATE(hindiassessdate) <= CASE
+        WHEN ie.cohort = 1  THEN DATE '2026-08-06'
+        WHEN ie.cohort = 2  THEN DATE '2026-08-11'
+        WHEN ie.cohort = 3  THEN DATE '2026-08-18'
+        WHEN ie.cohort = 4  THEN DATE '2026-08-25'
+        WHEN ie.cohort = 5  THEN DATE '2026-09-01'
+        WHEN ie.cohort = 6  THEN DATE '2026-09-08'
+        WHEN ie.cohort = 7  THEN DATE '2026-09-15'
+        WHEN ie.cohort = 8  THEN DATE '2026-09-22'
+        WHEN ie.cohort = 9  THEN DATE '2026-09-29'
+        WHEN ie.cohort = 10 THEN DATE '2026-10-06'
+    END
 )
 ,
 assessmentDetails as 

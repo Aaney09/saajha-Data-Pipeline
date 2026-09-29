@@ -79,6 +79,12 @@ SELECT
      ProjectId
   FROM
     ${ref("futureRoster")}
+    union DISTINCT
+    select
+    parentid,
+    number,
+    projectid
+    from `Archive.Data_for_PID_before_mar_25`
 
 
 
