@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["IE",'once_daily'],
+      tags: ["IE"],
     description: "IE result failure tracking for the assessed children"
     }
 
