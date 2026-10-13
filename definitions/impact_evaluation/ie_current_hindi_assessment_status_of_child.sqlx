@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["IE",'once_daily'],
+      tags: ["IE"],
     description: "Hindi assessment first and last level of Impact Evaluation child "
     }
 

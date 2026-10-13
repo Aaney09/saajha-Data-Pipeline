@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["IE",'once_daily']
+     tags: ["IE"]
 }
 
 select  DISTINCT phone_number,

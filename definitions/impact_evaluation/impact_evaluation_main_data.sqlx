@@ -1,6 +1,6 @@
 config {
     type: "table",
-    tags: ["IE",'once_daily']
+      tags: ["IE"]
 }
 
 select distinct userId as parentid,IEId as childid,Cohort,safe_cast(concat("91",UserLogin) as int64)ParentMobileMain,u.projectId,reportingUserloginname As agentMobile, reportingUserDisplayName as agentName,
