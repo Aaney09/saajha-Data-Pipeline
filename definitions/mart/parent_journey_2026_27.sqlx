@@ -455,6 +455,72 @@ where highestRound >= 3
 childid,
 -- subject,
 -- Hindi
+-- Worksheet Sent - Hindi
+MAX(IF(round_number = 1 AND subject = 'hindi', worksheet_sent, 0)) AS round_1_hindi_worksheet_sent,
+MAX(IF(round_number = 2 AND subject = 'hindi', worksheet_sent, 0)) AS round_2_hindi_worksheet_sent,
+MAX(IF(round_number = 3 AND subject = 'hindi', worksheet_sent, 0)) AS round_3_hindi_worksheet_sent,
+MAX(IF(round_number = 4 AND subject = 'hindi', worksheet_sent, 0)) AS round_4_hindi_worksheet_sent,
+MAX(IF(round_number = 5 AND subject = 'hindi', worksheet_sent, 0)) AS round_5_hindi_worksheet_sent,
+MAX(IF(round_number = 6 AND subject = 'hindi', worksheet_sent, 0)) AS round_6_hindi_worksheet_sent,
+MAX(IF(round_number = 7 AND subject = 'hindi', worksheet_sent, 0)) AS round_7_hindi_worksheet_sent,
+MAX(IF(round_number = 8 AND subject = 'hindi', worksheet_sent, 0)) AS round_8_hindi_worksheet_sent,
+MAX(IF(round_number = 9 AND subject = 'hindi', worksheet_sent, 0)) AS round_9_hindi_worksheet_sent,
+
+-- Worksheet Sent - Math
+MAX(IF(round_number = 1 AND subject = 'math', worksheet_sent, 0)) AS round_1_math_worksheet_sent,
+MAX(IF(round_number = 2 AND subject = 'math', worksheet_sent, 0)) AS round_2_math_worksheet_sent,
+MAX(IF(round_number = 3 AND subject = 'math', worksheet_sent, 0)) AS round_3_math_worksheet_sent,
+MAX(IF(round_number = 4 AND subject = 'math', worksheet_sent, 0)) AS round_4_math_worksheet_sent,
+MAX(IF(round_number = 5 AND subject = 'math', worksheet_sent, 0)) AS round_5_math_worksheet_sent,
+MAX(IF(round_number = 6 AND subject = 'math', worksheet_sent, 0)) AS round_6_math_worksheet_sent,
+MAX(IF(round_number = 7 AND subject = 'math', worksheet_sent, 0)) AS round_7_math_worksheet_sent,
+MAX(IF(round_number = 8 AND subject = 'math', worksheet_sent, 0)) AS round_8_math_worksheet_sent,
+MAX(IF(round_number = 9 AND subject = 'math', worksheet_sent, 0)) AS round_9_math_worksheet_sent,
+
+-- Worksheet Clicked - Hindi
+MAX(IF(round_number = 1 AND subject = 'hindi', worksheet_clicked, 0)) AS round_1_hindi_worksheet_clicked,
+MAX(IF(round_number = 2 AND subject = 'hindi', worksheet_clicked, 0)) AS round_2_hindi_worksheet_clicked,
+MAX(IF(round_number = 3 AND subject = 'hindi', worksheet_clicked, 0)) AS round_3_hindi_worksheet_clicked,
+MAX(IF(round_number = 4 AND subject = 'hindi', worksheet_clicked, 0)) AS round_4_hindi_worksheet_clicked,
+MAX(IF(round_number = 5 AND subject = 'hindi', worksheet_clicked, 0)) AS round_5_hindi_worksheet_clicked,
+MAX(IF(round_number = 6 AND subject = 'hindi', worksheet_clicked, 0)) AS round_6_hindi_worksheet_clicked,
+MAX(IF(round_number = 7 AND subject = 'hindi', worksheet_clicked, 0)) AS round_7_hindi_worksheet_clicked,
+MAX(IF(round_number = 8 AND subject = 'hindi', worksheet_clicked, 0)) AS round_8_hindi_worksheet_clicked,
+MAX(IF(round_number = 9 AND subject = 'hindi', worksheet_clicked, 0)) AS round_9_hindi_worksheet_clicked,
+
+-- Worksheet Clicked - Math
+MAX(IF(round_number = 1 AND subject = 'math', worksheet_clicked, 0)) AS round_1_math_worksheet_clicked,
+MAX(IF(round_number = 2 AND subject = 'math', worksheet_clicked, 0)) AS round_2_math_worksheet_clicked,
+MAX(IF(round_number = 3 AND subject = 'math', worksheet_clicked, 0)) AS round_3_math_worksheet_clicked,
+MAX(IF(round_number = 4 AND subject = 'math', worksheet_clicked, 0)) AS round_4_math_worksheet_clicked,
+MAX(IF(round_number = 5 AND subject = 'math', worksheet_clicked, 0)) AS round_5_math_worksheet_clicked,
+MAX(IF(round_number = 6 AND subject = 'math', worksheet_clicked, 0)) AS round_6_math_worksheet_clicked,
+MAX(IF(round_number = 7 AND subject = 'math', worksheet_clicked, 0)) AS round_7_math_worksheet_clicked,
+MAX(IF(round_number = 8 AND subject = 'math', worksheet_clicked, 0)) AS round_8_math_worksheet_clicked,
+MAX(IF(round_number = 9 AND subject = 'math', worksheet_clicked, 0)) AS round_9_math_worksheet_clicked,
+
+-- Worksheet Completed - Hindi
+MAX(IF(round_number = 1 AND subject = 'hindi', worksheet_completed, 0)) AS round_1_hindi_worksheet_completed,
+MAX(IF(round_number = 2 AND subject = 'hindi', worksheet_completed, 0)) AS round_2_hindi_worksheet_completed,
+MAX(IF(round_number = 3 AND subject = 'hindi', worksheet_completed, 0)) AS round_3_hindi_worksheet_completed,
+MAX(IF(round_number = 4 AND subject = 'hindi', worksheet_completed, 0)) AS round_4_hindi_worksheet_completed,
+MAX(IF(round_number = 5 AND subject = 'hindi', worksheet_completed, 0)) AS round_5_hindi_worksheet_completed,
+MAX(IF(round_number = 6 AND subject = 'hindi', worksheet_completed, 0)) AS round_6_hindi_worksheet_completed,
+MAX(IF(round_number = 7 AND subject = 'hindi', worksheet_completed, 0)) AS round_7_hindi_worksheet_completed,
+MAX(IF(round_number = 8 AND subject = 'hindi', worksheet_completed, 0)) AS round_8_hindi_worksheet_completed,
+MAX(IF(round_number = 9 AND subject = 'hindi', worksheet_completed, 0)) AS round_9_hindi_worksheet_completed,
+
+-- Worksheet Completed - Math
+MAX(IF(round_number = 1 AND subject = 'math', worksheet_completed, 0)) AS round_1_math_worksheet_completed,
+MAX(IF(round_number = 2 AND subject = 'math', worksheet_completed, 0)) AS round_2_math_worksheet_completed,
+MAX(IF(round_number = 3 AND subject = 'math', worksheet_completed, 0)) AS round_3_math_worksheet_completed,
+MAX(IF(round_number = 4 AND subject = 'math', worksheet_completed, 0)) AS round_4_math_worksheet_completed,
+MAX(IF(round_number = 5 AND subject = 'math', worksheet_completed, 0)) AS round_5_math_worksheet_completed,
+MAX(IF(round_number = 6 AND subject = 'math', worksheet_completed, 0)) AS round_6_math_worksheet_completed,
+MAX(IF(round_number = 7 AND subject = 'math', worksheet_completed, 0)) AS round_7_math_worksheet_completed,
+MAX(IF(round_number = 8 AND subject = 'math', worksheet_completed, 0)) AS round_8_math_worksheet_completed,
+MAX(IF(round_number = 9 AND subject = 'math', worksheet_completed, 0)) AS round_9_math_worksheet_completed,
+
 max(if(round_number=1 and subject='hindi', engagement_percentage, 0)) as round_1_hindi_engagement,
 max(if(round_number=2 and subject='hindi', engagement_percentage, 0)) as round_2_hindi_engagement,
 max(if(round_number=3 and subject='hindi', engagement_percentage, 0)) as round_3_hindi_engagement,
