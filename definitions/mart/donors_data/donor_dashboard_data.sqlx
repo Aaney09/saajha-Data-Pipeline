@@ -1,0 +1,11 @@
+config {
+  type: "table",
+  schema:"donor",
+  tags:"Donor",
+}
+select a.*, worksheet.* except(childid), calls.* except(childid,donor_name)
+from `donor.mart_all_donor_data_2026_2027` a
+left join `donor.mart_childwise_donor_worksheet_question` worksheet
+on a.assesseeActorid=worksheet.childid
+left join `donor.mart_childwise_Calling_data_per_donor`calls
+on a.assesseeactorid=calls.childid
